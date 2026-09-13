@@ -312,12 +312,12 @@ jobs:
           key: pw-${{ runner.os }}-${{ matrix.browser }}-${{ steps.pw-version.outputs.version }}
 
       - name: Install Playwright browser
-        timeout-minutes: 5
+        timeout-minutes: 10
         if: steps.pw-cache.outputs.cache-hit != 'true'
         run: npx playwright install --with-deps ${{ matrix.browser }}
 
       - name: Install Playwright system deps
-        timeout-minutes: 5
+        timeout-minutes: 10
         if: steps.pw-cache.outputs.cache-hit == 'true'
         run: npx playwright install-deps ${{ matrix.browser }}
 
