@@ -79,6 +79,7 @@ export interface WidgetStrings {
   pageTooComplexElementNote: string;
   fullPage: string;
   captureViewport: string;
+  viewportCaptureAlternative: string;
   selectArea: string;
   selectElement: string;
   skipScreenshot: string;

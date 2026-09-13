@@ -86,6 +86,8 @@ export const de: WidgetStrings = {
   pageTooComplexElementNote:
     'Diese Seite ist zu komplex für eine vollständige Erfassung oder eine Bereichserfassung. Wählen Sie stattdessen ein bestimmtes Element aus.',
   fullPage: 'Ganze Seite',
+  viewportCaptureAlternative:
+    'Probleme mit Screenshots? Stattdessen den sichtbaren Bereich aufnehmen',
   captureViewport: 'Sichtbaren Bereich erfassen',
   selectArea: 'Bereich auswählen',
   selectElement: 'Element auswählen',

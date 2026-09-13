@@ -84,6 +84,8 @@ export const nl: WidgetStrings = {
   pageTooComplexElementNote:
     'Deze pagina is te complex om volledig of per gebied vast te leggen. Selecteer in plaats daarvan een specifiek element.',
   fullPage: 'Volledige pagina',
+  viewportCaptureAlternative:
+    'Problemen met screenshots? Leg in plaats daarvan het zichtbare gebied vast',
   captureViewport: 'Zichtbaar deel vastleggen',
   selectArea: 'Gebied selecteren',
   selectElement: 'Element selecteren',

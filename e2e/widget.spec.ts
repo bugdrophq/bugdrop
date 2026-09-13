@@ -5193,13 +5193,11 @@ test.describe('Screenshot Crash Prevention (#67)', () => {
 
     const viewportBtn = host.locator('css=[data-action="viewport"]');
     await expect(viewportBtn).toBeVisible();
-    await expect(viewportBtn).toHaveText('Capture Viewport');
+    await expect(viewportBtn).toHaveText('Screenshot Issues? Capture Viewport instead');
     await expect(host.locator('css=[data-action="capture"]')).not.toBeAttached();
     await expect(host.locator('css=[data-action="area"]')).not.toBeAttached();
     await expect(host.locator('css=p >> text=visible viewport')).toBeVisible();
-    await expect(host.locator('css=.bd-redaction-note')).toContainText(
-      'Browser viewport capture cannot apply automatic private-field masks'
-    );
+    await expect(host.locator('css=.bd-redaction-note')).not.toBeAttached();
 
     await viewportBtn.click();
 

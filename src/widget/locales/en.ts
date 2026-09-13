@@ -81,6 +81,7 @@ export const en: WidgetStrings = {
   pageTooComplexElementNote:
     'This page is too complex for full-page or area capture. Select a specific element instead.',
   fullPage: 'Full Page',
+  viewportCaptureAlternative: 'Screenshot Issues? Capture Viewport instead',
   captureViewport: 'Capture Viewport',
   selectArea: 'Select Area',
   selectElement: 'Select Element',

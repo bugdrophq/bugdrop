@@ -359,9 +359,7 @@ test.describe('paired default-flow screenshot compatibility oracle', () => {
 
         const widget = host(page);
         await expect(widget.locator('css=[data-action="viewport"]')).toBeVisible();
-        await expect(widget.locator('css=.bd-redaction-note')).toContainText(
-          'cannot apply automatic private-field masks'
-        );
+        await expect(widget.locator('css=.bd-redaction-note')).not.toBeAttached();
         await observe(page, trace, 'viewport-options-with-privacy-notice');
         await act(page, trace, 'capture-viewport', '[data-action="viewport"]');
         await expect(widget.locator('css=#annotation-canvas')).toBeVisible({ timeout: 10000 });

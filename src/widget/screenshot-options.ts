@@ -20,13 +20,11 @@ export function showScreenshotOptions(
   opts?: { allowSkip?: boolean }
 ): Promise<ScreenshotChoice> {
   const fullPageDisabled = isFullPageDisabled();
-  const nativeViewportAvailable = fullPageDisabled && canCaptureViewportNatively();
+  const nativeViewportAvailable = canCaptureViewportNatively();
   const allowSkip = opts?.allowSkip !== false;
 
   let redactionNote = '';
-  if (nativeViewportAvailable) {
-    redactionNote = redactionNoteHtml(t().viewportRedactionWarning);
-  } else if (getRedactionCount() > 0) {
+  if (getRedactionCount() > 0) {
     redactionNote = redactionNoteHtml(t().redactionReviewNote);
   }
 
@@ -38,8 +36,6 @@ export function showScreenshotOptions(
     let primaryCaptureButton = '';
     if (!fullPageDisabled) {
       primaryCaptureButton = `<button class="bd-btn bd-btn-primary" data-action="capture">${escapeWidgetText(t().fullPage)}</button>`;
-    } else if (nativeViewportAvailable) {
-      primaryCaptureButton = `<button class="bd-btn bd-btn-primary" data-action="viewport">${escapeWidgetText(t().captureViewport)}</button>`;
     }
 
     const modal = createModal(
@@ -55,6 +51,7 @@ export function showScreenshotOptions(
           <button class="bd-btn bd-btn-secondary" data-action="element">${escapeWidgetText(t().selectElement)}</button>
           ${allowSkip ? `<button class="bd-btn bd-btn-quiet" data-action="skip">${escapeWidgetText(t().skipScreenshot)}</button>` : ''}
         </div>
+        ${nativeViewportAvailable ? `<p style="text-align: center; margin: 16px 0 0;"><a href="#" data-action="viewport" style="color: var(--bd-text-secondary); text-decoration: underline; text-underline-offset: 3px; font-size: 13px;">${escapeWidgetText(t().viewportCaptureAlternative)}</a></p>` : ''}
       `
     );
 
@@ -90,7 +87,8 @@ export function showScreenshotOptions(
       resolve({ kind: 'capture' });
     });
 
-    viewportBtn?.addEventListener('click', () => {
+    viewportBtn?.addEventListener('click', event => {
+      event.preventDefault();
       modal.remove();
       // beginViewportCapture must run synchronously inside the click handler to
       // preserve the user gesture required by getDisplayMedia. The in-flight

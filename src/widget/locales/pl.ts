@@ -93,6 +93,7 @@ export const pl: WidgetStrings = {
   pageTooComplexElementNote:
     'Ta strona jest zbyt złożona, aby przechwycić całą stronę lub zaznaczony obszar. Zamiast tego zaznacz konkretny element.',
   fullPage: 'Cała strona',
+  viewportCaptureAlternative: 'Problemy ze zrzutem? Zamiast tego przechwyć widoczny obszar',
   captureViewport: 'Przechwyć widoczny obszar',
   selectArea: 'Zaznacz obszar',
   selectElement: 'Zaznacz element',

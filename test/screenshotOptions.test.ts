@@ -75,6 +75,37 @@ describe('screenshot options', () => {
     await expect(result).resolves.toEqual({ kind: 'element' });
   });
 
+  it('hides the viewport link when native capture is unavailable on ordinary pages', async () => {
+    const root = document.createElement('div');
+    document.body.append(root);
+    const { showScreenshotOptions } = await import('../src/widget/screenshot-options');
+    const result = showScreenshotOptions(root);
+    expect(root.querySelector('[data-action="viewport"]')).toBeNull();
+    root.querySelector<HTMLElement>('[data-action="skip"]')?.click();
+    await expect(result).resolves.toEqual({ kind: 'skip' });
+  });
+
+  it('offers viewport capture alongside DOM capture on ordinary pages', async () => {
+    screenshotMocks.canCaptureViewportNatively.mockReturnValue(true);
+    const root = document.createElement('div');
+    document.body.append(root);
+    const { showScreenshotOptions } = await import('../src/widget/screenshot-options');
+    const result = showScreenshotOptions(root);
+    for (const action of ['capture', 'viewport', 'area', 'element']) {
+      expect(root.querySelector(`[data-action="${action}"]`)).not.toBeNull();
+    }
+    expect(root.textContent).not.toContain('cannot apply automatic private-field masks');
+    const viewport = root.querySelector('[data-action="viewport"]')!;
+    expect(viewport.tagName).toBe('A');
+    expect(viewport.textContent).toBe('Screenshot Issues? Capture Viewport instead');
+    expect(viewport.closest('.bd-actions')).toBeNull();
+    const click = new MouseEvent('click', { bubbles: true, cancelable: true });
+    viewport.dispatchEvent(click);
+    expect(click.defaultPrevented).toBe(true);
+    expect(screenshotMocks.beginViewportCapture).toHaveBeenCalledTimes(1);
+    expect(await result).toMatchObject({ kind: 'viewport' });
+  });
+
   it('starts viewport capture inside the click and returns the same delayed promise', async () => {
     screenshotMocks.isFullPageDisabled.mockReturnValue(true);
     screenshotMocks.canCaptureViewportNatively.mockReturnValue(true);
@@ -88,8 +119,14 @@ describe('screenshot options', () => {
     const { showScreenshotOptions } = await import('../src/widget/screenshot-options');
     const result = showScreenshotOptions(root);
 
-    expect(root.textContent).toContain('cannot apply automatic private-field masks');
-    root.querySelector<HTMLElement>('[data-action="viewport"]')?.click();
+    expect(root.textContent).not.toContain('cannot apply automatic private-field masks');
+    const viewport = root.querySelector('[data-action="viewport"]')!;
+    expect(viewport.tagName).toBe('A');
+    expect(viewport.textContent).toBe('Screenshot Issues? Capture Viewport instead');
+    expect(viewport.closest('.bd-actions')).toBeNull();
+    const click = new MouseEvent('click', { bubbles: true, cancelable: true });
+    viewport.dispatchEvent(click);
+    expect(click.defaultPrevented).toBe(true);
     expect(screenshotMocks.beginViewportCapture).toHaveBeenCalledTimes(1);
     const choice = await result;
     expect(choice).toEqual({ kind: 'viewport', capture });
