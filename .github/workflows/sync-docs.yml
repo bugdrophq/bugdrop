@@ -22,7 +22,7 @@ jobs:
       - name: Checkout bugdrop-web
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          repository: mean-weasel/bugdrop-web
+          repository: bugdrophq/bugdrop-web
           path: bugdrop-web
           token: ${{ secrets.BUGDROP_WEB_TOKEN }}
 
@@ -30,7 +30,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.BUGDROP_WEB_TOKEN }}
         run: |
-          node scripts/sync-website-docs.mjs bugdrop-web "$GITHUB_SHA"
+          node scripts/sync-website-docs.mjs bugdrop-web "$GITHUB_SHA" "$GITHUB_REPOSITORY"
           cd bugdrop-web
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
@@ -42,8 +42,8 @@ jobs:
             git checkout -b "$BRANCH"
             git commit -m "docs: sync documentation from bugdrop repo"
             git push -u origin "$BRANCH"
-            gh pr create --repo mean-weasel/bugdrop-web \
+            gh pr create --repo bugdrophq/bugdrop-web \
               --title "docs: sync documentation from bugdrop repo" \
-              --body "Automated sync of canonical website documentation and the released Flow capability manifest from mean-weasel/bugdrop at $GITHUB_SHA." \
+              --body "Automated sync of canonical website documentation and the released Flow capability manifest from $GITHUB_REPOSITORY at $GITHUB_SHA." \
               --base main --head "$BRANCH"
           fi

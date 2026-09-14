@@ -136,6 +136,9 @@ describe('website documentation sync', () => {
   it('stages both documentation and the canonical capability manifest', async () => {
     const workflow = await readFile('.github/workflows/sync-docs.yml', 'utf8');
     expect(workflow).toContain('git add src/content/docs/ src/lib/flow-capabilities.ts');
+    expect(workflow).toContain('repository: bugdrophq/bugdrop-web');
+    expect(workflow).toContain('"$GITHUB_SHA" "$GITHUB_REPOSITORY"');
+    expect(workflow).toContain('gh pr create --repo bugdrophq/bugdrop-web');
   });
 
   it('copies every canonical page and capability manifest with content hashes', async () => {
@@ -155,6 +158,21 @@ describe('website documentation sync', () => {
       );
       expect(entry.sha256).toMatch(/^[a-f0-9]{64}$/);
     }
+  });
+
+  it('records the destination organization after repository transfer', async () => {
+    const target = await temporaryWebsite();
+    const manifest = await syncWebsiteDocs(target, 'source-revision', 'bugdrophq/bugdrop');
+
+    expect(manifest.sourceRepository).toBe('bugdrophq/bugdrop');
+  });
+
+  it('rejects source repositories outside the migration allowlist', async () => {
+    const target = await temporaryWebsite();
+
+    await expect(
+      syncWebsiteDocs(target, 'source-revision', 'someone-else/bugdrop')
+    ).rejects.toThrow('not an approved BugDrop location');
   });
 
   it('removes only retired files previously owned by the manifest', async () => {

@@ -3,7 +3,11 @@
 import { appendFile } from 'node:fs/promises';
 import { pathToFileURL } from 'node:url';
 
-export const CANONICAL_REPOSITORY = 'mean-weasel/bugdrop';
+export const CANONICAL_REPOSITORIES = Object.freeze(['mean-weasel/bugdrop', 'bugdrophq/bugdrop']);
+export const CANONICAL_TEST_REPOSITORIES = Object.freeze([
+  'mean-weasel/bugdrop-widget-test',
+  'bugdrophq/bugdrop-widget-test',
+]);
 
 export const CANONICAL_HEARTBEAT_CONFIG = Object.freeze({
   widgetOrigin: 'https://bugdrop.neonwatty.workers.dev',
@@ -23,14 +27,30 @@ const VARIABLE_NAMES = Object.freeze({
 
 export function resolveProductionHeartbeatConfig({ repository, variables = {} }) {
   const currentRepository = repositorySlug(repository, 'GITHUB_REPOSITORY');
+  const migrationTestRepo = text(variables.BUGDROP_TEST_REPOSITORY);
   const supplied = Object.fromEntries(
     Object.entries(VARIABLE_NAMES).map(([field, name]) => [field, text(variables[name])])
   );
   const hasOverrides = Object.values(supplied).some(Boolean);
+  if (migrationTestRepo && hasOverrides) {
+    throw new Error(
+      'BUGDROP_TEST_REPOSITORY cannot be combined with BUGDROP_HEARTBEAT_* overrides'
+    );
+  }
 
-  if (sameRepository(currentRepository, CANONICAL_REPOSITORY) && !hasOverrides) {
+  if (
+    CANONICAL_REPOSITORIES.some(repository => sameRepository(currentRepository, repository)) &&
+    !hasOverrides
+  ) {
+    const testRepo = migrationTestRepo
+      ? repositorySlug(migrationTestRepo, 'BUGDROP_TEST_REPOSITORY')
+      : CANONICAL_HEARTBEAT_CONFIG.testRepo;
+    if (!CANONICAL_TEST_REPOSITORIES.some(repository => sameRepository(testRepo, repository))) {
+      throw new Error('BUGDROP_TEST_REPOSITORY is not an approved BugDrop migration target');
+    }
     return {
       ...CANONICAL_HEARTBEAT_CONFIG,
+      testRepo,
       expectedLabels: [...CANONICAL_HEARTBEAT_CONFIG.expectedLabels],
     };
   }
@@ -67,10 +87,13 @@ function sameRepository(left, right) {
 }
 
 export function heartbeatEnvironment(config, repository) {
+  const [testRepoOwner, testRepoName] = config.testRepo.split('/');
   return {
     EXPECTED_WIDGET_ORIGIN: config.widgetOrigin,
     PLAYWRIGHT_BASE_URL: config.venueOrigin,
     BUGDROP_CANARY_REPO: config.testRepo,
+    BUGDROP_CANARY_REPO_OWNER: testRepoOwner,
+    BUGDROP_CANARY_REPO_NAME: testRepoName,
     BUGDROP_CANARY_EXPECTED_AUTHOR: config.expectedAuthor,
     BUGDROP_CANARY_EXPECTED_LABELS_JSON: JSON.stringify(config.expectedLabels),
     BUGDROP_HEARTBEAT_INCIDENT_REPO: repositorySlug(repository, 'GITHUB_REPOSITORY'),

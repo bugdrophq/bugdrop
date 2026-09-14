@@ -1,4 +1,5 @@
 const REPO = 'mean-weasel/bugdrop-widget-test';
+const MIGRATION_REPOSITORIES = Object.freeze([REPO, 'bugdrophq/bugdrop-widget-test']);
 
 const PROFILES = Object.freeze({
   preview: Object.freeze({
@@ -63,13 +64,27 @@ export function isGitHubIssueUrlForRepository(value, repo, number) {
 }
 
 export function getCanaryProfile(name, environment = process.env) {
-  const profile = name === 'production' ? runtimeProductionProfile(environment) : PROFILES[name];
+  const profile =
+    name === 'production'
+      ? runtimeProductionProfile(environment)
+      : name === 'preview'
+        ? runtimePreviewProfile(environment)
+        : undefined;
   if (!profile) {
     throw new Error(
       `Unknown canary profile: ${name || '(missing)'}; expected ${CANARY_PROFILE_NAMES.join(' or ')}`
     );
   }
   return profile;
+}
+
+function runtimePreviewProfile(environment) {
+  const repo = environment.BUGDROP_CANARY_REPO?.trim() || REPO;
+  if (!MIGRATION_REPOSITORIES.some(candidate => isSameGitHubRepository(repo, candidate))) {
+    throw new Error('Preview canary repository is not an approved BugDrop migration target');
+  }
+  if (isSameGitHubRepository(repo, REPO)) return PROFILES.preview;
+  return Object.freeze({ ...PROFILES.preview, repo });
 }
 
 export function validateCanarySelector({

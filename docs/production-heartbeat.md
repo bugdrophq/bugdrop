@@ -3,26 +3,29 @@
 The `Production Heartbeat` workflow exercises the real production widget, creates one synthetic
 Issue in a dedicated test repository, independently verifies it, closes every run-marker match,
 proves zero open production-prefix Issues, and reconciles one incident in the repository running the
-workflow. The canonical BugDrop installation uses `mean-weasel/bugdrop-widget-test` for synthetic
-Issues and `mean-weasel/bugdrop` for incidents.
+workflow. During migration preparation, the canonical BugDrop installation uses
+`mean-weasel/bugdrop-widget-test` for synthetic Issues. It accepts both `mean-weasel/bugdrop` and
+`bugdrophq/bugdrop` as the canonical workflow repository so the core repository can move first while
+the test target remains unchanged.
 
 Scheduled events are inert unless `BUGDROP_PRODUCTION_HEARTBEAT_MODE` is exactly `daily` or
 `four-hour`. An unset value, `manual`, or an unknown value skips both cron entries. GitHub cron
 timing is approximate.
 
 The workflow is not automatically configured for a fork or private copy. Built-in service origins
-and repository defaults are accepted only when `GITHUB_REPOSITORY` is `mean-weasel/bugdrop`. Every
-other repository must provide a complete self-hosted configuration. This prevents a partially
-configured fork from accidentally exercising the canonical BugDrop service.
+and repository defaults are accepted only when `GITHUB_REPOSITORY` is `mean-weasel/bugdrop` or
+`bugdrophq/bugdrop`. Every other repository must provide a complete self-hosted configuration. This
+prevents a partially configured fork from accidentally exercising the canonical BugDrop service.
 
 ## Prerequisites
 
 - Protect the `production` GitHub environment with required reviewers for release jobs. The heartbeat
   deliberately does not enter that approval-gated environment, because scheduled monitoring must run
   unattended; it uses only the narrowly scoped repository secrets listed below.
-- Install a dedicated monitoring-only GitHub App on exactly
-  `mean-weasel/bugdrop-widget-test`. The App must have only metadata read and Issues write, no
-  webhook subscriptions, and no installation access to other repositories.
+- Install a dedicated monitoring-only GitHub App on exactly the active test repository. During the
+  organization move, that is either `mean-weasel/bugdrop-widget-test` or
+  `bugdrophq/bugdrop-widget-test`. The App must have only metadata read and Issues write, no webhook
+  subscriptions, and no installation access to other repositories after the cutover is proven.
 - Set its numeric App ID as the repository variable `BUGDROP_HEARTBEAT_MONITOR_APP_ID` and its
   private key as the repository Actions secret
   `BUGDROP_HEARTBEAT_MONITOR_PRIVATE_KEY`.
@@ -65,10 +68,9 @@ Before configuration:
 5. Confirm `https://<your-worker-origin>/api/health` reports `environment=production` and a full
    lowercase 40-character `buildSha`. The deployment process must set `ENVIRONMENT=production` and
    `BUILD_SHA` to the deployed source commit.
-6. Provision a separate monitoring App for the self-hosted installation and replace the canonical
-   token-mint owner/repository inputs before enabling the workflow. The checked-in canonical inputs
-   deliberately mint only for `mean-weasel/bugdrop-widget-test`; repository variables cannot widen
-   that installation boundary.
+6. Provision a separate monitoring App for the self-hosted installation and provide the complete
+   self-hosted heartbeat configuration before enabling the workflow. The token-mint owner and
+   repository are derived from that validated configuration.
 7. Confirm the self-hosted repository permits the GitHub-maintained Actions used by the workflow.
    Private repositories consume the account's applicable GitHub Actions allowance.
 8. Replace and review both canonical receiver endpoints before configuring
@@ -90,10 +92,18 @@ Set these repository variables under **Settings > Secrets and variables > Action
 | `BUGDROP_PRODUCTION_HEARTBEAT_MODE` | Later | Leave unset until staged activation |
 | `BUGDROP_HEARTBEAT_MONITOR_APP_ID` | Yes | Numeric App ID of the dedicated monitoring-only GitHub App |
 
+For the canonical migration only, leave `BUGDROP_TEST_REPOSITORY` unset while the test repository
+remains under `mean-weasel`. Immediately after that repository transfers, set it to
+`bugdrophq/bugdrop-widget-test`. The same allowlisted variable switches the production heartbeat,
+merge-queue preview canary, and scheduled janitor together; it cannot change origins, expected
+authors, labels, or self-hosted defaults.
+Do not combine `BUGDROP_TEST_REPOSITORY` with any `BUGDROP_HEARTBEAT_*` override; configuration
+rejects that mixed mode before network access.
+
 Set `BUGDROP_HEARTBEAT_MONITOR_PRIVATE_KEY` as a repository Actions secret. It belongs only to the
 monitoring App and is separate from the production BugDrop App and every Worker credential. The
 workflow uses the pinned `actions/create-github-app-token` action to mint one short-lived
-installation token for `mean-weasel/bugdrop-widget-test` with Issues write. Only the preflight,
+installation token for the configured test repository with Issues write. Only the preflight,
 verify, evidence, cleanup, and sweep helpers consume its masked action-step `token` output. The token
 is not promoted to job or workflow outputs and never reaches Playwright, a browser page, runtime
 code, logs, or diagnostics artifacts. At completion, the action's default post step attempts to

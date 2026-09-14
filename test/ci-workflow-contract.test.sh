@@ -541,7 +541,7 @@ grep -Fq 'mv "$CANDIDATE_PATH" "$EXACT_WIDGET_FIXTURE_PATH"' <<< "$critical" ||
   fail 'preview deployment must have exactly one workflow owner'
 [[ $(grep -Fc 'chromium-issue-canary' "$ci_workflow") -eq 1 ]] ||
   fail 'the real canary must have exactly one workflow invocation'
-[[ $(grep -Fc 'BUGDROP_CANARY_GITHUB_TOKEN: ${{ secrets.BUGDROP_CANARY_GITHUB_TOKEN }}' "$ci_workflow") -eq 4 ]] ||
+[[ $(grep -Fc 'BUGDROP_CANARY_GITHUB_TOKEN: ${{ steps.preview-monitor-token.outputs.token }}' "$ci_workflow") -eq 4 ]] ||
   fail 'the token must appear only in preflight, verify, current cleanup, and final sweep step envs'
 for token_step in \
   'Preflight stale canary cleanup' \
@@ -551,9 +551,21 @@ for token_step in \
   token_step_line=$(grep -n "name: $token_step" "$ci_workflow" | cut -d: -f1)
   [[ -n "$token_step_line" ]] || fail "token-scoped step is missing: $token_step"
   sed -n "${token_step_line},$((token_step_line + 12))p" "$ci_workflow" |
-    grep -Fq 'BUGDROP_CANARY_GITHUB_TOKEN: ${{ secrets.BUGDROP_CANARY_GITHUB_TOKEN }}' ||
+    grep -Fq 'BUGDROP_CANARY_GITHUB_TOKEN: ${{ steps.preview-monitor-token.outputs.token }}' ||
     fail "the token is not scoped to its intended step: $token_step"
 done
+for required_monitoring_contract in \
+  'name: Select monitoring App installation' \
+  'mean-weasel/bugdrop-widget-test|bugdrophq/bugdrop-widget-test' \
+  'name: Mint monitoring-only GitHub App token' \
+  'owner: ${{ env.BUGDROP_CANARY_REPO_OWNER }}' \
+  'repositories: ${{ env.BUGDROP_CANARY_REPO_NAME }}'; do
+  grep -Fq -- "$required_monitoring_contract" <<< "$critical" ||
+    fail "critical preview job lacks: $required_monitoring_contract"
+done
+if grep -Fq 'BUGDROP_CANARY_GITHUB_TOKEN: ${{ secrets.BUGDROP_CANARY_GITHUB_TOKEN }}' <<< "$critical"; then
+  fail 'critical preview job must not use the legacy long-lived canary token'
+fi
 [[ $(grep -Fc -- '--profile preview' <<< "$critical") -eq 4 ]] ||
   fail 'every preview Issue operation must select the preview profile explicitly'
 if grep -Eq '^    env:|^env:' <<< "$critical"; then
@@ -650,8 +662,13 @@ require_literal "$live_workflow" 'node scripts/github-issue-canary.mjs sweep'
 require_literal "$live_workflow" '--profile preview'
 require_literal "$live_workflow" "LIVE_TARGET: \${{ github.event_name == 'schedule' && 'preview'"
 require_literal "$live_workflow" 'persist-credentials: false'
-[[ $(grep -Fc 'BUGDROP_CANARY_GITHUB_TOKEN: ${{ secrets.BUGDROP_CANARY_GITHUB_TOKEN }}' "$live_workflow") -eq 1 ]] ||
+[[ $(grep -Fc 'BUGDROP_CANARY_GITHUB_TOKEN: ${{ steps.scheduled-monitor-token.outputs.token }}' "$live_workflow") -eq 1 ]] ||
   fail 'the janitor token must exist only on its sweep step'
+require_literal "$live_workflow" 'name: Select monitoring App installation'
+require_literal "$live_workflow" 'name: Mint monitoring-only GitHub App token'
+[[ $(grep -Fc "if: always() && github.event_name == 'schedule'" "$live_workflow") -eq 3 ]] ||
+  fail 'scheduled App selection, token minting, and janitor sweep must run independently of browser outcomes'
+require_literal "$live_workflow" 'BUGDROP_HEARTBEAT_MONITOR_PRIVATE_KEY:'
 require_absent "$live_workflow" 'widget.issue-canary.spec.ts'
 require_absent "$live_workflow" 'chromium-issue-canary'
 require_absent "$live_workflow" 'BUGDROP_CANARY_MARKER'
