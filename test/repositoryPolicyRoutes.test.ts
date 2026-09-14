@@ -226,3 +226,17 @@ for (const [format, payload] of Object.entries({ legacy, structured })) {
     });
   });
 }
+
+describe('legacy repository format', () => {
+  it('rejects an allowlisted repository with extra path segments before GitHub access', async () => {
+    const malformedRepo = 'testowner/testrepo/extra';
+    const response = await submit(
+      { ...legacy, repo: malformedRepo },
+      { ...env, ALLOWED_REPOSITORIES: malformedRepo }
+    );
+
+    expect(response.status).toBe(400);
+    expect(await response.json()).toEqual({ error: 'Invalid repo format. Expected: owner/repo' });
+    expectNoGitHub();
+  });
+});

@@ -1,4 +1,4 @@
-import { isRepositoryAllowed } from '../lib/repository-policy';
+import { isRepositoryAllowed, isValidRepositoryName } from '../lib/repository-policy';
 import { Hono, type Context, type Next } from 'hono';
 import { cors } from 'hono/cors';
 import type {
@@ -272,8 +272,7 @@ api.post('/feedback', async c => {
   }
 
   // Parse owner/repo
-  const [owner, repo] = payload.repo.split('/');
-  if (!owner || !repo) {
+  if (!isValidRepositoryName(payload.repo)) {
     return c.json(
       {
         error: 'Invalid repo format. Expected: owner/repo',
@@ -281,6 +280,7 @@ api.post('/feedback', async c => {
       400
     );
   }
+  const [owner, repo] = payload.repo.split('/');
 
   if (!isRepositoryAllowed(c.env.ALLOWED_REPOSITORIES, payload.repo)) {
     return c.json({ error: 'Repository is not allowed' }, 403);
