@@ -155,7 +155,7 @@ installs dependencies, builds the widget, and runs all tests to verify the setup
 
 - Widget computes `apiUrl` from `script.src` using regex: `/\/widget(?:\.v[\d.]+)?\.js$/`
 - GitHub App slug: `neonwatty-bugdrop` (name `bugdrop` was reserved by a defunct app)
-- Repo is in the `mean-weasel` org (transferred from `neonwatty` for merge queue support)
+- Repo is in the `bugdrophq` org (transferred from `mean-weasel` on 2026-09-14)
 - `html-to-image` library bundled into widget.js via esbuild (static import, not CDN-loaded)
 - Complex DOM pages (>3000 nodes) get reduced pixelRatio; pages with >10k nodes have Full Page and Select Area buttons hidden entirely
 

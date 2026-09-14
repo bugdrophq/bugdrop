@@ -93,7 +93,7 @@ Look for the transition point in your results:
 ## Sharing results
 
 To help us pick the right threshold across different machines, share your JSON
-file contents in [issue #101](https://github.com/mean-weasel/bugdrop/issues/101)
+file contents in [issue #101](https://github.com/bugdrophq/bugdrop/issues/101)
 or a linked discussion. The machine info is included automatically.
 
 ## What it measures

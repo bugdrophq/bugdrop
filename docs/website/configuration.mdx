@@ -304,7 +304,7 @@ Then reference that function on the BugDrop script tag:
 
 The provider may return either a raw token or a value already prefixed with `Bearer `. BugDrop calls it before installation checks and feedback submissions, then sends the token in the `Authorization` header.
 
-This attribute only adds the client-side header. Your self-hosted worker must also set `AUTH_TOKEN_SECRET` or `AUTH_TOKEN_ADDITIONAL_SECRETS` to enforce the token gate. One configured worker secret must be byte-for-byte identical to the host app's token-signing secret; if a valid-looking `bd1` token is rejected, check for trailing newlines or quoting differences. See the [Self-Hosting guide](https://github.com/mean-weasel/bugdrop/blob/main/SELF_HOSTING.md) for the worker environment variables, secret hygiene notes, and token claim format.
+This attribute only adds the client-side header. Your self-hosted worker must also set `AUTH_TOKEN_SECRET` or `AUTH_TOKEN_ADDITIONAL_SECRETS` to enforce the token gate. One configured worker secret must be byte-for-byte identical to the host app's token-signing secret; if a valid-looking `bd1` token is rejected, check for trailing newlines or quoting differences. See the [Self-Hosting guide](https://github.com/bugdrophq/bugdrop/blob/main/SELF_HOSTING.md) for the worker environment variables, secret hygiene notes, and token claim format.
 
 ### Rules and behavior
 

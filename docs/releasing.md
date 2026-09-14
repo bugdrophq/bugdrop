@@ -208,8 +208,8 @@ sha256sum -c checksums.sha256
 LC_ALL=C sha256sum -- "${subjects[@]}" | LC_ALL=C sort -k2 > local-subjects.sha256
 
 identity_policy=(
-  --repo mean-weasel/bugdrop
-  --signer-workflow mean-weasel/bugdrop/.github/workflows/deploy.yml
+  --repo bugdrophq/bugdrop
+  --signer-workflow bugdrophq/bugdrop/.github/workflows/deploy.yml
   --signer-digest "$controller_sha"
   --source-digest "$controller_sha"
   --source-ref refs/heads/main

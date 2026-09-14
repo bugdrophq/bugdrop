@@ -154,7 +154,7 @@ it. Maintainers of the canonical service should follow [the release runbook](doc
 
 Self-hosted deployments do not automatically run BugDrop's production heartbeat. The workflow is
 inert until explicitly enabled, and canonical service defaults are accepted only in the upstream
-`mean-weasel/bugdrop` repository. A private fork or copy must provide its own Worker origin, fixed
+`bugdrophq/bugdrop` repository. A private fork or copy must provide its own Worker origin, fixed
 test venue, separate synthetic-Issue repository, GitHub App author, and narrowly scoped verification
 credential.
 

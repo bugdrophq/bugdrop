@@ -7,7 +7,7 @@ const websitePolicy = readFileSync(
   'utf8'
 );
 
-const privateReportUrl = 'https://github.com/mean-weasel/bugdrop/security/advisories/new';
+const privateReportUrl = 'https://github.com/bugdrophq/bugdrop/security/advisories/new';
 const fallbackEmails = ['mailto:neonwatty@gmail.com', 'mailto:jeremy@mean-weasel.com'];
 
 describe('security reporting policy', () => {
@@ -30,6 +30,6 @@ describe('security reporting policy', () => {
   });
 
   it('points website readers to the canonical repository policy', () => {
-    expect(websitePolicy).toContain('https://github.com/mean-weasel/bugdrop/security/policy');
+    expect(websitePolicy).toContain('https://github.com/bugdrophq/bugdrop/security/policy');
   });
 });

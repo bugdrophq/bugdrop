@@ -2,7 +2,7 @@
 
 import { pathToFileURL } from 'node:url';
 
-export const INCIDENT_REPO = 'mean-weasel/bugdrop';
+export const INCIDENT_REPO = 'bugdrophq/bugdrop';
 export const INCIDENT_TITLE = '[BugDrop production heartbeat] Incident';
 
 const API_BASE = 'https://api.github.com';

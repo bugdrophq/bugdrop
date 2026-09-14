@@ -547,7 +547,7 @@ function formatStructuredIssueBody(payload: StructuredFeedbackPayload, warnings:
   sections.push('', '</details>', '');
   sections.push(`<!-- bugdrop-submission: ${payload.submissionId} -->`, '');
   sections.push('---');
-  sections.push('*Submitted via [BugDrop](https://github.com/mean-weasel/bugdrop)*');
+  sections.push('*Submitted via [BugDrop](https://github.com/bugdrophq/bugdrop)*');
   return sections.join('\n');
 }
 

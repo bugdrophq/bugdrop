@@ -38,4 +38,4 @@ These terms may be updated from time to time. Changes will be reflected in this 
 
 ## Contact
 
-For questions, open an issue at [github.com/mean-weasel/bugdrop](https://github.com/mean-weasel/bugdrop).
+For questions, open an issue at [github.com/bugdrophq/bugdrop](https://github.com/bugdrophq/bugdrop).

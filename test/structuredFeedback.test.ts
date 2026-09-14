@@ -83,7 +83,7 @@ const expectedBody = `## Rating
 <!-- bugdrop-submission: submission-1234 -->
 
 ---
-*Submitted via [BugDrop](https://github.com/mean-weasel/bugdrop)*`;
+*Submitted via [BugDrop](https://github.com/bugdrophq/bugdrop)*`;
 
 describe('structured feedback Worker contract', () => {
   let app: Hono;

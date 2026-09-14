@@ -1598,7 +1598,7 @@ export function showSuccessModal(
           <button class="bd-btn bd-btn-primary" data-action="done">${escapeWidgetText(t().done)}</button>
         </div>
         <div class="bd-powered-by">
-          <a href="https://github.com/mean-weasel/bugdrop" target="_blank" rel="noopener noreferrer">Powered by BugDrop</a>
+          <a href="https://github.com/bugdrophq/bugdrop" target="_blank" rel="noopener noreferrer">Powered by BugDrop</a>
         </div>
       `,
       true

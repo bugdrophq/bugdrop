@@ -24,7 +24,7 @@ jobs:
         env:
           REQUESTED_REPOSITORY: ${{ vars.BUGDROP_WEB_REPOSITORY }}
         run: |
-          repository="${REQUESTED_REPOSITORY:-mean-weasel/bugdrop-web}"
+          repository="${REQUESTED_REPOSITORY:-bugdrophq/bugdrop-web}"
           case "$repository" in
             mean-weasel/bugdrop-web|bugdrophq/bugdrop-web) ;;
             *)
@@ -37,8 +37,8 @@ jobs:
       - name: Checkout bugdrop-web
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          # The old slug follows GitHub's permanent transfer redirect and remains
-          # the default until BUGDROP_WEB_TOKEN is authorized for the new owner.
+          # Keep the old slug in the allowlist for rollback, but use the transferred
+          # repository as the default and direct authenticated destination.
           repository: ${{ steps.destination.outputs.repository }}
           path: bugdrop-web
           token: ${{ secrets.BUGDROP_WEB_TOKEN }}

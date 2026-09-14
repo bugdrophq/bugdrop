@@ -6,7 +6,7 @@ Thanks for your interest in contributing!
 
 ```bash
 # Clone and install
-git clone https://github.com/mean-weasel/bugdrop
+git clone https://github.com/bugdrophq/bugdrop
 cd bugdrop
 make install
 

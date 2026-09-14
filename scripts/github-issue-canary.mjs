@@ -15,7 +15,9 @@ export const CANARY_TITLE_PREFIX = PREVIEW_CANARY_PROFILE.titlePrefix;
 const DEFAULT_API_BASE_URL = 'https://api.github.com';
 const DEFAULT_LABELS = ['bug', 'bugdrop'];
 const DEFAULT_AUTHOR = 'neonwatty-bugdrop[bot]';
-const ATTRIBUTION_FOOTER = '*Submitted via [BugDrop](https://github.com/mean-weasel/bugdrop)*';
+const ATTRIBUTION_FOOTER = '*Submitted via [BugDrop](https://github.com/bugdrophq/bugdrop)*';
+const LEGACY_PRODUCTION_ATTRIBUTION_FOOTER =
+  '*Submitted via [BugDrop](https://github.com/mean-weasel/bugdrop)*';
 const DEFAULT_CONSISTENCY_ATTEMPTS = 6;
 const DEFAULT_CONSISTENCY_DELAY_MS = 2_000;
 const MAX_CONSISTENCY_ATTEMPTS = 20;
@@ -175,7 +177,10 @@ export async function verifyCanaryIssue({
   if (!candidate.body?.includes('<summary>System Info</summary>')) {
     failures.push('Issue body lacks System Info');
   }
-  if (!candidate.body?.includes(ATTRIBUTION_FOOTER)) {
+  const hasCurrentAttribution = candidate.body?.includes(ATTRIBUTION_FOOTER);
+  const hasDeployedProductionAttribution =
+    profile === 'production' && candidate.body?.includes(LEGACY_PRODUCTION_ATTRIBUTION_FOOTER);
+  if (!hasCurrentAttribution && !hasDeployedProductionAttribution) {
     failures.push('Issue body lacks BugDrop attribution');
   }
   if (candidate.body?.includes('## Screenshot')) failures.push('Issue contains a screenshot');

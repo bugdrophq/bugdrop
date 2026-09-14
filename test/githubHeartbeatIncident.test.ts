@@ -7,7 +7,7 @@ import {
 } from '../scripts/github-heartbeat-incident.mjs';
 
 const TOKEN = 'incident-token-redaction-sentinel';
-const RUN_URL = 'https://github.com/mean-weasel/bugdrop/actions/runs/123';
+const RUN_URL = 'https://github.com/bugdrophq/bugdrop/actions/runs/123';
 const noWait = vi.fn(async () => {});
 
 function response(value: unknown, init: ResponseInit = {}): Response {
@@ -109,7 +109,7 @@ describe('heartbeat incident discovery', () => {
 
   it('retries the same incident page without duplicating prior page entries', async () => {
     const retrySleepImpl = vi.fn(async () => {});
-    const pageTwo = 'https://api.github.com/repos/mean-weasel/bugdrop/issues?state=all&page=2';
+    const pageTwo = 'https://api.github.com/repos/bugdrophq/bugdrop/issues?state=all&page=2';
     const fetchImpl = vi
       .fn<typeof fetch>()
       .mockResolvedValueOnce(
@@ -129,7 +129,7 @@ describe('heartbeat incident discovery', () => {
       .mockResolvedValueOnce(
         response([{ ...incident(), pull_request: {} }], {
           headers: {
-            Link: '<https://api.github.com/repos/mean-weasel/bugdrop/issues?state=all&page=2>; rel="next"',
+            Link: '<https://api.github.com/repos/bugdrophq/bugdrop/issues?state=all&page=2>; rel="next"',
           },
         })
       )
@@ -380,7 +380,7 @@ describe('heartbeat incident lifecycle', () => {
 
   it('reconciles after-acceptance ambiguity only from a new paginated exact-body identity', async () => {
     const body = 'Production heartbeat failure. Classification: issue_absent.';
-    const pageTwo = 'https://api.github.com/repos/mean-weasel/bugdrop/issues/7/comments?page=2';
+    const pageTwo = 'https://api.github.com/repos/bugdrophq/bugdrop/issues/7/comments?page=2';
     const historical = { id: 10, body };
     const unrelated = { id: 20, body: 'different sanitized comment' };
     const accepted = { id: 11, body };

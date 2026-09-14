@@ -45,7 +45,7 @@ async function readPreviousManifest(targetRoot) {
 export async function syncWebsiteDocs(
   targetRoot,
   sourceRevision,
-  sourceRepository = 'mean-weasel/bugdrop'
+  sourceRepository = 'bugdrophq/bugdrop'
 ) {
   if (typeof sourceRevision !== 'string' || !sourceRevision.trim()) {
     throw new TypeError('A non-empty widget source revision is required');
