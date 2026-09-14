@@ -133,12 +133,14 @@ describe('website documentation sync', () => {
     expect(isWebsiteDocName('nested/flow-reference.mdx')).toBe(false);
   });
 
-  it('stages both documentation and the canonical capability manifest', async () => {
+  it('stages both documentation and constrains the destination migration bridge', async () => {
     const workflow = await readFile('.github/workflows/sync-docs.yml', 'utf8');
     expect(workflow).toContain('git add src/content/docs/ src/lib/flow-capabilities.ts');
-    expect(workflow).toContain('repository: bugdrophq/bugdrop-web');
+    expect(workflow).toContain('${REQUESTED_REPOSITORY:-mean-weasel/bugdrop-web}');
+    expect(workflow).toContain('mean-weasel/bugdrop-web|bugdrophq/bugdrop-web');
+    expect(workflow).toContain('repository: ${{ steps.destination.outputs.repository }}');
     expect(workflow).toContain('"$GITHUB_SHA" "$GITHUB_REPOSITORY"');
-    expect(workflow).toContain('gh pr create --repo bugdrophq/bugdrop-web');
+    expect(workflow).toContain('gh pr create --repo "$BUGDROP_WEB_REPOSITORY"');
   });
 
   it('copies every canonical page and capability manifest with content hashes', async () => {

@@ -19,16 +19,34 @@ jobs:
       - name: Checkout bugdrop
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
+      - name: Select bugdrop-web repository
+        id: destination
+        env:
+          REQUESTED_REPOSITORY: ${{ vars.BUGDROP_WEB_REPOSITORY }}
+        run: |
+          repository="${REQUESTED_REPOSITORY:-mean-weasel/bugdrop-web}"
+          case "$repository" in
+            mean-weasel/bugdrop-web|bugdrophq/bugdrop-web) ;;
+            *)
+              echo "::error::BUGDROP_WEB_REPOSITORY must be mean-weasel/bugdrop-web or bugdrophq/bugdrop-web"
+              exit 1
+              ;;
+          esac
+          echo "repository=$repository" >> "$GITHUB_OUTPUT"
+
       - name: Checkout bugdrop-web
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          repository: bugdrophq/bugdrop-web
+          # The old slug follows GitHub's permanent transfer redirect and remains
+          # the default until BUGDROP_WEB_TOKEN is authorized for the new owner.
+          repository: ${{ steps.destination.outputs.repository }}
           path: bugdrop-web
           token: ${{ secrets.BUGDROP_WEB_TOKEN }}
 
       - name: Sync docs and create PR
         env:
           GH_TOKEN: ${{ secrets.BUGDROP_WEB_TOKEN }}
+          BUGDROP_WEB_REPOSITORY: ${{ steps.destination.outputs.repository }}
         run: |
           node scripts/sync-website-docs.mjs bugdrop-web "$GITHUB_SHA" "$GITHUB_REPOSITORY"
           cd bugdrop-web
@@ -42,7 +60,7 @@ jobs:
             git checkout -b "$BRANCH"
             git commit -m "docs: sync documentation from bugdrop repo"
             git push -u origin "$BRANCH"
-            gh pr create --repo bugdrophq/bugdrop-web \
+            gh pr create --repo "$BUGDROP_WEB_REPOSITORY" \
               --title "docs: sync documentation from bugdrop repo" \
               --body "Automated sync of canonical website documentation and the released Flow capability manifest from $GITHUB_REPOSITORY at $GITHUB_SHA." \
               --base main --head "$BRANCH"
