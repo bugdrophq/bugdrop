@@ -106,7 +106,7 @@ Reports and screenshots in a public repository are public. Use non-sensitive tes
 
 ### Preserve the widget's loading contract
 
-Use a normal script element without `async` or `defer`. The widget reads configuration from the executing script element, so changing execution order can separate initialization from its `data-*` attributes. This is the contract in the [official BugDrop README](https://github.com/mean-weasel/bugdrop#quick-start) and the same contract used by BugDrop's own website.
+Use a normal script element without `async` or `defer`. The widget reads configuration from the executing script element, so changing execution order can separate initialization from its `data-*` attributes. This is the contract in the [official BugDrop README](https://github.com/bugdrophq/bugdrop#quick-start) and the same contract used by BugDrop's own website.
 
 ```html
 <script

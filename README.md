@@ -1,7 +1,7 @@
 # BugDrop 🐛
 
-[![CI](https://github.com/mean-weasel/bugdrop/actions/workflows/ci.yml/badge.svg)](https://github.com/mean-weasel/bugdrop/actions/workflows/ci.yml)
-[![Latest Release](https://img.shields.io/github/v/release/mean-weasel/bugdrop?sort=semver)](https://github.com/mean-weasel/bugdrop/releases/latest)
+[![CI](https://github.com/bugdrophq/bugdrop/actions/workflows/ci.yml/badge.svg)](https://github.com/bugdrophq/bugdrop/actions/workflows/ci.yml)
+[![Latest Release](https://img.shields.io/github/v/release/bugdrophq/bugdrop?sort=semver)](https://github.com/bugdrophq/bugdrop/releases/latest)
 [![Security Policy](https://img.shields.io/badge/Security-Policy-blue)](./SECURITY.md)
 [![Live Demo](https://img.shields.io/badge/Demo-Try_It_Live-ff9e64)](https://bugdrop-widget-test.vercel.app)
 [![GitHub Marketplace](https://img.shields.io/badge/GitHub%20Marketplace-Install-2ea44f?logo=github)](https://github.com/marketplace/bugdrop-in-app-feedback-to-github-issues)
@@ -316,8 +316,8 @@ This coverage has grown from pre-merge preview validation into scheduled product
 We will keep turning new failure modes and operational lessons into repeatable checks, with public
 workflow history as evidence. View the current component health and incident history on the
 [public service status page](https://bugdrop.dev/status). Inspect the
-[merge-queue checks](https://github.com/mean-weasel/bugdrop/actions/workflows/ci.yml) and
-[production heartbeat](https://github.com/mean-weasel/bugdrop/actions/workflows/production-heartbeat.yml),
+[merge-queue checks](https://github.com/bugdrophq/bugdrop/actions/workflows/ci.yml) and
+[production heartbeat](https://github.com/bugdrophq/bugdrop/actions/workflows/production-heartbeat.yml),
 or read the detailed [preview canary](docs/merge-queue-issue-canary.md) and
 [production heartbeat](docs/production-heartbeat.md) designs.
 

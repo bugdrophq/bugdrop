@@ -11,7 +11,7 @@ latest stable release before requesting a fix for an older version.
 
 Please report suspected vulnerabilities privately through one of these channels:
 
-1. **Preferred:** [GitHub private vulnerability reporting](https://github.com/mean-weasel/bugdrop/security/advisories/new)
+1. **Preferred:** [GitHub private vulnerability reporting](https://github.com/bugdrophq/bugdrop/security/advisories/new)
 2. **Email fallback:** [neonwatty@gmail.com](mailto:neonwatty@gmail.com) or
    [jeremy@mean-weasel.com](mailto:jeremy@mean-weasel.com)
 

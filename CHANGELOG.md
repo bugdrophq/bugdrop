@@ -137,13 +137,13 @@ served. Current release notes and authenticated assets belong on the correspondi
 - **Minor versions** (v1.0 → v1.1): New features, backwards compatible
 - **Patch versions** (v1.0.0 → v1.0.1): Bug fixes only
 
-[Unreleased]: https://github.com/mean-weasel/bugdrop/compare/v1.11.0...HEAD
-[1.11.0]: https://github.com/mean-weasel/bugdrop/compare/v1.10.0...v1.11.0
-[1.10.0]: https://github.com/mean-weasel/bugdrop/compare/v1.9.0...v1.10.0
-[1.9.0]: https://github.com/mean-weasel/bugdrop/compare/v1.8.1...v1.9.0
-[1.8.1]: https://github.com/mean-weasel/bugdrop/compare/v1.8.0...v1.8.1
-[1.8.0]: https://github.com/mean-weasel/bugdrop/compare/v1.7.0...v1.8.0
-[1.7.0]: https://github.com/mean-weasel/bugdrop/compare/v1.6.0...v1.7.0
-[1.6.0]: https://github.com/mean-weasel/bugdrop/compare/v1.1.0...v1.6.0
-[1.1.0]: https://github.com/mean-weasel/bugdrop/compare/v1.0.0...v1.1.0
-[1.0.0]: https://github.com/mean-weasel/bugdrop/releases/tag/v1.0.0
+[Unreleased]: https://github.com/bugdrophq/bugdrop/compare/v1.11.0...HEAD
+[1.11.0]: https://github.com/bugdrophq/bugdrop/compare/v1.10.0...v1.11.0
+[1.10.0]: https://github.com/bugdrophq/bugdrop/compare/v1.9.0...v1.10.0
+[1.9.0]: https://github.com/bugdrophq/bugdrop/compare/v1.8.1...v1.9.0
+[1.8.1]: https://github.com/bugdrophq/bugdrop/compare/v1.8.0...v1.8.1
+[1.8.0]: https://github.com/bugdrophq/bugdrop/compare/v1.7.0...v1.8.0
+[1.7.0]: https://github.com/bugdrophq/bugdrop/compare/v1.6.0...v1.7.0
+[1.6.0]: https://github.com/bugdrophq/bugdrop/compare/v1.1.0...v1.6.0
+[1.1.0]: https://github.com/bugdrophq/bugdrop/compare/v1.0.0...v1.1.0
+[1.0.0]: https://github.com/bugdrophq/bugdrop/releases/tag/v1.0.0

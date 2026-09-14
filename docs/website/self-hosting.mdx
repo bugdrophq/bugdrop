@@ -63,7 +63,7 @@ The Cloudflare Worker acts as a secure proxy between the user's browser and the 
 
 Full self-hosting instructions, including environment variables, ignored local configuration, and deployment steps, are available in the repository:
 
-**[SELF_HOSTING.md on GitHub](https://github.com/mean-weasel/bugdrop/blob/main/SELF_HOSTING.md)**
+**[SELF_HOSTING.md on GitHub](https://github.com/bugdrophq/bugdrop/blob/main/SELF_HOSTING.md)**
 
 The guide covers:
 
@@ -114,7 +114,7 @@ Issue in a separate repository. Canonical BugDrop service defaults are never use
 repository, and scheduled runs remain inert until you explicitly activate them.
 
 See the
-**[production heartbeat runbook](https://github.com/mean-weasel/bugdrop/blob/main/docs/production-heartbeat.md#self-hosted-and-private-repositories)**
+**[production heartbeat runbook](https://github.com/bugdrophq/bugdrop/blob/main/docs/production-heartbeat.md#self-hosted-and-private-repositories)**
 for the private-repository setup, least-privilege credential, manual incident drill, and staged
 schedule activation.
 
@@ -124,7 +124,7 @@ When new versions of BugDrop are released, you can pull the latest changes into 
 
 ```bash
 # Add the upstream remote (one-time setup)
-git remote add upstream https://github.com/mean-weasel/bugdrop.git
+git remote add upstream https://github.com/bugdrophq/bugdrop.git
 
 # Pull latest changes
 git fetch upstream
@@ -134,18 +134,18 @@ git merge upstream/main
 npx wrangler deploy
 ```
 
-Check the [CHANGELOG](https://github.com/mean-weasel/bugdrop/blob/main/CHANGELOG.md) before updating to review any breaking changes or new configuration options.
+Check the [CHANGELOG](https://github.com/bugdrophq/bugdrop/blob/main/CHANGELOG.md) before updating to review any breaking changes or new configuration options.
 
 ## Support
 
 If you run into issues with self-hosting:
 
 - Check the [FAQ](/docs/faq) for common questions
-- Open an issue on the [GitHub repository](https://github.com/mean-weasel/bugdrop/issues)
+- Open an issue on the [GitHub repository](https://github.com/bugdrophq/bugdrop/issues)
 - Review the [Security](/docs/security) page for permission and rate limiting details
 
 ## Next Steps
 
-- [Read the full self-hosting guide](https://github.com/mean-weasel/bugdrop/blob/main/SELF_HOSTING.md)
+- [Read the full self-hosting guide](https://github.com/bugdrophq/bugdrop/blob/main/SELF_HOSTING.md)
 - [Review security and permissions](/docs/security)
 - [Configure the widget](/docs/configuration)

@@ -45,7 +45,7 @@ function issue(overrides: Partial<Issue> = {}): Issue {
       `<!-- bugdrop-submission: ci:${MARKER} -->`,
       '',
       '---',
-      '*Submitted via [BugDrop](https://github.com/mean-weasel/bugdrop)*',
+      '*Submitted via [BugDrop](https://github.com/bugdrophq/bugdrop)*',
     ].join('\n'),
     state: 'open',
     labels: [{ name: 'bug' }, { name: 'bugdrop' }],
@@ -256,6 +256,24 @@ describe('GitHub Issue canary discovery and verification', () => {
     expect(verified.number).toBe(42);
   });
 
+  it('does not accept the legacy production attribution for preview canaries', async () => {
+    const candidate = issue({
+      body: issue().body.replace('github.com/bugdrophq/bugdrop', 'github.com/mean-weasel/bugdrop'),
+    });
+
+    await expect(
+      verifyCanaryIssue({
+        fetchImpl: issueFetch([candidate], candidate),
+        repo: REPO,
+        token: TOKEN,
+        marker: MARKER,
+        expectedSha: SHA,
+        result: result(),
+        sleepImpl: noWait,
+      })
+    ).rejects.toThrow('Issue body lacks BugDrop attribution');
+  });
+
   it('verifies self-hosted production author and labels from the runtime profile', async () => {
     const repo = 'acme/bugdrop-heartbeat-test';
     const marker = `bugdrop-production-heartbeat:123:1:${SHA}`;
@@ -272,6 +290,51 @@ describe('GitHub Issue canary discovery and verification', () => {
       PLAYWRIGHT_BASE_URL: 'https://heartbeat.example.com',
       EXPECTED_WIDGET_ORIGIN: 'https://bugdrop.example.com',
       BUGDROP_CANARY_EXPECTED_AUTHOR: 'ACME-BUGDROP[bot]',
+      BUGDROP_CANARY_EXPECTED_LABELS_JSON: '["synthetic"]',
+    };
+
+    await expect(
+      verifyCanaryIssue({
+        fetchImpl: issueFetch([candidate], candidate),
+        repo,
+        token: TOKEN,
+        marker,
+        expectedSha: SHA,
+        result: {
+          marker,
+          kind: 'structured',
+          presentation: 'modal',
+          submissionId,
+          issueNumber: 42,
+          issueUrl: `https://github.com/${repo}/issues/42`,
+          workerSha: SHA,
+        },
+        profile: 'production',
+        profileEnvironment,
+        sleepImpl: noWait,
+      })
+    ).resolves.toMatchObject({ number: 42 });
+  });
+
+  it('accepts the deployed production attribution during the repository transition', async () => {
+    const repo = 'acme/bugdrop-heartbeat-test';
+    const marker = `bugdrop-production-heartbeat:123:1:${SHA}`;
+    const submissionId = 'submission-95a970ec-e4fa-41da-9a29-f4b62fb941ca';
+    const candidate = issue({
+      html_url: `https://github.com/${repo}/issues/42`,
+      title: `[BugDrop production heartbeat] ${marker}`,
+      body: issue()
+        .body.replaceAll(MARKER, marker)
+        .replace(`ci:${marker}`, submissionId)
+        .replace('github.com/bugdrophq/bugdrop', 'github.com/mean-weasel/bugdrop'),
+      labels: [{ name: 'synthetic' }],
+      user: { login: 'acme-bugdrop[bot]' },
+    });
+    const profileEnvironment = {
+      BUGDROP_CANARY_REPO: repo,
+      PLAYWRIGHT_BASE_URL: 'https://heartbeat.example.com',
+      EXPECTED_WIDGET_ORIGIN: 'https://bugdrop.example.com',
+      BUGDROP_CANARY_EXPECTED_AUTHOR: 'acme-bugdrop[bot]',
       BUGDROP_CANARY_EXPECTED_LABELS_JSON: '["synthetic"]',
     };
 

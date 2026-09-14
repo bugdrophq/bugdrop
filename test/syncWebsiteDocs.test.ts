@@ -136,7 +136,7 @@ describe('website documentation sync', () => {
   it('stages both documentation and constrains the destination migration bridge', async () => {
     const workflow = await readFile('.github/workflows/sync-docs.yml', 'utf8');
     expect(workflow).toContain('git add src/content/docs/ src/lib/flow-capabilities.ts');
-    expect(workflow).toContain('${REQUESTED_REPOSITORY:-mean-weasel/bugdrop-web}');
+    expect(workflow).toContain('${REQUESTED_REPOSITORY:-bugdrophq/bugdrop-web}');
     expect(workflow).toContain('mean-weasel/bugdrop-web|bugdrophq/bugdrop-web');
     expect(workflow).toContain('repository: ${{ steps.destination.outputs.repository }}');
     expect(workflow).toContain('"$GITHUB_SHA" "$GITHUB_REPOSITORY"');
@@ -147,7 +147,7 @@ describe('website documentation sync', () => {
     const target = await temporaryWebsite();
     const manifest = await syncWebsiteDocs(target, 'source-revision');
 
-    expect(manifest.sourceRepository).toBe('mean-weasel/bugdrop');
+    expect(manifest.sourceRepository).toBe('bugdrophq/bugdrop');
     expect(manifest.files).toContainEqual(
       expect.objectContaining({
         source: 'docs/website/flow-capabilities.ts',

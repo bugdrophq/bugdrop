@@ -14,7 +14,7 @@ The BugDrop GitHub App uses the following repository permissions:
 
 **Permission granted.** GitHub’s `Contents: Read & Write` permission allows access to repository files, including source code. It is repository-scoped, not limited to a folder or branch. Branch rules can constrain writes, but storing files on a separate branch does not narrow the app’s permission. See [GitHub’s Contents API documentation](https://docs.github.com/en/rest/repos/contents).
 
-**How BugDrop uses it.** The [file-upload implementation](https://github.com/mean-weasel/bugdrop/blob/511470d91169ac93593ebcc7a0b3e6459ab29df9/src/lib/github.ts) stores screenshots in `.bugdrop/screenshots/` and attachments in `.bugdrop/uploads/` on `bugdrop-screenshots`. To create that branch, it reads repository information and the default branch reference. This describes the inspected implementation, not a technical restriction preventing other use of the granted permission.
+**How BugDrop uses it.** The [file-upload implementation](https://github.com/bugdrophq/bugdrop/blob/511470d91169ac93593ebcc7a0b3e6459ab29df9/src/lib/github.ts) stores screenshots in `.bugdrop/screenshots/` and attachments in `.bugdrop/uploads/` on `bugdrop-screenshots`. To create that branch, it reads repository information and the default branch reference. This describes the inspected implementation, not a technical restriction preventing other use of the granted permission.
 
 **Limit access.** Choose **Only select repositories** when installing and select only the feedback destination. Check GitHub’s installation screen for the permissions you are granting. You can change the selected repositories or revoke access at any time under **GitHub Settings > Applications > Installed GitHub Apps**.
 
@@ -24,7 +24,7 @@ BugDrop follows a "GitHub-native" feedback-storage model. Feedback content and u
 files are stored in your GitHub repository, not in a separate BugDrop feedback database.
 The hosted service temporarily stores rate-limit counters and limited installation
 information as described in the
-[Privacy Policy](https://github.com/mean-weasel/bugdrop/blob/main/PRIVACY.md).
+[Privacy Policy](https://github.com/bugdrophq/bugdrop/blob/main/PRIVACY.md).
 
 ### Issues
 
@@ -147,7 +147,7 @@ submission data. To make delivery retries safe, it retains a bounded set of rece
 deduplication tokens that encode no submission information. BugDrop excludes its first-party/test
 owners and publishes the total only as a rounded, defensible lower bound. The hosted service
 separately keeps short-lived rate-limit counters; see
-the [Privacy Policy](https://github.com/mean-weasel/bugdrop/blob/main/PRIVACY.md) for the
+the [Privacy Policy](https://github.com/bugdrophq/bugdrop/blob/main/PRIVACY.md) for the
 complete data-handling and retention details.
 
 ## Rate Limiting
@@ -260,7 +260,7 @@ unaffected; this setting does not prohibit every GitHub API operation for unlist
 If you discover a security vulnerability in BugDrop, report it privately:
 
 - **Do not** create a public GitHub Issue for security vulnerabilities
-- **Preferred:** use [GitHub private vulnerability reporting](https://github.com/mean-weasel/bugdrop/security/advisories/new)
+- **Preferred:** use [GitHub private vulnerability reporting](https://github.com/bugdrophq/bugdrop/security/advisories/new)
 - **Email fallback:** [neonwatty@gmail.com](mailto:neonwatty@gmail.com) or [jeremy@mean-weasel.com](mailto:jeremy@mean-weasel.com)
 
 Ordinary email is not end-to-end encrypted. Use GitHub private vulnerability reporting for sensitive
@@ -272,7 +272,7 @@ maintainers target acknowledgment within 48 hours and an initial assessment with
 are best-effort targets rather than guarantees. Reports about dependencies are in scope when the
 dependency is reachable through or materially affects BugDrop.
 
-See the canonical [BugDrop security policy](https://github.com/mean-weasel/bugdrop/security/policy)
+See the canonical [BugDrop security policy](https://github.com/bugdrophq/bugdrop/security/policy)
 for supported-version, scope, triage, and coordinated-disclosure details.
 
 ## Next Steps
