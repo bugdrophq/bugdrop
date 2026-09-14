@@ -19,9 +19,45 @@ describe('production heartbeat configuration', () => {
     expect(resolveProductionHeartbeatConfig({ repository: 'mean-weasel/bugdrop' })).toEqual(
       CANONICAL_HEARTBEAT_CONFIG
     );
+    expect(resolveProductionHeartbeatConfig({ repository: 'bugdrophq/bugdrop' })).toEqual(
+      CANONICAL_HEARTBEAT_CONFIG
+    );
     expect(() => resolveProductionHeartbeatConfig({ repository: 'acme/bugdrop' })).toThrow(
       'configuration is incomplete'
     );
+  });
+
+  it('switches only the canonical test repository during migration', () => {
+    expect(
+      resolveProductionHeartbeatConfig({
+        repository: 'bugdrophq/bugdrop',
+        variables: { BUGDROP_TEST_REPOSITORY: 'bugdrophq/bugdrop-widget-test' },
+      })
+    ).toEqual({
+      ...CANONICAL_HEARTBEAT_CONFIG,
+      testRepo: 'bugdrophq/bugdrop-widget-test',
+    });
+  });
+
+  it('rejects an unapproved canonical test-repository migration target', () => {
+    expect(() =>
+      resolveProductionHeartbeatConfig({
+        repository: 'bugdrophq/bugdrop',
+        variables: { BUGDROP_TEST_REPOSITORY: 'someone-else/bugdrop-widget-test' },
+      })
+    ).toThrow('not an approved BugDrop migration target');
+  });
+
+  it('rejects mixed migration and self-hosted heartbeat overrides', () => {
+    expect(() =>
+      resolveProductionHeartbeatConfig({
+        repository: 'bugdrophq/bugdrop',
+        variables: {
+          BUGDROP_TEST_REPOSITORY: 'bugdrophq/bugdrop-widget-test',
+          BUGDROP_HEARTBEAT_EXPECTED_LABELS: 'bug,bugdrop',
+        },
+      })
+    ).toThrow('cannot be combined');
   });
 
   it('accepts a complete self-hosted configuration and exports bounded runtime values', () => {
@@ -33,6 +69,8 @@ describe('production heartbeat configuration', () => {
       EXPECTED_WIDGET_ORIGIN: 'https://bugdrop.example.com',
       PLAYWRIGHT_BASE_URL: 'https://heartbeat.example.com',
       BUGDROP_CANARY_REPO: 'acme/bugdrop-heartbeat-test',
+      BUGDROP_CANARY_REPO_OWNER: 'acme',
+      BUGDROP_CANARY_REPO_NAME: 'bugdrop-heartbeat-test',
       BUGDROP_CANARY_EXPECTED_AUTHOR: 'acme-bugdrop[bot]',
       BUGDROP_CANARY_EXPECTED_LABELS_JSON: '["bug","bugdrop"]',
       BUGDROP_HEARTBEAT_INCIDENT_REPO: 'acme/bugdrop',

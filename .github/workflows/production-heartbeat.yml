@@ -85,6 +85,7 @@ jobs:
           BUGDROP_HEARTBEAT_TEST_REPO: ${{ vars.BUGDROP_HEARTBEAT_TEST_REPO }}
           BUGDROP_HEARTBEAT_EXPECTED_AUTHOR: ${{ vars.BUGDROP_HEARTBEAT_EXPECTED_AUTHOR }}
           BUGDROP_HEARTBEAT_EXPECTED_LABELS: ${{ vars.BUGDROP_HEARTBEAT_EXPECTED_LABELS }}
+          BUGDROP_TEST_REPOSITORY: ${{ vars.BUGDROP_TEST_REPOSITORY }}
         run: node scripts/production-heartbeat-config.mjs export
 
       - name: Install Chromium
@@ -129,8 +130,8 @@ jobs:
         with:
           app-id: ${{ vars.BUGDROP_HEARTBEAT_MONITOR_APP_ID }}
           private-key: ${{ secrets.BUGDROP_HEARTBEAT_MONITOR_PRIVATE_KEY }}
-          owner: mean-weasel
-          repositories: bugdrop-widget-test
+          owner: ${{ env.BUGDROP_CANARY_REPO_OWNER }}
+          repositories: ${{ env.BUGDROP_CANARY_REPO_NAME }}
           permission-issues: write
 
       - name: Preflight production heartbeat cleanup

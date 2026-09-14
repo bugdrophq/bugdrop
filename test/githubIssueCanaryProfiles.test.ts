@@ -115,6 +115,17 @@ describe('GitHub Issue canary profiles', () => {
     );
   });
 
+  it('allows preview canaries to follow the stable test repository across the organization move', () => {
+    expect(
+      getCanaryProfile('preview', {
+        BUGDROP_CANARY_REPO: 'bugdrophq/bugdrop-widget-test',
+      }).repo
+    ).toBe('bugdrophq/bugdrop-widget-test');
+    expect(() => getCanaryProfile('preview', { BUGDROP_CANARY_REPO: 'other/repository' })).toThrow(
+      'approved BugDrop migration target'
+    );
+  });
+
   it('matches canonical GitHub Issue URLs without requiring repository display casing', () => {
     expect(
       isGitHubIssueUrlForRepository(

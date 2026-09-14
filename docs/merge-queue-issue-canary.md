@@ -50,22 +50,22 @@ Pagination retries the same URL and appends a page only after a valid response.
 
 ## Credential and rotation
 
-`BUGDROP_CANARY_GITHUB_TOKEN` must be a fine-grained token restricted to
-`mean-weasel/bugdrop-widget-test` with only Issues read/write. It is resolved only by the preflight,
-verify, cleanup, final sweep, and scheduled janitor step environments. It must never be placed at
-workflow/job scope, passed to Playwright or the Worker, or copied into logs and artifacts.
-
-That credential belongs to the merge-queue/preview canary only. The production heartbeat uses the
-separate monitoring-only GitHub App: its numeric App ID is stored in
+The merge-queue/preview canary, scheduled janitor, and production heartbeat use the same dedicated
+monitoring-only GitHub App. Its numeric App ID is stored in
 `BUGDROP_HEARTBEAT_MONITOR_APP_ID`, its private key in
-`BUGDROP_HEARTBEAT_MONITOR_PRIVATE_KEY`, and its installation is limited to
-`mean-weasel/bugdrop-widget-test` with metadata read and Issues write. A pinned token-mint action
-creates a short-lived installation token, masks it, and exposes it only through the action step's
-`token` output. Exactly the five production server-side GitHub API helpers consume that output; it is
-not promoted to job or workflow outputs and never reaches Playwright, a browser page, runtime code,
-logs, or artifacts. The default post step attempts DELETE revocation at completion and warns if that
-request fails; short-lived expiry bounds the fallback, so revocation is best-effort rather than
-guaranteed. The monitoring App is not the production BugDrop App.
+`BUGDROP_HEARTBEAT_MONITOR_PRIVATE_KEY`, and its installation is limited to the approved test
+repository with metadata read and Issues write. During the organization migration, the approved
+identity is either `mean-weasel/bugdrop-widget-test` or `bugdrophq/bugdrop-widget-test`, never both in
+one token. A pinned token-mint action creates a short-lived installation token, masks it, and exposes
+it only through the action step's `token` output. It is not promoted to job or workflow outputs and
+never reaches Playwright, a browser page, runtime code, logs, or artifacts. The default post step
+attempts DELETE revocation at completion and warns if that request fails; short-lived expiry bounds
+the fallback, so revocation is best-effort rather than guaranteed. The monitoring App is not the
+production BugDrop App.
+
+`BUGDROP_TEST_REPOSITORY` is the single cutover variable for the canonical preview canary,
+scheduled janitor, and production heartbeat. Leave it unset before the test-repository transfer;
+set it to `bugdrophq/bugdrop-widget-test` immediately afterward.
 
 The repository owner is responsible for rotation. Record the expiry in the repository's private
 credential inventory, rotate before expiry, and validate replacement access with nonmutating Issue

@@ -49,6 +49,7 @@ require_absent 'environment: production'
 require 'persist-credentials: false'
 require 'name: Validate production heartbeat configuration'
 require 'node scripts/production-heartbeat-config.mjs export'
+require 'BUGDROP_TEST_REPOSITORY: ${{ vars.BUGDROP_TEST_REPOSITORY }}'
 for variable in \
   BUGDROP_HEARTBEAT_WIDGET_ORIGIN \
   BUGDROP_HEARTBEAT_VENUE_ORIGIN \
@@ -76,8 +77,8 @@ require 'app-id: ${{ vars.BUGDROP_HEARTBEAT_MONITOR_APP_ID }}'
 require_absent 'client-id:'
 require_absent 'BUGDROP_HEARTBEAT_MONITOR_CLIENT_ID'
 require 'private-key: ${{ secrets.BUGDROP_HEARTBEAT_MONITOR_PRIVATE_KEY }}'
-require 'owner: mean-weasel'
-require 'repositories: bugdrop-widget-test'
+require 'owner: ${{ env.BUGDROP_CANARY_REPO_OWNER }}'
+require 'repositories: ${{ env.BUGDROP_CANARY_REPO_NAME }}'
 require 'permission-issues: write'
 require_absent 'skip-token-revoke:'
 require_absent 'BUGDROP_CANARY_GITHUB_TOKEN: ${{ secrets.BUGDROP_CANARY_GITHUB_TOKEN }}'
@@ -96,8 +97,8 @@ for required in \
   'uses: actions/create-github-app-token@fee1f7d63c2ff003460e3d139729b119787bc349' \
   'app-id: ${{ vars.BUGDROP_HEARTBEAT_MONITOR_APP_ID }}' \
   'private-key: ${{ secrets.BUGDROP_HEARTBEAT_MONITOR_PRIVATE_KEY }}' \
-  'owner: mean-weasel' \
-  'repositories: bugdrop-widget-test' \
+  'owner: ${{ env.BUGDROP_CANARY_REPO_OWNER }}' \
+  'repositories: ${{ env.BUGDROP_CANARY_REPO_NAME }}' \
   'permission-issues: write'; do
   grep -Fq -- "$required" <<< "$token_step" || fail "monitor token step missing: $required"
 done

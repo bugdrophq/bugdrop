@@ -42,9 +42,16 @@ async function readPreviousManifest(targetRoot) {
   }
 }
 
-export async function syncWebsiteDocs(targetRoot, sourceRevision) {
+export async function syncWebsiteDocs(
+  targetRoot,
+  sourceRevision,
+  sourceRepository = 'mean-weasel/bugdrop'
+) {
   if (typeof sourceRevision !== 'string' || !sourceRevision.trim()) {
     throw new TypeError('A non-empty widget source revision is required');
+  }
+  if (!new Set(['mean-weasel/bugdrop', 'bugdrophq/bugdrop']).has(sourceRepository)) {
+    throw new TypeError('The widget source repository is not an approved BugDrop location');
   }
   const packageJson = JSON.parse(await readFile(targetPath(targetRoot, 'package.json'), 'utf8'));
   if (packageJson.name !== 'bugdrop-web') {
@@ -86,7 +93,7 @@ export async function syncWebsiteDocs(targetRoot, sourceRevision) {
 
   const manifest = {
     schemaVersion: 1,
-    sourceRepository: 'mean-weasel/bugdrop',
+    sourceRepository,
     sourceRevision,
     files: manifestFiles,
   };
@@ -97,6 +104,6 @@ export async function syncWebsiteDocs(targetRoot, sourceRevision) {
 }
 
 if (process.argv[1] && pathToFileURL(path.resolve(process.argv[1])).href === import.meta.url) {
-  const [, , targetRoot, sourceRevision] = process.argv;
-  await syncWebsiteDocs(targetRoot, sourceRevision);
+  const [, , targetRoot, sourceRevision, sourceRepository] = process.argv;
+  await syncWebsiteDocs(targetRoot, sourceRevision, sourceRepository);
 }

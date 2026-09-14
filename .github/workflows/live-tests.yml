@@ -31,7 +31,7 @@ on:
         required: true
         type: string
     secrets:
-      BUGDROP_CANARY_GITHUB_TOKEN:
+      BUGDROP_HEARTBEAT_MONITOR_PRIVATE_KEY:
         required: false
       VERCEL_AUTOMATION_BYPASS_SECRET:
         required: false
@@ -94,6 +94,7 @@ jobs:
     env:
       LIVE_TARGET: ${{ github.event_name == 'schedule' && 'preview' || inputs.target || 'preview' }}
       PLAYWRIGHT_BASE_URL: ${{ inputs.target == 'production' && 'https://bugdrop-widget-test.vercel.app' || 'https://bugdrop-widget-test-git-preview-jermwatts-projects.vercel.app' }}
+      BUGDROP_CANARY_REPO: ${{ vars.BUGDROP_TEST_REPOSITORY || 'mean-weasel/bugdrop-widget-test' }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -197,15 +198,37 @@ jobs:
         env:
           VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
 
+      - name: Select monitoring App installation
+        if: always() && github.event_name == 'schedule'
+        shell: bash
+        run: |
+          case "$BUGDROP_CANARY_REPO" in
+            mean-weasel/bugdrop-widget-test|bugdrophq/bugdrop-widget-test) ;;
+            *) echo "Unapproved BugDrop canary repository: $BUGDROP_CANARY_REPO" >&2; exit 1 ;;
+          esac
+          echo "BUGDROP_CANARY_REPO_OWNER=${BUGDROP_CANARY_REPO%%/*}" >> "$GITHUB_ENV"
+          echo "BUGDROP_CANARY_REPO_NAME=${BUGDROP_CANARY_REPO#*/}" >> "$GITHUB_ENV"
+
+      - name: Mint monitoring-only GitHub App token
+        id: scheduled-monitor-token
+        if: always() && github.event_name == 'schedule'
+        uses: actions/create-github-app-token@fee1f7d63c2ff003460e3d139729b119787bc349 # v2.2.2
+        with:
+          app-id: ${{ vars.BUGDROP_HEARTBEAT_MONITOR_APP_ID }}
+          private-key: ${{ secrets.BUGDROP_HEARTBEAT_MONITOR_PRIVATE_KEY }}
+          owner: ${{ env.BUGDROP_CANARY_REPO_OWNER }}
+          repositories: ${{ env.BUGDROP_CANARY_REPO_NAME }}
+          permission-issues: write
+
       - name: Sweep stale merge-queue canaries
         if: always() && github.event_name == 'schedule'
         run: >-
           node scripts/github-issue-canary.mjs sweep
           --profile preview
-          --repo mean-weasel/bugdrop-widget-test
+          --repo "$BUGDROP_CANARY_REPO"
           --prefix "[BugDrop CI canary]"
         env:
-          BUGDROP_CANARY_GITHUB_TOKEN: ${{ secrets.BUGDROP_CANARY_GITHUB_TOKEN }}
+          BUGDROP_CANARY_GITHUB_TOKEN: ${{ steps.scheduled-monitor-token.outputs.token }}
 
       - name: Upload test report
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
