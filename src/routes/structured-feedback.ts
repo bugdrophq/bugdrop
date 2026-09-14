@@ -1,4 +1,4 @@
-import { isRepositoryAllowed } from '../lib/repository-policy';
+import { isRepositoryAllowed, isValidRepositoryName } from '../lib/repository-policy';
 /* eslint-disable max-lines -- Keep the isolated structured contract out of the legacy route. */
 import type { Context } from 'hono';
 import { GitHubLabelError, createIssue, getInstallationAccess, isRepoPublic } from '../lib/github';
@@ -32,7 +32,6 @@ const MAX_LABELS = 5;
 const MAX_LABEL_CHARS = 50;
 const VARIANT_ID_PATTERN = /^[a-z][a-z0-9_-]{0,63}$/;
 const SUBMISSION_ID_PATTERN = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/;
-const REPO_PATTERN = /^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/;
 const CLASSIFICATIONS = new Set<StructuredFeedbackClassification>([
   'bug',
   'feature',
@@ -206,7 +205,7 @@ function validateStructuredFeedback(input: unknown): ValidationResult {
   if (input.schemaVersion !== STRUCTURED_SCHEMA_VERSION) {
     return invalid(`Unsupported structured feedback schemaVersion: ${String(input.schemaVersion)}`);
   }
-  if (typeof input.repo !== 'string' || !REPO_PATTERN.test(input.repo)) {
+  if (!isValidRepositoryName(input.repo)) {
     return invalid('Invalid repo format. Expected: owner/repo');
   }
   if (
