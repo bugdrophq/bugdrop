@@ -148,7 +148,7 @@ test.describe('Cross-Browser Live Preview Smoke', () => {
         body: JSON.stringify({
           success: true,
           issueNumber: 2,
-          issueUrl: 'https://github.com/mean-weasel/bugdrop-widget-test/issues/2',
+          issueUrl: 'https://github.com/bugdrophq/bugdrop-widget-test/issues/2',
           isPublic: false,
         }),
       });

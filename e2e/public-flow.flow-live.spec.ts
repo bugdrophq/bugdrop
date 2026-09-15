@@ -61,7 +61,7 @@ async function prepareJourney(page: Page, issueNumber: number): Promise<Payload[
       body: JSON.stringify({
         success: true,
         issueNumber,
-        issueUrl: `https://github.com/mean-weasel/bugdrop-widget-test/issues/${issueNumber}`,
+        issueUrl: `https://github.com/bugdrophq/bugdrop-widget-test/issues/${issueNumber}`,
         isPublic: false,
       }),
     });

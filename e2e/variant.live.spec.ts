@@ -51,7 +51,7 @@ async function interceptOneSubmission(page: Page) {
       body: JSON.stringify({
         success: true,
         issueNumber: 901,
-        issueUrl: 'https://github.com/mean-weasel/bugdrop-widget-test/issues/901',
+        issueUrl: 'https://github.com/bugdrophq/bugdrop-widget-test/issues/901',
         isPublic: false,
       }),
     });
