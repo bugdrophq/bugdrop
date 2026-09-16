@@ -333,6 +333,17 @@ export async function start({ fixtures }) {
         projection[`${scope}Active`] = false;
         projection.authorizationVersion++;
       },
+      replaceAuthorizationContext(changes) {
+        for (const [key, value] of Object.entries(changes)) {
+          if (
+            !['tenantId', 'applicationId', 'destinationId'].includes(key) ||
+            typeof value !== 'string' ||
+            !/^[a-zA-Z0-9_-]{1,80}$/.test(value)
+          )
+            throw new Error('invalid_test_control');
+          projection[key] = value;
+        }
+      },
       expireAuthorizationState() {
         projection.observedAt = now() - 30_001;
         frozenAge = true;
