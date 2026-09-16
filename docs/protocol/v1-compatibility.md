@@ -9,9 +9,13 @@ or deployment configuration. Public widget and Worker behavior is unchanged.
 The approved account-control-plane proposal in `bugdrop-web`,
 `docs/account-control-plane-data-layer-proposal.md` (2026-09-16), governs the
 boundary. Wire details come from the SDK's `docs/protocol.md` and fixtures at
-[SDK commit 08e074d](https://github.com/bugdrophq/bugdrop-sdk-typescript/tree/08e074d2754a9b3f5034de9fde8892b9918c9efa).
+[SDK commit 2bfcfee](https://github.com/bugdrophq/bugdrop-sdk-typescript/tree/2bfcfee54200e981815ee6e12bcf5bf5c97d4add).
 `test/protocol/v1/fixtures/upstream.json` records the source path, commit, and
-SHA-256 of each byte-for-byte copy. Do not format or hand-edit copied fixtures.
+SHA-256 of each byte-for-byte copy. The pin includes all six merged V1 fixtures:
+credentials, origins, submission bindings, capability response, capability validation,
+and widget public API. The first-tranche service model below consumes the first three;
+the remaining fixtures support the coordinated local managed/packed-SDK integration.
+Do not format or hand-edit copied fixtures.
 
 ```sh
 npx vitest run test/protocol/v1
