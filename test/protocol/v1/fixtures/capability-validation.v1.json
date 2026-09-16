@@ -1,0 +1,38 @@
+{
+  "schemaVersion": 1,
+  "now": "2099-01-01T00:00:00.000Z",
+  "expirationCases": [
+    {
+      "expiresAt": "2098-12-31T23:59:29.999Z",
+      "accepted": false
+    },
+    {
+      "expiresAt": "2098-12-31T23:59:30.000Z",
+      "accepted": false
+    },
+    {
+      "expiresAt": "2098-12-31T23:59:30.001Z",
+      "accepted": true
+    },
+    {
+      "expiresAt": "2099-01-01T00:05:30.000Z",
+      "accepted": true
+    },
+    {
+      "expiresAt": "2099-01-01T00:05:30.001Z",
+      "accepted": false
+    },
+    {
+      "expiresAt": "2099-01-01T00:05:00Z",
+      "accepted": false
+    },
+    {
+      "expiresAt": "2099-01-01T00:05:00.000+00:00",
+      "accepted": false
+    },
+    {
+      "expiresAt": "2099-02-29T00:00:00.000Z",
+      "accepted": false
+    }
+  ]
+}
