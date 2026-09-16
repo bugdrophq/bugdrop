@@ -47,9 +47,11 @@ const approvedReleases = new Map([
   ['github/codeql-action/analyze@5595ccaf912efad79be6eef63a5619ff05969be3', 'v4.37.6'],
   ['github/codeql-action/analyze@db488ddef3bf6cb639b32c2e9a7c0a7ea8271d28', 'v4.37.8'],
   ['github/codeql-action/analyze@cdf488f595d80d6e07e03d4674febd5ab45fa938', 'v4.37.9'],
+  ['github/codeql-action/analyze@b96794f015dfd88f77b49b1c93e0fa7110f94c63', 'v4.38.0'],
   ['github/codeql-action/init@5595ccaf912efad79be6eef63a5619ff05969be3', 'v4.37.6'],
   ['github/codeql-action/init@db488ddef3bf6cb639b32c2e9a7c0a7ea8271d28', 'v4.37.8'],
   ['github/codeql-action/init@cdf488f595d80d6e07e03d4674febd5ab45fa938', 'v4.37.9'],
+  ['github/codeql-action/init@b96794f015dfd88f77b49b1c93e0fa7110f94c63', 'v4.38.0'],
 ]);
 
 const failures = [];
