@@ -1,0 +1,28 @@
+{
+  "$schema": "../node_modules/wrangler/config-schema.json",
+  "name": "bugdrop-managed-local-consumer",
+  "main": "../src/managed/consumer.ts",
+  "account_id": "STAGE_0_LOCAL_ONLY_NO_ACCOUNT",
+  "compatibility_date": "2026-06-10",
+  "compatibility_flags": ["nodejs_compat"],
+  "workers_dev": false,
+  "preview_urls": false,
+  "routes": [],
+  "vars": {
+    "MANAGED_STAGE": "local-scaffold"
+  },
+  "observability": {
+    "enabled": false
+  },
+  "queues": {
+    "consumers": [
+      {
+        "queue": "bugdrop-managed-local-outcomes",
+        "dead_letter_queue": "bugdrop-managed-local-outcomes-dlq",
+        "max_retries": 3,
+        "max_batch_size": 10,
+        "retry_delay": 60
+      }
+    ]
+  }
+}
