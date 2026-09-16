@@ -89,6 +89,8 @@ export async function start({ fixtures }) {
     let canary = '';
     let attempts = 0;
     const outcomes = [];
+    const submissionResponses = [];
+    const evidenceRequests = [];
     const logs = [];
     const networkRequests = [];
     const fakeGithubAttempts = [];
@@ -188,7 +190,9 @@ export async function start({ fixtures }) {
               LOCAL_AUTHORITY: () => Response.json(snapshot(true)),
               LOCAL_DELIVERY: deliveryConfig.name,
               LOCAL_EVIDENCE: async request => {
-                if ((await request.text()) === '0.1.0') sdkVersions.add('0.1.0');
+                const text = await request.text();
+                evidenceRequests.push({ body: text, headers: Object.fromEntries(request.headers) });
+                if (text === '0.1.0') sdkVersions.add('0.1.0');
                 return new Response(null, { status: 204 });
               },
             },
@@ -291,7 +295,9 @@ export async function start({ fixtures }) {
               body: raw.toString('base64url'),
             }),
           });
-          const value = await reply.json();
+          const text = await reply.text();
+          submissionResponses.push(text);
+          const value = JSON.parse(text);
           if (acceptedOutcomes.has(value.outcome)) outcome = value.outcome;
         } catch {
           outcome = 'rejected';
@@ -396,6 +402,8 @@ export async function start({ fixtures }) {
         return structuredClone({
           attempts,
           outcomes,
+          submissionResponses,
+          evidenceRequests,
           receipts,
           logs,
           networkRequests,
