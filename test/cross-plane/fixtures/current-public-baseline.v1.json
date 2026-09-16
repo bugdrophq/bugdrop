@@ -1,0 +1,7 @@
+{
+  "schemaVersion": 1,
+  "baseCommit": "3bd3dfdda83fe723bf2c767fdae3c89ea961de66",
+  "description": "Tracked current public src (excluding src/managed), public assets, wrangler.toml, widget build script and widget tsconfig. SHA-256 of sorted path + NUL + exact bytes + NUL.",
+  "fileCount": 145,
+  "sha256": "ac7c93c9f6e797fc29e97c37a869640d565e008abee63477e02f646ad318ff10"
+}
