@@ -8,7 +8,10 @@
     "scripts/ci-license-only.mjs",
     "scripts/github-issue-canary.mjs",
     "scripts/release/plan.mjs",
-    "scripts/verify-legacy-compat.mjs"
+    "scripts/verify-legacy-compat.mjs",
+    "src/managed/local/ingress.ts",
+    "src/managed/local/delivery.ts",
+    "src/managed/local/uninstall.ts"
   ],
   "project": ["src/**/*.ts", "scripts/**/*.{js,mjs}"],
   "ignore": [],
@@ -30,6 +33,7 @@
     "husky",
     "lint-staged",
     "prettier",
-    "wrangler"
+    "wrangler",
+    "cloudflare"
   ]
 }

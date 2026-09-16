@@ -114,7 +114,7 @@ export async function verify(token: unknown, a: Authority): Promise<Claims> {
     !/^[0-9a-f-]{36}$/.test(claims.jti)
   )
     reject();
-  return claims as unknown as Claims;
+  return { ...required, ...binding(claims), iat: claims.iat, exp: claims.exp, jti: claims.jti };
 }
 export async function verifySubmission(
   token: unknown,

@@ -1,6 +1,6 @@
 import { origin, reject, verifyHmac, bearer } from './protocol';
 
-export interface Projection {
+interface Projection {
   tenantId: string;
   applicationId: string;
   destinationId: string;
@@ -16,7 +16,7 @@ export interface Projection {
   tenantActive: boolean;
   observedAt: number;
 }
-export interface SigningKey {
+interface SigningKey {
   kid: string;
   publicKey: JsonWebKey;
   privateKey?: JsonWebKey;

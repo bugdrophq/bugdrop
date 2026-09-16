@@ -165,6 +165,32 @@ export async function start({ fixtures }) {
         discarded: canary,
       });
     };
+    const collectSubmission = text => {
+      submissionResponses.push(text);
+      return JSON.parse(text);
+    };
+    async function collectEvidence(request) {
+      const text = await request.text();
+      const allowed = {
+        'content-type': 'text/plain;charset=UTF-8',
+        'content-length': '5',
+        host: 'evidence.bugdrop.localhost',
+      };
+      const headers = {};
+      let unexpectedHeaders = false;
+      for (const [name, value] of request.headers) {
+        if (!(name in allowed)) {
+          unexpectedHeaders = true;
+          continue;
+        }
+        headers[name] = value === allowed[name] ? allowed[name] : 'unexpected';
+        if (value !== allowed[name]) unexpectedHeaders = true;
+      }
+      // Test observer only: unknown raw header names/values are never copied into evidence.
+      evidenceRequests.push({ body: text, headers, unexpectedHeaders });
+      if (text === '0.1.0') sdkVersions.add('0.1.0');
+      return new Response(null, { status: 204 });
+    }
     async function boot() {
       const ingressConfig = JSON.parse(
         await readFile(join(root, 'managed/local/ingress.json'), 'utf8')
@@ -189,12 +215,7 @@ export async function start({ fixtures }) {
             serviceBindings: {
               LOCAL_AUTHORITY: () => Response.json(snapshot(true)),
               LOCAL_DELIVERY: deliveryConfig.name,
-              LOCAL_EVIDENCE: async request => {
-                const text = await request.text();
-                evidenceRequests.push({ body: text, headers: Object.fromEntries(request.headers) });
-                if (text === '0.1.0') sdkVersions.add('0.1.0');
-                return new Response(null, { status: 204 });
-              },
+              LOCAL_EVIDENCE: collectEvidence,
             },
           },
           {
@@ -296,8 +317,7 @@ export async function start({ fixtures }) {
             }),
           });
           const text = await reply.text();
-          submissionResponses.push(text);
-          const value = JSON.parse(text);
+          const value = collectSubmission(text);
           if (acceptedOutcomes.has(value.outcome)) outcome = value.outcome;
         } catch {
           outcome = 'rejected';
@@ -338,6 +358,21 @@ export async function start({ fixtures }) {
           throw new Error('invalid_test_control');
         projection[`${scope}Active`] = false;
         projection.authorizationVersion++;
+      },
+      async probeCapture({ submissionResponse, sdkReport } = {}) {
+        if (submissionResponse !== undefined)
+          collectSubmission(
+            typeof submissionResponse === 'string'
+              ? submissionResponse
+              : JSON.stringify(submissionResponse)
+          );
+        if (sdkReport !== undefined)
+          await collectEvidence(
+            new Request('http://evidence.bugdrop.localhost/sdk', {
+              method: 'POST',
+              body: String(sdkReport),
+            })
+          );
       },
       replaceAuthorizationContext(changes) {
         for (const [key, value] of Object.entries(changes)) {
