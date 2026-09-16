@@ -1,0 +1,44 @@
+{
+  "$schema": "../node_modules/wrangler/config-schema.json",
+  "name": "bugdrop-managed-local-ingress",
+  "main": "../src/managed/ingress.ts",
+  "account_id": "STAGE_0_LOCAL_ONLY_NO_ACCOUNT",
+  "compatibility_date": "2026-06-10",
+  "compatibility_flags": ["nodejs_compat"],
+  "workers_dev": false,
+  "preview_urls": false,
+  "routes": [],
+  "vars": {
+    "MANAGED_STAGE": "local-scaffold"
+  },
+  "observability": {
+    "enabled": false
+  },
+  "services": [
+    {
+      "binding": "MANAGED_DELIVERY",
+      "service": "bugdrop-managed-local-delivery"
+    }
+  ],
+  "kv_namespaces": [
+    {
+      "binding": "MANAGED_CONFIG",
+      "id": "local-only-managed-config",
+      "remote": false
+    }
+  ],
+  "durable_objects": {
+    "bindings": [
+      {
+        "name": "MANAGED_AUTHORIZATION",
+        "class_name": "ManagedAuthorization"
+      }
+    ]
+  },
+  "migrations": [
+    {
+      "tag": "managed-local-v1",
+      "new_sqlite_classes": ["ManagedAuthorization"]
+    }
+  ]
+}
