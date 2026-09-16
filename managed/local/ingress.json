@@ -1,0 +1,28 @@
+{
+  "$schema": "../../node_modules/wrangler/config-schema.json",
+  "name": "bugdrop-managed-harness-ingress",
+  "main": "../../src/managed/local/ingress.ts",
+  "account_id": "STAGE_0_LOCAL_ONLY_NO_ACCOUNT",
+  "compatibility_date": "2026-06-10",
+  "compatibility_flags": ["nodejs_compat"],
+  "workers_dev": false,
+  "preview_urls": false,
+  "routes": [],
+  "observability": {
+    "enabled": false
+  },
+  "services": [
+    {
+      "binding": "LOCAL_AUTHORITY",
+      "service": "bugdrop-managed-harness-authority"
+    },
+    {
+      "binding": "LOCAL_DELIVERY",
+      "service": "bugdrop-managed-harness-delivery"
+    },
+    {
+      "binding": "LOCAL_EVIDENCE",
+      "service": "bugdrop-managed-harness-evidence"
+    }
+  ]
+}
