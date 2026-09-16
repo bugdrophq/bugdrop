@@ -70,7 +70,7 @@ describe.sequential('real managed Workers and durable SQLite receipt', () => {
     await expect.poll(async () => (await service.evidence()).attempts).toBe(1);
     expect((await service.inspectReceipt(vector.bound)).state).toBe('delivering');
     await service.restart();
-    await attempt;
+    expect((await attempt).outcome).toBe('indeterminate');
     expect((await submit(c.capability)).outcome).toBe('indeterminate');
     expect((await service.evidence()).attempts).toBe(1);
   }, 30000);

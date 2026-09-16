@@ -13,6 +13,7 @@ export default {
       !['/v1/submission-capabilities', '/_local/submit'].includes(path)
     )
       return response('rejected');
+    let dispatched = false;
     try {
       const a = await loadAuthority(env.LOCAL_AUTHORITY);
       const body = json(await readBounded(request));
@@ -29,6 +30,7 @@ export default {
       }
       const input = submission(body);
       await verifySubmission(input.token, input.origin, input.binding, bytes(input.body), a);
+      dispatched = true;
       return await env.LOCAL_DELIVERY.fetch('http://delivery.bugdrop.localhost/_local/submit', {
         method: 'POST',
         body: JSON.stringify(input),
@@ -39,7 +41,7 @@ export default {
           { error: 'managed_request_rejected' },
           { status: 403, headers: { 'Cache-Control': 'no-store' } }
         );
-      return response('rejected');
+      return response(dispatched ? 'indeterminate' : 'rejected');
     }
   },
 } satisfies ExportedHandler<LocalIngressEnv>;

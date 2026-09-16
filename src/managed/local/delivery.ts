@@ -10,6 +10,7 @@ export default {
   async fetch(request: Request, env: LocalDeliveryEnv): Promise<Response> {
     if (request.method !== 'POST' || new URL(request.url).pathname !== '/_local/submit')
       return response('rejected');
+    let dispatched = false;
     try {
       const input = submission(json(await readBounded(request)));
       const authority = await loadAuthority(env.LOCAL_AUTHORITY);
@@ -25,12 +26,13 @@ export default {
         utf8(JSON.stringify([claims.applicationId, claims.submissionId]))
       );
       const stub = env.LOCAL_RECEIPTS.get(env.LOCAL_RECEIPTS.idFromName(key));
+      dispatched = true;
       return await stub.fetch('http://receipt.bugdrop.localhost/deliver', {
         method: 'POST',
         body: JSON.stringify(input),
       });
     } catch {
-      return response('rejected');
+      return response(dispatched ? 'indeterminate' : 'rejected');
     }
   },
 } satisfies ExportedHandler<LocalDeliveryEnv>;

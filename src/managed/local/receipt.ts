@@ -89,6 +89,9 @@ export class LocalManagedReceipt extends DurableObject<LocalDeliveryEnv> {
     }
   }
   async alarm(): Promise<void> {
-    await this.ctx.storage.deleteAll();
+    // Retain the live schema, and do not let a delayed/retried alarm erase a newer receipt.
+    this.ctx.storage.sql.exec('DELETE FROM receipt WHERE expiresAt <= ?', Date.now());
+    const pending = this.read();
+    if (pending) await this.ctx.storage.setAlarm(pending.expiresAt);
   }
 }

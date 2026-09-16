@@ -94,8 +94,10 @@ This surface is test-only and is not reachable through customer HTTP requests:
   `capabilities`, not fabricated empty histories. Network attempts outside private
   bindings are denied and captured without URLs. No raw fake request is recorded.
   Evidence-binding headers have fixed expected values only; unknown names/values
-  produce an `unexpectedHeaders` flag, never credential/header reflection.
-  `probeCapture({submissionResponse?,sdkReport?})` poisons those same observer
+  produce an `unexpectedHeaders` flag, never credential/header reflection. The
+  `unexpectedUrl` flag checks the exact fixed SDK evidence endpoint without recording URLs.
+  Both flags are false for normal emissions.
+  `probeCapture({submissionResponse?,sdkReport?,sdkHeaders?,sdkUrl?})` poisons those same observer
   callbacks for negative oracle tests; it is not an HTTP control or telemetry sink.
 
 ## Receipt, revocation and privacy guarantees

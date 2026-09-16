@@ -187,7 +187,8 @@ export async function start({ fixtures }) {
         if (value !== allowed[name]) unexpectedHeaders = true;
       }
       // Test observer only: unknown raw header names/values are never copied into evidence.
-      evidenceRequests.push({ body: text, headers, unexpectedHeaders });
+      const unexpectedUrl = request.url !== 'http://evidence.bugdrop.localhost/sdk';
+      evidenceRequests.push({ body: text, headers, unexpectedHeaders, unexpectedUrl });
       if (text === '0.1.0') sdkVersions.add('0.1.0');
       return new Response(null, { status: 204 });
     }
@@ -298,6 +299,7 @@ export async function start({ fixtures }) {
       origin,
       async submit({ capability, binding, requestBody, origin: suppliedOrigin = origin }) {
         let outcome = 'rejected';
+        let dispatched = false;
         try {
           const raw =
             typeof requestBody === 'string' ? Buffer.from(requestBody) : Buffer.from(requestBody);
@@ -307,20 +309,22 @@ export async function start({ fixtures }) {
           );
           receiptNames.add(name);
           const worker = await runtime.getWorker('bugdrop-managed-harness-ingress');
+          const input = JSON.stringify({
+            token: capability.token,
+            origin: suppliedOrigin,
+            binding,
+            body: raw.toString('base64url'),
+          });
+          dispatched = true;
           const reply = await worker.fetch('http://bugdrop-managed.localhost/_local/submit', {
             method: 'POST',
-            body: JSON.stringify({
-              token: capability.token,
-              origin: suppliedOrigin,
-              binding,
-              body: raw.toString('base64url'),
-            }),
+            body: input,
           });
           const text = await reply.text();
           const value = collectSubmission(text);
-          if (acceptedOutcomes.has(value.outcome)) outcome = value.outcome;
+          outcome = acceptedOutcomes.has(value.outcome) ? value.outcome : 'indeterminate';
         } catch {
-          outcome = 'rejected';
+          outcome = dispatched ? 'indeterminate' : 'rejected';
         }
         const value = normalized(outcome);
         outcomes.push(value);
@@ -359,7 +363,7 @@ export async function start({ fixtures }) {
         projection[`${scope}Active`] = false;
         projection.authorizationVersion++;
       },
-      async probeCapture({ submissionResponse, sdkReport } = {}) {
+      async probeCapture({ submissionResponse, sdkReport, sdkHeaders, sdkUrl } = {}) {
         if (submissionResponse !== undefined)
           collectSubmission(
             typeof submissionResponse === 'string'
@@ -368,8 +372,9 @@ export async function start({ fixtures }) {
           );
         if (sdkReport !== undefined)
           await collectEvidence(
-            new Request('http://evidence.bugdrop.localhost/sdk', {
+            new Request(sdkUrl ?? 'http://evidence.bugdrop.localhost/sdk', {
               method: 'POST',
+              headers: sdkHeaders,
               body: String(sdkReport),
             })
           );
