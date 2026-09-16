@@ -1,0 +1,52 @@
+{
+  "schemaVersion": 1,
+  "bound": {
+    "submissionId": "018f1f2e-7b4a-7c3d-9e10-4f5a6b7c8d90",
+    "payloadDigest": "sPybYsPwrJsoR8G8LbuHwYw3y-QHlqrYOfI-8lbJbEQ"
+  },
+  "requestBody": "{\"message\":\"Save failed\",\"page\":\"/settings\"}",
+  "verificationCases": [
+    {
+      "name": "exact binding",
+      "submissionId": "018f1f2e-7b4a-7c3d-9e10-4f5a6b7c8d90",
+      "requestBody": "{\"message\":\"Save failed\",\"page\":\"/settings\"}",
+      "accepted": true
+    },
+    {
+      "name": "changed body byte",
+      "submissionId": "018f1f2e-7b4a-7c3d-9e10-4f5a6b7c8d90",
+      "requestBody": "{\"message\":\"Save failed!\",\"page\":\"/settings\"}",
+      "accepted": false
+    },
+    {
+      "name": "alternate JSON serialization",
+      "submissionId": "018f1f2e-7b4a-7c3d-9e10-4f5a6b7c8d90",
+      "requestBody": "{\"page\":\"/settings\",\"message\":\"Save failed\"}",
+      "accepted": false
+    },
+    {
+      "name": "different submission ID",
+      "submissionId": "018f1f2e-7b4a-7c3d-9e10-4f5a6b7c8d91",
+      "requestBody": "{\"message\":\"Save failed\",\"page\":\"/settings\"}",
+      "accepted": false
+    },
+    {
+      "name": "trailing newline",
+      "submissionId": "018f1f2e-7b4a-7c3d-9e10-4f5a6b7c8d90",
+      "requestBody": "{\"message\":\"Save failed\",\"page\":\"/settings\"}\n",
+      "accepted": false
+    },
+    {
+      "name": "alternate Unicode escaping",
+      "submissionId": "018f1f2e-7b4a-7c3d-9e10-4f5a6b7c8d90",
+      "requestBody": "{\"message\":\"\\u0053ave failed\",\"page\":\"/settings\"}",
+      "accepted": false
+    }
+  ],
+  "invalidPayloadDigests": [
+    "sPybYsPwrJsoR8G8LbuHwYw3y-QHlqrYOfI-8lbJbEQ=",
+    "sPybYsPwrJsoR8G8LbuHwYw3y+QHlqrYOfI+8lbJbEQ=",
+    "sPybYsPwrJsoR8G8LbuHwYw3y-QHlqrYOfI-8lbJbE",
+    "sPybYsPwrJsoR8G8LbuHwYw3y-QHlqrYOfI-8lbJbER"
+  ]
+}
