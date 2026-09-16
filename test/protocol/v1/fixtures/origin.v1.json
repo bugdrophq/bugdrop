@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 1,
+  "valid": [
+    "https://app.example.com",
+    "http://localhost:3000",
+    "http://bugdrop.localhost:3000",
+    "http://127.0.0.1:8787",
+    "http://[::1]:8787",
+    "https://app.example.com:8443",
+    "https://[2001:db8::1]"
+  ],
+  "invalid": [
+    "https://app.example.com.",
+    "https://APP.example.com",
+    "https://app.example.com:443",
+    "https://app.example.com/path",
+    "https://user:pass@app.example.com",
+    "http://app.example.com",
+    "ftp://app.example.com",
+    "https://app.example.com/",
+    "https://app.example.com?x=1",
+    "https://app.example.com#x",
+    "https://app.example.com?",
+    "https://app.example.com#",
+    " https://app.example.com",
+    "https://app.example.com\n",
+    "http://localhost:80",
+    "http://localhost.",
+    "http://127.1:3000",
+    "http://2130706433:3000",
+    "http://localhost.attacker.example",
+    "https://app.example.com.:8443"
+  ]
+}

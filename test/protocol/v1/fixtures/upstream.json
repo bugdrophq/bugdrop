@@ -1,0 +1,10 @@
+{
+  "repository": "https://github.com/bugdrophq/bugdrop-sdk-typescript",
+  "commit": "08e074d2754a9b3f5034de9fde8892b9918c9efa",
+  "directory": "packages/contracts/fixtures",
+  "files": {
+    "api-key-credential.v1.json": "368a652562faeac74a5eb496534920f625fd002aae14317adece0720d4c27de5",
+    "origin.v1.json": "00c5f885f6309e149bb2cda8a07a13bf56e71b10f3aeefbdad707d5fa6435846",
+    "submission-binding.v1.json": "7c9b4078b446302ebdeb5a6e7af063f443998476b458b497ba4cfb2c80a169e0"
+  }
+}

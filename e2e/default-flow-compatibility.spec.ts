@@ -382,7 +382,10 @@ test.describe('paired default-flow screenshot compatibility oracle', () => {
     expect(result.requests[0]).toMatchObject({
       screenshot: expect.stringMatching(/^data:image\/png;base64,/),
       metadata: {
-        url: 'http://localhost:8787/test/complex-dom',
+        url: new URL(
+          '/test/complex-dom',
+          process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:8787'
+        ).href,
         elementSelector: null,
         fullElementSelector: null,
       },
@@ -450,7 +453,8 @@ test.describe('paired default-flow screenshot compatibility oracle', () => {
     expect(result.requests[0]).toMatchObject({
       screenshot: expect.stringMatching(/^data:image\/png;base64,/),
       metadata: {
-        url: 'http://localhost:8787/test/redaction',
+        url: new URL('/test/redaction', process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:8787')
+          .href,
         elementSelector: null,
         fullElementSelector: null,
       },
