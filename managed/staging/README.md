@@ -98,8 +98,8 @@ remain activation blockers; this runtime does not pretend that reads are acknowl
 
 Only an explicit binding to `StagingControl` can reach POST `/projection`,
 `/projection-status` and `/revoke-installation`. These are private service interfaces, not SDK HTTP contracts.
-The header `X-BugDrop-Control-Signature` is canonical base64url HMAC-SHA256 over the
-exact raw UTF-8 request body, using `STAGING_CONTROL_HMAC_KEY` for projections and the distinct
+For projection and uninstall writes, `X-BugDrop-Control-Signature` is canonical
+base64url HMAC-SHA256 over the exact raw UTF-8 request body, using `STAGING_CONTROL_HMAC_KEY` for projections and the distinct
 `STAGING_UNINSTALL_HMAC_KEY` for uninstall latches (32 random bytes each, base64url). Unknown fields, more than 8192 bytes, invalid signature and malformed
 values fail with fixed errors and no reflection.
 
@@ -177,10 +177,10 @@ These entrypoints have no public fetch equivalent.
 
 ## Closed cross-plane activation gates
 
-The following contracts are agreed prerequisites, not implemented features. The
+The remaining integration contracts below are activation prerequisites. The
 publisher owns the authoritative locked SQL join, sequence/version transaction and
-durable outbox. A Cloudflare follow-up owns authenticated durable control receipts
-and private status queries. The trusted webhook adapter owns durable normalized
+durable outbox. The private runtime implements authenticated durable control receipts
+and status queries; trusted publisher integration and SQL acknowledgement are still required. The trusted webhook adapter owns durable normalized
 intake and retries; its SQL adapter must be reviewed with the data-plane owner.
 
 - Map the internal installation UUID through the authoritative tenant/application
@@ -190,9 +190,9 @@ intake and retries; its SQL adapter must be reviewed with the data-plane owner.
   `configurationVersion`, `authorizationVersion`, `projectionDigest`, and
   `accepted:true` after durable sync. Identical signed bytes at the latest sequence
   must return the same receipt without renewing `observedAt`; altered bytes or older
-  sequences reject. A private status query must resolve ambiguous writes. The current
-  handler rejects every duplicate sequence and returns only a generic acknowledgement;
-  neither HTTP 200 nor 403 satisfies this future publisher acknowledgement contract.
+  sequences reject. The private status query resolves ambiguous writes for the latest
+  matching receipt. Integrate its signature and selector verification with the SQL
+  acknowledgement contract; generic HTTP 200 or 403 never satisfies that contract.
 - Keep pending credentials SQL-only. First positive publication requires committed
   activation, scoped verifier provisioning and verified installation eligibility.
   Credential false is terminal; temporary app/tenant disable uses its own state.
