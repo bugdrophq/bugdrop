@@ -1,5 +1,8 @@
 import { createHash, randomUUID } from 'node:crypto';
 import { assertEvidence } from './evidence.mjs';
+import { proveOrigins } from './origin-proof.mjs';
+
+export const packedSdkSafetyContract = Object.freeze({ version: 2, sdkVersion: '0.1.0' });
 
 const check = value => {
   if (!value) throw new Error('staging_safety_failed');
@@ -57,6 +60,7 @@ export async function runScenario(service, scenario, target) {
     return result;
   };
   let attempts = 0;
+  let originChecks;
   if (scenario === 'duplicate-concurrent') {
     const first = await mint();
     const second = await mint();
@@ -95,15 +99,7 @@ export async function runScenario(service, scenario, target) {
     check(rejected(await submit(capability)));
   } else if (scenario === 'origin-aliases') {
     await mint();
-    const url = new URL(target.origin);
-    const aliases = [
-      target.origin.replace(url.hostname, `${url.hostname}.`),
-      `https://${url.hostname}:443`,
-      `https://${url.hostname.toUpperCase()}`,
-      `${target.origin}/`,
-    ];
-    for (const alias of aliases)
-      if (alias !== target.origin) check((await mint(alias, false)) === null);
+    originChecks = await proveOrigins(service, target, binding, mint);
   } else if (scenario.startsWith('revoke-')) {
     const capability = await mint();
     const scope = scenario.slice('revoke-'.length);
@@ -158,7 +154,7 @@ export async function runScenario(service, scenario, target) {
       ...(await service.secretMarkers()),
     ],
   });
-  return { scenario, passed: true };
+  return { scenario, passed: true, ...(originChecks ? { originChecks } : {}) };
 }
 
 export const scenarios = Object.freeze([
@@ -180,6 +176,11 @@ export const scenarios = Object.freeze([
 export async function runRemoteSafety(provider, approvedTarget) {
   check(approvedTarget.environment === 'staging' && approvedTarget.approved === true);
   check(approvedTarget.sdkVersion === '0.1.0');
+  check(
+    typeof approvedTarget.applicationId === 'string' &&
+      /^[-a-zA-Z0-9_]{1,100}$/.test(approvedTarget.applicationId) &&
+      approvedTarget.applicationId !== 'UNAPPROVED'
+  );
   check(/^[0-9a-f]{40}$/.test(approvedTarget.serviceRevision));
   check(/^[0-9a-f]{64}$/.test(approvedTarget.deploymentDigest));
   check(/^[1-9][0-9]*$/.test(approvedTarget.repositoryId));
@@ -198,6 +199,7 @@ export async function runRemoteSafety(provider, approvedTarget) {
     'repositoryId',
     'origin',
     'sdkVersion',
+    'applicationId',
   ]) {
     check(observed[key] === approvedTarget[key]);
   }
