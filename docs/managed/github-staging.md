@@ -82,6 +82,9 @@ Do not reuse their credentials, installation, repositories, routes, or resources
 
 ### Activation dependencies: lifecycle and control acknowledgement
 
+The [closed cross-plane activation gates](../../managed/staging/README.md#closed-cross-plane-activation-gates)
+define the shared runtime, publisher and lifecycle completion contract.
+
 The current private webhook wrapper verifies GitHub and persists the edge latch.
 Its successful response describes edge acceptance only. It does not implement or
 prove durable lifecycle intake, Supabase application/cleanup acknowledgement, or

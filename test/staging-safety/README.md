@@ -66,6 +66,9 @@ after any actual staging integration.
 
 ## Uninstall completion is currently blocked
 
+Follow the [closed cross-plane activation gates](../../managed/staging/README.md#closed-cross-plane-activation-gates)
+for the shared runtime, publisher and lifecycle completion contract.
+
 `waitForSignedUninstall()` can establish the verified edge latch only. End-to-end
 completion additionally requires durable normalized lifecycle intake, independent
 permanent edge and Supabase `apply_installation_event`/cleanup acknowledgements,
