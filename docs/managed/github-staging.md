@@ -71,7 +71,7 @@ Do not reuse their credentials, installation, repositories, routes, or resources
    staging webhook must forward original bounded bytes and signature headers to
    the verifier. Before claiming end-to-end uninstall completion, require durable
    normalized intake followed by two independent acknowledgements: the permanent
-   edge revocation latch and authoritative Supabase `apply_installation_event`
+   edge revocation latch and authoritative Supabase `apply_verified_uninstall` (including `apply_installation_event`)
    plus cleanup. Edge acceptance alone is not completion. Missing installation
    mapping or a partial failure stays pending/quarantined for reconciliation.
    Reads cannot refresh authorization observation timestamps or clear the latch.

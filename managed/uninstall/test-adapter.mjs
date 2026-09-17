@@ -8,12 +8,21 @@ import { join, resolve } from 'node:path';
 import { createHmac, randomBytes } from 'node:crypto';
 import { pathToFileURL } from 'node:url';
 
-/** @param {{config: import('../../src/managed/github-staging/config').StagingGitHubConfig, sqlApply?: (value: import('../../src/managed/uninstall/reconciliation').ReconciliationCommand) => unknown, controlRoot?: string, applicationId?: string}} options */
-export async function start({ config, sqlApply, controlRoot, applicationId = 'app-test' }) {
+/** @param {{config: import('../../src/managed/github-staging/config').StagingGitHubConfig, sqlApply?: (value: import('../../src/managed/uninstall/reconciliation').ReconciliationCommand) => unknown, controlRoot?: string, applicationId?: string, recovery?: boolean}} options */
+export async function start({
+  config,
+  sqlApply,
+  controlRoot,
+  applicationId = 'app-test',
+  recovery = false,
+}) {
   const directory = await mkdtemp(join(tmpdir(), 'bugdrop-uninstall-'));
   const key = randomBytes(32).toString('base64url');
   const edgeKey = randomBytes(32).toString('base64url');
   const sqlKey = randomBytes(32).toString('base64url');
+  const recoveryKey = randomBytes(32).toString('base64url');
+  /** @type {{calls: number, mode: string, hook?: (proof: Record<string, unknown>) => Promise<Record<string, unknown>>}} */
+  const recoveryFixture = { calls: 0, mode: 'ok', hook: undefined };
   const controlKey = randomBytes(32).toString('base64url');
   const webhookSecret = randomBytes(32).toString('base64url');
   const mac = (secret, text, encoding = 'base64url') =>
@@ -28,6 +37,8 @@ export async function start({ config, sqlApply, controlRoot, applicationId = 'ap
     now = Date.now() + (sqlApply ? 0 : 3_600_000);
   const modes = { edge: 'ok', sql: 'ok' };
   const calls = { edge: 0, sql: 0 };
+  /** @type {{hook?: (side: string) => Promise<void>}} */
+  const transportFixture = {};
   const logs = [];
   let syncCount = 0;
   let fault = { at: 0, action: 'ok' };
@@ -86,6 +97,7 @@ export async function start({ config, sqlApply, controlRoot, applicationId = 'ap
     });
   async function transport(side, request) {
     calls[side]++;
+    await transportFixture.hook?.(side);
     const raw = await request.text();
     const secret = side === 'edge' ? edgeKey : sqlKey;
     const signed = side === 'edge' ? raw : `bugdrop:uninstall:sql-request:v1\0${raw}`;
@@ -198,8 +210,46 @@ export async function start({ config, sqlApply, controlRoot, applicationId = 'ap
             STAGING_UNINSTALL_HMAC_KEY: edgeKey,
             STAGING_RECONCILIATION_HMAC_KEY: sqlKey,
             FIXTURE_NOW: String(now),
+            ...(recovery ? { STAGING_UNINSTALL_RECOVERY_HMAC_KEY: recoveryKey } : {}),
           },
           serviceBindings: {
+            ...(recovery
+              ? {
+                  STAGING_UNINSTALL_RECOVERY: async request => {
+                    recoveryFixture.calls++;
+                    const raw = await request.text();
+                    if (
+                      request.headers.get('X-BugDrop-Recovery-Signature') !==
+                      mac(recoveryKey, `bugdrop:uninstall:recovery-request:v1\0${raw}`)
+                    )
+                      return new Response(null, { status: 401 });
+                    const command = JSON.parse(raw);
+                    let proof = {
+                      ...command,
+                      verifiedAt: now,
+                      providerRemoved: true,
+                      mappingConfirmed: true,
+                      internalMapping: {
+                        applicationId,
+                        installationId: '11111111-1111-4111-8111-111111111111',
+                      },
+                    };
+                    if (recoveryFixture.hook) proof = await recoveryFixture.hook(proof);
+                    const response = JSON.stringify(proof);
+                    return new Response(response, {
+                      headers: {
+                        'X-BugDrop-Recovery-Signature':
+                          recoveryFixture.mode === 'forged'
+                            ? 'invalid'
+                            : mac(
+                                recoveryKey,
+                                `bugdrop:uninstall:recovery-receipt:v1\0${response}`
+                              ),
+                      },
+                    });
+                  },
+                }
+              : {}),
             TEST_UNINSTALL_SYNC: () => new Response(++syncCount === fault.at ? fault.action : 'ok'),
             STAGING_CONTROL: request => transport('edge', request),
             STAGING_RECONCILIATION: request => transport('sql', request),
@@ -250,6 +300,15 @@ export async function start({ config, sqlApply, controlRoot, applicationId = 'ap
   };
   return {
     calls,
+    recovery: recoveryFixture,
+    transport: transportFixture,
+    async advance(advance) {
+      now += advance;
+      await rawRequest('/_test/clock', { method: 'POST', body: String(now) });
+    },
+    failTransaction: () => rawRequest('/_test/fail-transaction', { method: 'POST' }),
+    deleteAlarm: () => rawRequest('/_test/delete-alarm', { method: 'POST' }),
+    alarmTime: async () => (await rawRequest('/_test/alarm-time')).json(),
     setFault(at, action) {
       fault = { at: syncCount + at, action };
     },

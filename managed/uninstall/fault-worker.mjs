@@ -5,8 +5,19 @@ export { UninstallControl } from '../../src/managed/uninstall/control.ts';
 export class TestUninstall extends StagingUninstall {
   constructor(ctx, env) {
     super(ctx, env);
+    const fixture = this;
     const storage = new Proxy(ctx.storage, {
       get(target, property) {
+        if (property === 'transactionSync')
+          return callback =>
+            target.transactionSync(() => {
+              const result = callback();
+              if (fixture.failTransaction) {
+                fixture.failTransaction = false;
+                throw new Error('injected_uninstall_transaction_failure');
+              }
+              return result;
+            });
         if (property === 'sync')
           return async () => {
             const action = await (
@@ -31,10 +42,23 @@ export class TestUninstall extends StagingUninstall {
     });
   }
   now() {
-    return Number(this.env.FIXTURE_NOW);
+    return this.testNow ?? Number(this.env.FIXTURE_NOW);
   }
   async fetch(request) {
     const path = new URL(request.url).pathname;
+    if (path === '/_test/fail-transaction') {
+      this.failTransaction = true;
+      return new Response('ok');
+    }
+    if (path === '/_test/clock') {
+      this.testNow = Number(await request.text());
+      return new Response('ok');
+    }
+    if (path === '/_test/delete-alarm') {
+      await this.ctx.storage.deleteAlarm();
+      return new Response('ok');
+    }
+    if (path === '/_test/alarm-time') return Response.json(await this.ctx.storage.getAlarm());
     if (path === '/_test/alarm') {
       await this.alarm();
       return new Response('ok');

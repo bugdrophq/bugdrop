@@ -138,6 +138,38 @@ describe('actual SQLite uninstall coordinator with synthetic side transports', (
     await service.request('/resume');
     expect((await service.status()).state).toBe('complete');
   });
+  it.each(['503', 'missing'])('expires unresolved %s work at the exact deadline', async mode => {
+    service = await start({ config });
+    service.modes.sql = mode;
+    await service.request('/intake');
+    const original = await service.status();
+    await service.restart(30 * 86_400_000 - 1);
+    expect((await service.status()).state).not.toBe('operator_action_required');
+    await service.restart(1);
+    await service.alarm();
+    const expired = await service.status();
+    expect(expired).toMatchObject({
+      state: 'operator_action_required',
+      work: {
+        requestId: original.work.requestId,
+        occurredAt: original.work.occurredAt,
+        edgeAcknowledged: true,
+        sqlAcknowledged: false,
+        failureCode: 'retention_deadline',
+      },
+    });
+    expect(expired.work).not.toHaveProperty('attempts');
+    expect(expired.work).not.toHaveProperty('nextAttemptAt');
+    expect(expired.work).not.toHaveProperty('completedAt');
+    const calls = { ...service.calls };
+    service.modes.sql = 'ok';
+    expect((await service.request('/resume')).status).toBe(503);
+    await service.request('/intake');
+    await service.alarm();
+    expect(service.calls).toEqual(calls);
+    expect((await service.status()).state).toBe('operator_action_required');
+    expect((await service.storage()).fence).toEqual([{ id: 1 }]);
+  });
   it('deletes expired completed details while preserving a permanent replay tombstone', async () => {
     service = await start({ config });
     await service.request('/intake');

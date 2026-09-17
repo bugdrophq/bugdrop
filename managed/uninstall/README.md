@@ -37,20 +37,51 @@ failure, timeout, generic success, mismatched receipt or malformed signature rem
 pending. Only the explicit authenticated `mapping_missing` result quarantines work.
 Quarantine does not prevent the edge latch from progressing and does not clear it.
 
-There are at most eight automatic attempts per recovery cycle, with backoff from one
-second to one day. Pending/exhausted/quarantined work is retained. `UninstallControl`
-is a private service entrypoint for signed `/status` and `/resume` requests; public
-ingress, the GitHub webhook and the default delivery handler never route to it.
-Resume preserves the original event tuple and restarts the bounded retry cycle.
-Its request HMAC domain is `bugdrop:uninstall:<status|resume>:v1` plus NUL and exact
-JSON bytes `{schemaVersion:1,eventHash,installationHash}`. Signed status uses
-`bugdrop:uninstall:status:v1` plus NUL and exact response bytes.
+There are at most eight automatic attempts per cycle, with backoff from one second
+to one day. Every unresolved cycle has a 30-day deadline, including exhausted or
+quarantined work. Signed private `/resume` may restart retry attempts before this
+deadline; it preserves the original tuple and cannot extend the deadline.
 
-Completed details expire 30 days after completion. A permanent one-bit tombstone
-remains in that installation's DO so an old signed webhook cannot recreate work
-after detail deletion. Neither pending work nor the edge revocation latch expires
-through this cleanup path. Keep the commitment key stable for this object's lifetime;
-key rotation requires a separately reviewed migration of routing and tombstones.
+At the exact deadline, an atomic replacement sets `operator_action_required` and
+removes retry state. This is incomplete, delivery-closed work. The retained record
+contains keyed event/installation commitments, independent acknowledgement bits,
+original random request UUID/intake time, expiry/failure metadata and optional
+content-free continuation metadata. No clear provider/internal routing identifiers
+are stored by this coordinator at any point; routing normally comes from static
+configuration. Expiry prevents ordinary resume from using that configuration.
+Late side responses cannot complete or restore expired work. The permanent one-bit
+fence is never removed. Completed details expire 30 days after completion.
+
+`UninstallControl` is a private service entrypoint for signed `/status`, `/resume`
+and `/continue`; public ingress, webhook and delivery handlers never route to it.
+Status/resume requests use exact JSON `{schemaVersion:1,eventHash,installationHash}`
+and HMAC domain `bugdrop:uninstall:<status|resume>:v1` plus NUL and original bytes.
+Signed status uses `bugdrop:uninstall:status:v1` plus NUL and exact response bytes.
+Keep the commitment key stable; key rotation requires a separately reviewed
+migration of routing and tombstones.
+
+Continuation is **injectable scaffolding, not a hosted recovery provider**. A private
+`/continue` request adds the exact random `tombstoneId`, `tombstonedAt` and a nonsecret UUID `recoveryRequestId`
+under its own HMAC domain. Binding the tombstone prevents an old request from
+starting another recovery after later cycles expire.
+Without the separately keyed `STAGING_UNINSTALL_RECOVERY` binding, it fails closed.
+The coordinator creates a random challenge and generation, persisting only its hash,
+expiry and generation. It sends the raw challenge only to the trusted adapter.
+An exact, separately authenticated assertion must attest fresh affirmative provider
+removal and current authoritative SQL mapping, bound to deployment, App, application,
+provider installation, original tuple, tombstone, challenge and generation. Caller
+booleans are never evidence. Evidence is limited to 30 seconds and transport to two
+seconds; raw proof and mapping are never persisted.
+
+Challenge consumption and linked-cycle creation are atomic. A lost accepted response
+can be retried with the same request UUID. An expired attempt may be superseded;
+late old-generation responses fail. Recovery has at most eight attempts per tombstone,
+separated by the 30-second challenge window. A new accepted cycle gets a fresh 30-day
+deadline while retaining the permanent fence and original SQL idempotency tuple.
+It expires into another incomplete tombstone if unresolved. No provider verifier or
+SQL mapping lookup is implemented here. If SQL receipt and mapping have expired,
+recovery must remain incomplete/quarantined: it cannot recreate a mapping or infer
+an acknowledgement from absence.
 
 ## Disabled deployment boundary
 
@@ -58,7 +89,9 @@ key rotation requires a separately reviewed migration of routing and tombstones.
 placeholder, no routes, and no provisioned secrets. Its reconciliation binding names
 a private service that has **not** been deployed. `reconcileVerifiedUninstall` is an
 injectable handler, not a public HTTP database API. The hosted SQL transport,
-credential custody, provider resources and deployment remain unconfigured.
+credential custody, provider resources and deployment remain unconfigured. Hosted
+operator alerting and delivery of `operator_action_required` events are also required
+before activation; a local status record does not prove an operator was notified.
 
 The runtime control worker owns the permanent edge latch and signed receipt; the
 data repository owns the authoritative SQL transaction and publication lock. The
@@ -91,3 +124,8 @@ stores for cleanup and permanent latch state, exercises lost acknowledgement on 
 side, exact replay, delayed positive publication and detail retention. Retention
 uses a local fixture clock and actual deletion path; it is not a 30-day wall-clock
 observation. Test fault entrypoints have no deployment manifest.
+
+Merged dependency baseline: edge/runtime `32e62f9fb8e0130fa861da607b465185b3f4ffb8`,
+authoritative SQL `76b16bf6300da742198f6d4f4c060a4d3801e8d2`, and packed SDK v2
+runner `3ac71b9c9608712888c8999907f361b20b3ad409`. Local proof uses these contracts;
+none of these merge receipts is hosted activation evidence.

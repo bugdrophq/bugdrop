@@ -12,7 +12,7 @@ export class UninstallControl extends WorkerEntrypoint<StagingGithubEnv> {
         this.env.ENVIRONMENT !== 'staging' ||
         this.env.STAGING_ENABLED !== 'true' ||
         request.method !== 'POST' ||
-        !['/status', '/resume'].includes(new URL(request.url).pathname)
+        !['/status', '/resume', '/continue'].includes(new URL(request.url).pathname)
       )
         reject();
       const config = stagingConfig(json(utf8(this.env.STAGING_GITHUB_TARGET_JSON)));

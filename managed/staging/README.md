@@ -211,7 +211,8 @@ SQL adapter contract; local proof does not establish hosted completion.
   occurrence time and request ID; never retain raw payloads, end-user identity or secrets.
   Retry partial failures, quarantine missing mappings, fence positive publication,
   and require affirmative provider evidence for reconciliation. The local coordinator
-  implements intake, bounded retry/resume, completed-detail retention and the private
+  implements intake, bounded retry/resume, 30-day unresolved expiry to operator action,
+  completed-detail retention and the private
   SQL adapter interface. Hosted transport, secret custody and operational handling of
   retained unfinished work remain activation gates.
 
