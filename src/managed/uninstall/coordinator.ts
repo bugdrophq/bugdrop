@@ -236,7 +236,7 @@ export class StagingUninstall extends DurableObject<UninstallEnv> {
     if (!item || item.state !== 'pending') return;
     const deadline = (item.completedAt ?? item.cycleStartedAt) + retention;
     await this.ctx.storage.setAlarm(
-      item.completedAt !== null || item.nextAttemptAt === 0
+      item.completedAt !== null || item.nextAttemptAt === 0 || item.attempts >= delays.length
         ? deadline
         : Math.min(deadline, Math.max(this.now(), item.nextAttemptAt))
     );

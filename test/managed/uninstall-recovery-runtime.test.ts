@@ -43,6 +43,25 @@ describe('actual SQLite retention and private continuation', () => {
     expect((await service.status()).state).toBe('operator_action_required');
     expect(service.calls.sql).toBe(8);
   });
+  it('keeps only the retention alarm after a crash saving the last retry attempt', async () => {
+    service = await start({ config });
+    service.modes.sql = '503';
+    await service.request('/intake');
+    const original = await service.status();
+    for (let i = 0; i < 6; i++) {
+      await service.restart(86_400_000);
+      await service.alarm();
+    }
+    await service.restart(86_400_000);
+    service.setFault(1, 'sync-failure');
+    expect((await service.alarm()).status).not.toBe(200);
+    await service.restart(86_400_000);
+    for (let i = 0; i < 2; i++) {
+      await service.alarm();
+      expect(await service.alarmTime()).toBe(original.work.occurredAt + retention);
+    }
+    expect(service.calls.sql).toBe(7);
+  });
   it('tombstones atomically across failed sync, preserving fence and incomplete acknowledgements', async () => {
     service = await start({ config });
     service.modes.sql = '503';
