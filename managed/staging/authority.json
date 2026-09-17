@@ -30,7 +30,8 @@
         "ENVIRONMENT": "staging",
         "STAGING_ENABLED": "false",
         "STAGING_APPLICATION_ID": "UNAPPROVED",
-        "STAGING_INSTALLATION_ID": "UNAPPROVED"
+        "STAGING_INSTALLATION_ID": "UNAPPROVED",
+        "STAGING_OBSERVATION_ENABLED": "false"
       },
       "secrets": {
         "required": [
@@ -39,7 +40,8 @@
           "STAGING_AUTH_VERIFIER",
           "STAGING_RECEIPT_HMAC_KEY",
           "STAGING_SIGNING_KEYSET",
-          "STAGING_UNINSTALL_HMAC_KEY"
+          "STAGING_UNINSTALL_HMAC_KEY",
+          "STAGING_OBSERVATION_HMAC_KEY"
         ]
       },
       "durable_objects": {

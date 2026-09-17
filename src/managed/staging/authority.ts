@@ -139,4 +139,15 @@ export class StagingControl extends WorkerEntrypoint<StagingAuthorityEnv> {
     }
   }
 }
+export class StagingObservation extends WorkerEntrypoint<StagingAuthorityEnv> {
+  async fetch(request: Request) {
+    try {
+      if (!new URL(request.url).pathname.startsWith('/observation/')) return denied();
+      const body = await readBounded(request, 1024);
+      return await coordinator(this.env).fetch(new Request(request, { body }));
+    } catch {
+      return denied();
+    }
+  }
+}
 export default { fetch: denied };

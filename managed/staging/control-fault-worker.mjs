@@ -4,6 +4,7 @@ export {
   IssuerAuthority,
   DeliveryAuthority,
   StagingControl,
+  StagingObservation,
 } from '../../src/managed/staging/authority.ts';
 export default base.default;
 export class StagingAuthorization extends base.StagingAuthorization {

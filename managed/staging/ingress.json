@@ -28,7 +28,10 @@
       "routes": [],
       "vars": {
         "ENVIRONMENT": "staging",
-        "STAGING_ENABLED": "false"
+        "STAGING_ENABLED": "false",
+        "STAGING_OBSERVATION_ENABLED": "false",
+        "STAGING_APPLICATION_ID": "UNAPPROVED",
+        "STAGING_INSTALLATION_ID": "UNAPPROVED"
       },
       "services": [
         {
@@ -45,8 +48,16 @@
           "binding": "STAGING_GITHUB_WEBHOOK",
           "service": "bugdrop-managed-github-staging",
           "entrypoint": "GithubWebhook"
+        },
+        {
+          "binding": "STAGING_OBSERVATION",
+          "service": "bugdrop-managed-authority-staging",
+          "entrypoint": "StagingObservation"
         }
-      ]
+      ],
+      "secrets": {
+        "required": ["STAGING_OBSERVATION_HMAC_KEY"]
+      }
     }
   }
 }
