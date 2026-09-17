@@ -111,20 +111,25 @@ or private status result matching application/key, exact sequence, projection
 digest, configurationVersion and authorizationVersion. Resolve lost acknowledgements
 through private status or exact-byte retries returning the same receipt without
 renewing observedAt; altered same-sequence bytes must reject. The current generic
-HTTP 200 and duplicate-sequence HTTP 403 cannot acknowledge revocation.
+HTTP 200 or rejection response cannot acknowledge revocation. The merged runtime
+implements signed durable receipts, exact retries and private status; the publisher
+must verify the matching receipt before SQL acknowledgement.
 
 Hosted activation also remains blocked on a trusted locked authoritative
 mapping/read, durable monotonic outbox and authorizationVersion, original observedAt,
-scoped verifier provisioning and secret-custody bootstrap. The current SQL model
-cannot represent active applications/installations. Pending credentials stay
+scoped verifier provisioning and secret-custody bootstrap. The merged SQL contract
+supports explicit activation, the locked mapping and monotonic outbox; these still
+require hosted transport and provider proof before activation. Pending credentials stay
 SQL-only because credentialActive:false is terminal for that key. First positive
 publication requires committed activation, verified installation eligibility and
-reviewed transaction/order. A future reviewed coordinator schema may retain minimal
+reviewed transaction/order. The [local coordinator](../../managed/uninstall/README.md) retains minimal
 keyed nonidentity operational commitments (eventHash, installationHash,
 projectionDigest); it must exclude raw payloads, end-user identity and secrets.
 This does not expand the current evidence schema or introduce control RPCs.
 
-No collector for these completion records exists here. The uninstall scenario
+Actual local Postgres/Workerd cases now prove durable intake, independent edge/SQL
+acknowledgements, recovery, fencing and retention. No remote collector for these
+completion records exists here. The uninstall scenario
 therefore deliberately throws `staging_uninstall_completion_unavailable` after
 verifying edge rejection; no aggregate remote run may report success until a
-reviewed coordinator schema and actual observations replace that explicit gate.
+reviewed remote observation contract and actual observations replace that explicit gate.

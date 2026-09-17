@@ -85,12 +85,13 @@ Do not reuse their credentials, installation, repositories, routes, or resources
 The [closed cross-plane activation gates](../../managed/staging/README.md#closed-cross-plane-activation-gates)
 define the shared runtime, publisher and lifecycle completion contract.
 
-The current private webhook wrapper verifies GitHub and persists the edge latch.
-Its successful response describes edge acceptance only. It does not implement or
-prove durable lifecycle intake, Supabase application/cleanup acknowledgement, or
-their reconciliation. Keep staging activation disabled until a reviewed coordinator
-provides both independent completion records. Do not infer database cleanup from
-the edge response or fabricate a second acknowledgement in the test collector.
+The private webhook now verifies GitHub and durably admits normalized work before
+acknowledging intake. The [uninstall coordinator](../../managed/uninstall/README.md)
+independently verifies a signed permanent edge latch receipt and the authoritative
+SQL cleanup receipt. Only both mark completion; pending and quarantined work remain
+recoverable across restart. A webhook 2xx is intake acknowledgement, not completion.
+Real local Postgres/Workerd tests exercise these contracts. No hosted SQL transport,
+remote collector or live provider completion has been configured or proved.
 
 The wire installation identifier is GitHub's canonical positive decimal numeric
 string. It is not the SQL installation row's internal UUID. Resolve the explicit
@@ -101,23 +102,31 @@ result written after durable sync, matching the application/key, exact sequence,
 projection digest, configurationVersion and authorizationVersion. A lost
 acknowledgement must be resolved by private status or an exact-byte retry returning
 the same receipt without renewing observedAt. Altered bytes at the same sequence
-must reject. The current generic HTTP 200 and duplicate-sequence HTTP 403 cannot
-acknowledge revocation.
+must reject. The runtime now implements signed durable receipts, exact retries and
+private status. A generic HTTP 200 or rejection response still cannot acknowledge
+revocation; the publisher must verify the exact signed receipt before SQL ack.
 
 Hosted activation also requires a trusted locked authoritative mapping/read and a
 durable monotonic outbox with authorizationVersion, exact retry bytes and original
-observedAt. The current SQL model cannot represent an active application/install.
+observedAt. The merged data-plane publisher contract now implements explicit
+activation, the locked mapping, monotonic outbox and transactional cleanup fence.
 Keep pending credentials SQL-only: publishing credentialActive:false is terminal
 for that key. First positive publication requires committed activation, verified
 installation eligibility, scoped verifier provisioning and secret-custody bootstrap
-in a reviewed transaction/order. These requirements are unimplemented; do not
-fabricate active flags, source timestamps or acknowledgements.
+in a reviewed transaction/order. Hosted transport, verifier provisioning, custody
+and a real collector remain activation gates; do not fabricate active flags, source
+timestamps or acknowledgements from local tests.
 
-A reviewed future coordinator schema may retain minimal keyed nonidentity
-operational commitments such as eventHash, installationHash and projectionDigest.
+The coordinator retains minimal keyed nonidentity operational commitments such as
+eventHash and installationHash; control receipts carry projectionDigest.
 Raw payloads, end-user identity and secrets remain forbidden. This allowance does
-not widen the current evidence schema. These are activation requirements; this
-change does not invent new control RPCs, tables, or provider status formats.
+not widen the public submission or evidence schema. The private adapter calls the
+data owner's merged `apply_verified_uninstall` contract, with provider-ID mapping
+resolved inside SQL; no alternate database RPC is invented here.
+
+Account sign-in is separate from Managed App installation. The account callback and
+session flow has local simulated-provider tests; live GitHub sign-in has not been
+run. Managed App user OAuth remains disabled, with no installation OAuth callback.
 
 ## Delivery and privacy boundary
 

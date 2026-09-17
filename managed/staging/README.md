@@ -69,25 +69,27 @@ snapshot, including before the first projection and across restart.
 The data-plane migration `bugdrop-web/supabase/migrations/20260917144202_staging_account_configuration.sql`
 adds nullable `canonical_origin` and tenant-authorized configuration versioning.
 The publisher must map non-null `canonical_origin` to exact `origin`, preserve
-`configuration_version`, and keep application/installation active flags false for
-the current draft/disabled database model. It must not fabricate activation, verifier
-storage, sequence, authorizationVersion or observation timestamps. Those lifecycle
-and publisher capabilities remain explicit activation prerequisites.
+`configuration_version`. The merged data-plane publisher/outbox contract adds explicit
+activation, a locked mapping and monotonic publication state. It must not fabricate
+activation, verifier storage, sequence, authorizationVersion or observation timestamps.
+Hosted transport, verifier provisioning and custody remain activation prerequisites.
 
 The publisher must join the SQL internal installation UUID to `github_installation_id`
 and serialize that provider numeric ID as `projection.installationId`. SQL lifecycle
 commands retain the internal UUID; they must not receive the edge provider ID instead.
 Do not publish a pending credential as `credentialActive:false`: false is terminal for
-that edge key identity. Publication begins only after explicit activation is implemented
-and acknowledged; its transaction/ordering and bootstrap remain unimplemented gates.
+that edge key identity. Publication begins only after explicit activation and
+acknowledgement; the SQL transaction/order is implemented locally, while hosted
+provider verification and bootstrap remain closed gates.
 
-Webhook acknowledgement currently proves only the durable edge revocation latch.
-A separate authoritative reconciliation adapter must call the Supabase installation
-event/cleanup contract using the verified provider-to-internal mapping, retry safely,
-and record acknowledgement without clearing the edge latch. It is not implemented or
-configured here, and hosted activation stays blocked until it is reviewed and tested.
-This tranche does not add OAuth PKCE; operator OAuth must remain disabled until its
-separate callback/session flow is implemented and approved.
+Webhook acknowledgement now proves durable normalized intake, not complete uninstall.
+The [private uninstall coordinator](../uninstall/README.md) independently verifies
+the permanent edge latch and authoritative SQL cleanup receipts, preserving retries
+and quarantine without clearing the latch. Real local Postgres/Workerd tests exercise
+the integration; hosted reconciliation transport and remote observation remain absent.
+Account sign-in has a separately implemented callback/session flow with local
+simulated-provider tests; live GitHub sign-in has not been run. Managed App user
+OAuth and its installation callback remain disabled.
 
 Control and data are separate: a private control publisher is responsible for mapping
 the authoritative database transaction into the schema below. Its remote transport,
@@ -167,7 +169,8 @@ byte). Repeating the signed request recovers this permanent edge proof after a l
 response. It is separate from projection acknowledgement and SQL cleanup completion.
 No later projection clears the installation latch. The public staging webhook path
 forwards to a private GithubWebhook binding, which verifies the exact raw GitHub
-signature and App/installation owner before signing the distinct uninstall latch.
+signature and App/installation owner before durable coordinator intake. The coordinator
+then signs the distinct uninstall latch request and independently drives SQL cleanup.
 
 Snapshots contain operational configuration only. Provider signing keys, HMAC keys
 and verifier are never written to the authorization DO. IssuerAuthority receives
@@ -179,9 +182,11 @@ These entrypoints have no public fetch equivalent.
 
 The remaining integration contracts below are activation prerequisites. The
 publisher owns the authoritative locked SQL join, sequence/version transaction and
-durable outbox. The private runtime implements authenticated durable control receipts
-and status queries; trusted publisher integration and SQL acknowledgement are still required. The trusted webhook adapter owns durable normalized
-intake and retries; its SQL adapter must be reviewed with the data-plane owner.
+durable outbox, implemented in the merged data-plane contract. The private runtime
+implements authenticated durable control receipts and status queries. Hosted publisher
+transport and verified SQL acknowledgement integration remain required. The trusted
+webhook coordinator now implements durable intake and retries against the data-owner
+SQL adapter contract; local proof does not establish hosted completion.
 
 - Map the internal installation UUID through the authoritative tenant/application
   join to canonical positive decimal `github_installation_id`; reject unsafe numeric
@@ -200,13 +205,15 @@ intake and retries; its SQL adapter must be reviewed with the data-plane owner.
   Outbox retries preserve exact bytes, source time and ordering; rotation remains
   blocked by the single-key/destination scope pending a separate reviewed contract.
 - Persist normalized verified uninstall work before webhook 2xx, with independent
-  edge-latch and SQL event/cleanup acknowledgements. Current `accepted:true` proves
-  only the edge latch and is insufficient for hosted activation. Preserve minimal
+  edge-latch and SQL event/cleanup acknowledgements. Webhook `accepted:true` proves
+  durable intake and is insufficient for hosted activation. Preserve minimal
   trusted routing across SQL cleanup, stable domain-separated keyed hashes,
   occurrence time and request ID; never retain raw payloads, end-user identity or secrets.
   Retry partial failures, quarantine missing mappings, fence positive publication,
-  and require affirmative provider evidence for reconciliation. Durable intake,
-  retention/key policy and the SQL reconciliation adapter are absent here.
+  and require affirmative provider evidence for reconciliation. The local coordinator
+  implements intake, bounded retry/resume, completed-detail retention and the private
+  SQL adapter interface. Hosted transport, secret custody and operational handling of
+  retained unfinished work remain activation gates.
 
 Required cross-plane acceptance tests must exercise real Postgres and SQLite DOs:
 correct and mismatched UUID/provider/tenant joins; consistent concurrent publication;
