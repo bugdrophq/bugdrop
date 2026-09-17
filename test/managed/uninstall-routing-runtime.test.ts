@@ -91,6 +91,12 @@ describe('immutable admitted uninstall routing across configuration changes', ()
     expect(stored.completedAt).not.toBeNull();
     expect(service.evidence().sqlReceipts[0].installationId).toBe(String(config.installationId));
     expect(service.calls).toEqual({ edge: 1, sql: 1 });
+    expect((await service.storage()).fence).toEqual([{ id: 1 }]);
+    expect(service.evidence().sqlReceipts).toHaveLength(1);
+    await service.restart(2000);
+    await service.alarm();
+    expect(service.calls).toEqual({ edge: 1, sql: 1 });
+    expect((await service.storage()).fence).toEqual([{ id: 1 }]);
   });
   it('permits a target changed away then restored before the next immutable effect', async () => {
     service = await start({ config: { ...config }, applicationId });

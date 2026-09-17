@@ -5,6 +5,28 @@ export { UninstallControl } from '../../src/managed/uninstall/control.ts';
 export class TestUninstall extends StagingUninstall {
   constructor(ctx, env) {
     super(ctx, env);
+    this.transportTrace = [];
+    for (const [side, name] of [
+      ['edge', 'STAGING_CONTROL'],
+      ['sql', 'STAGING_RECONCILIATION'],
+      ['recovery', 'STAGING_UNINSTALL_RECOVERY'],
+    ]) {
+      const original = env[name];
+      if (!original) continue;
+      env[name] = {
+        fetch: async request => {
+          const event = { side, startedAt: Date.now(), finishedAt: null, status: null };
+          this.transportTrace.push(event);
+          try {
+            const response = await original.fetch(request);
+            event.status = response.status;
+            return response;
+          } finally {
+            event.finishedAt = Date.now();
+          }
+        },
+      };
+    }
     const fixture = this;
     const storage = new Proxy(ctx.storage, {
       get(target, property) {
@@ -46,6 +68,22 @@ export class TestUninstall extends StagingUninstall {
   }
   async fetch(request) {
     const path = new URL(request.url).pathname;
+    if (path === '/_test/trace') return Response.json(this.transportTrace);
+    if (path === '/_test/prewarm') {
+      await Promise.all(
+        ['STAGING_CONTROL', 'STAGING_RECONCILIATION', 'STAGING_UNINSTALL_RECOVERY']
+          .filter(name => this.env[name])
+          .map(name =>
+            this.env[name].fetch('http://uninstall.bugdrop.localhost/_test/warm-binding')
+          )
+      );
+      return new Response('warm');
+    }
+    if (path === '/_test/settled') {
+      await this.running;
+      await this.ctx.storage.sync();
+      return new Response('settled');
+    }
     if (path === '/_test/scope') {
       const body = await request.json();
       this.env.STAGING_GITHUB_TARGET_JSON = JSON.stringify(body.config);

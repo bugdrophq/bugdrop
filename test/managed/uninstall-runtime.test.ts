@@ -105,13 +105,59 @@ describe('actual SQLite uninstall coordinator with synthetic side transports', (
     async mode => {
       service = await start({ config });
       service.modes.sql = mode;
-      await service.request('/intake');
-      expect(await service.status()).toMatchObject({
+      await service.prewarm();
+      const observed = await service.settled(await service.request('/intake'));
+      const diagnostic = JSON.stringify(observed);
+      expect(observed.intake.status, diagnostic).toBe(200);
+      expect(observed.state, diagnostic).toMatchObject({
         state: 'pending',
         work: { edgeAcknowledged: true, sqlAcknowledged: false },
       });
+      expect(observed.ledger, diagnostic).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ side: 'edge', settled: true, status: 200 }),
+        ])
+      );
     }
   );
+  it('keeps a timed-out edge acknowledgement pending independently of SQL500 and recovers', async () => {
+    service = await start({ config });
+    await service.prewarm();
+    service.modes.sql = '500';
+    let entered!: () => void, release!: () => void;
+    const started = new Promise<void>(resolve => {
+      entered = resolve;
+    });
+    const held = new Promise<void>(resolve => {
+      release = resolve;
+    });
+    service.transport.hook = async side => {
+      if (side === 'edge') {
+        entered();
+        await held;
+      }
+    };
+    const began = performance.now();
+    const intake = service.request('/intake');
+    await started;
+    const observed = await service.settled(await intake);
+    const diagnostic = JSON.stringify(observed);
+    expect(performance.now() - began, diagnostic).toBeGreaterThanOrEqual(1900);
+    expect(observed.intake.status, diagnostic).toBe(200);
+    expect(observed.state, diagnostic).toMatchObject({
+      state: 'pending',
+      work: { edgeAcknowledged: false, sqlAcknowledged: false },
+    });
+    expect(observed.calls, diagnostic).toEqual({ edge: 1, sql: 1 });
+    release();
+    service.transport.hook = undefined;
+    const recovered = await service.settled(await service.request('/resume'));
+    expect(recovered.state, JSON.stringify(recovered)).toMatchObject({
+      state: 'pending',
+      work: { edgeAcknowledged: true, sqlAcknowledged: false },
+    });
+    expect(recovered.calls).toEqual({ edge: 2, sql: 2 });
+  });
   it('quarantines a verified missing mapping and only retries it after private resume', async () => {
     service = await start({ config });
     service.modes.sql = 'missing';

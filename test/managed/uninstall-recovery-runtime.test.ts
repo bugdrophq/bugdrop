@@ -11,6 +11,7 @@ afterEach(async () => {
 async function expired(recovery = true) {
   service = await start({ config, applicationId, recovery });
   service.modes.sql = '503';
+  await service.prewarm();
   await service.request('/intake');
   await service.restart(retention);
   await service.alarm();
@@ -143,9 +144,11 @@ describe('actual SQLite retention and private continuation', () => {
           await change();
           return proof;
         };
-      expect((await service.request('/continue', body)).status).toBe(503);
-      expect((await service.status()).state).toBe('operator_action_required');
-      expect(service.recovery.calls).toBe(when === 'before' ? 0 : 1);
+      const observed = await service.settled(await service.request('/continue', body));
+      const diagnostic = JSON.stringify(observed);
+      expect(observed.intake.status, diagnostic).toBe(503);
+      expect(observed.state.state, diagnostic).toBe('operator_action_required');
+      expect(observed.recoveryCalls, diagnostic).toBe(when === 'before' ? 0 : 1);
       expect(service.calls.sql).toBe(1);
       expect((await service.storage()).fence).toEqual([{ id: 1 }]);
     }

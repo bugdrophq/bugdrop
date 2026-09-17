@@ -40,6 +40,7 @@ export async function start({
   /** @type {{hook?: (side: string) => Promise<void>}} */
   const transportFixture = {};
   const logs = [];
+  const ledger = [];
   let syncCount = 0;
   let fault = { at: 0, action: 'ok' };
   let edgeLatched = false;
@@ -96,6 +97,19 @@ export async function start({
       logLevel: 'silent',
     });
   async function transport(side, request) {
+    if (new URL(request.url).pathname === '/_test/warm-binding') return new Response('warm');
+    const entry = { side, settled: false, status: null, startedAt: Date.now(), finishedAt: null };
+    ledger.push(entry);
+    try {
+      const response = await exchangeTransport(side, request);
+      entry.status = response.status;
+      return response;
+    } finally {
+      entry.settled = true;
+      entry.finishedAt = Date.now();
+    }
+  }
+  async function exchangeTransport(side, request) {
     calls[side]++;
     const scopedInstallationId = String(config.installationId);
     const scopedApplicationId = applicationId;
@@ -218,6 +232,8 @@ export async function start({
             ...(recovery
               ? {
                   STAGING_UNINSTALL_RECOVERY: async request => {
+                    if (new URL(request.url).pathname === '/_test/warm-binding')
+                      return new Response('warm');
                     recoveryFixture.calls++;
                     const raw = await request.text();
                     if (
@@ -302,6 +318,11 @@ export async function start({
   };
   return {
     calls,
+    async prewarm() {
+      const response = await rawRequest('/_test/prewarm');
+      if (response.status !== 200) throw new Error('uninstall_test_prewarm_failed');
+      await response.text();
+    },
     async changeScope(change) {
       if (change.applicationId !== undefined) applicationId = change.applicationId;
       for (const field of ['appId', 'installationId'])
@@ -344,6 +365,26 @@ export async function start({
     storage: async () => (await rawRequest('/_test/storage')).json(),
     alarm: () => rawRequest('/_test/alarm', { method: 'POST' }),
     evidence: () => ({ edgeLatched, sqlReceipts: [...sqlReceipts.values()], logs }),
+    async settled(response) {
+      const intake = { status: response.status, body: await response.text() };
+      const barrier = await rawRequest('/_test/settled', {
+        method: 'POST',
+        signal: AbortSignal.timeout(5000),
+      });
+      if (barrier.status !== 200) throw new Error('uninstall_test_completion_barrier_failed');
+      await barrier.text();
+      return {
+        intake,
+        state: await (await request('/status')).json(),
+        storage: await (await rawRequest('/_test/storage')).json(),
+        alarm: await (await rawRequest('/_test/alarm-time')).json(),
+        calls: { ...calls },
+        recoveryCalls: recoveryFixture.calls,
+        ledger: [...ledger],
+        logs: [...logs],
+        transportTrace: await (await rawRequest('/_test/trace')).json(),
+      };
+    },
     async edgeStorage() {
       if (!controlRoot) throw new Error('actual_edge_unavailable');
       return (
