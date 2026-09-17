@@ -75,6 +75,8 @@ export async function loadApproved(path, approvedDigest) {
   if (
     descriptor.schemaVersion !== 1 ||
     descriptor.proofKind !== 'private-binding-closed-denial' ||
+    typeof descriptor.accountId !== 'string' ||
+    typeof descriptor.runtimeRevision !== 'string' ||
     !/^[a-f0-9]{32}$/.test(descriptor.accountId) ||
     !/^[a-f0-9]{40}$/.test(descriptor.runtimeRevision)
   )
@@ -92,6 +94,7 @@ export async function loadApproved(path, approvedDigest) {
     const role = ['authority', 'delivery', 'github', 'ingress', 'reconciliation'][i];
     if (
       worker.name !== names[i] ||
+      typeof worker.versionId !== 'string' ||
       !/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/.test(worker.versionId) ||
       canonical(worker.entrypoints) !== canonical(entries[role])
     )

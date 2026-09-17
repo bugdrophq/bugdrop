@@ -156,3 +156,29 @@ it('rejects a repinned provenance receipt bound to the wrong source revision', a
   ).rejects.toThrow();
   expect(value.state).not.toHaveProperty('opened');
 });
+
+it('rejects an array revision even when all provenance artifacts match its invalid type', async () => {
+  const value = await setup();
+  const { hash } = await import('../../managed/staging/private-readiness-descriptor.mjs');
+  value.descriptor.runtimeRevision = [value.descriptor.runtimeRevision] as unknown as string;
+  for (const artifact of value.descriptor.runnerArtifacts.filter(a =>
+    a.name.startsWith('provenance-')
+  )) {
+    const receipt = JSON.parse(await readFile(artifact.absolutePath, 'utf8'));
+    receipt.sourceRevision = value.descriptor.runtimeRevision;
+    const text = canonical(receipt);
+    await writeFile(artifact.absolutePath, text);
+    artifact.sha256 = hash(text);
+    value.descriptor.workers.find(
+      w => 'provenance-' + w.name === artifact.name
+    )!.provenanceReceiptSha256 = artifact.sha256;
+  }
+  await writeFile(value.descriptorPath, canonical(value.descriptor));
+  await expect(
+    runClosedDenials({
+      descriptorPath: value.descriptorPath,
+      approvedDigest: digest(value.descriptor),
+    })
+  ).rejects.toThrow();
+  expect(value.state).not.toHaveProperty('opened');
+});
