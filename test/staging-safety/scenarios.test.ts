@@ -6,6 +6,7 @@ describe('remote runner prerequisite mutations, without any remote provider', ()
     'rejects observed SDK client pin %s before scenarios',
     async sdkVersion => {
       const target = {
+        applicationId: 'app-test',
         approved: true,
         environment: 'staging',
         serviceRevision: 'a'.repeat(40),

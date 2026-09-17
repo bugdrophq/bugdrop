@@ -3,10 +3,13 @@ import type { StagingGithubEnv } from './github-env';
 import { loadAuthority, type Authority } from '../local/authority';
 import { verifySubmission } from '../local/capability';
 import { submission } from '../local/submission';
-import { bytes, hmac, json, readBounded, reject, utf8 } from '../local/protocol';
+import { bytes, json, readBounded, reject, utf8 } from '../local/protocol';
 import { stagingConfig } from '../github-staging/config';
 import { handleGitHubDelivery } from '../github-staging/delivery';
 import { verifyGitHubUninstall } from '../github-staging/webhook';
+import { admitVerifiedUninstall } from '../uninstall/intake';
+export { StagingUninstall } from '../uninstall/coordinator';
+export { UninstallControl } from '../uninstall/control';
 const refused = () =>
   Response.json(
     { outcome: 'failed_before_delivery' },
@@ -63,21 +66,7 @@ export class GithubWebhook extends WorkerEntrypoint<StagingGithubEnv> {
       const config = configured(this.env);
       if (!(await verifyGitHubUninstall(request, config, this.env.STAGING_GITHUB_WEBHOOK_SECRET)))
         reject();
-      const raw = utf8(
-        JSON.stringify({ schemaVersion: 1, installationId: String(config.installationId) })
-      );
-      const reply = await this.env.STAGING_CONTROL.fetch(
-        'http://authority.bugdrop.localhost/revoke-installation',
-        {
-          method: 'POST',
-          body: raw,
-          headers: {
-            'X-BugDrop-Control-Signature': await hmac(this.env.STAGING_UNINSTALL_HMAC_KEY, raw),
-          },
-        }
-      );
-      if (!reply.ok) reject();
-      return Response.json({ schemaVersion: 1, accepted: true });
+      return await admitVerifiedUninstall(this.env, config);
     } catch {
       return Response.json({ error: 'managed_webhook_rejected' }, { status: 403 });
     }

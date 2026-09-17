@@ -18,6 +18,8 @@ export async function start({
   const directory = await mkdtemp(join(tmpdir(), 'bugdrop-staging-test-'));
   const controlKey = randomBytes(32).toString('base64url');
   const uninstallKey = randomBytes(32).toString('base64url');
+  const uninstallCommitmentKey = randomBytes(32).toString('base64url');
+  const reconciliationKey = randomBytes(32).toString('base64url');
   const receiptKey = randomBytes(32).toString('base64url');
   let runtime,
     attempts = 0;
@@ -133,10 +135,16 @@ export async function start({
               STAGING_GITHUB_PRIVATE_KEY: github?.privateKey ?? '',
               STAGING_GITHUB_WEBHOOK_SECRET: github?.webhookSecret ?? '',
               STAGING_UNINSTALL_HMAC_KEY: uninstallKey,
+              STAGING_UNINSTALL_COMMITMENT_KEY: uninstallCommitmentKey,
+              STAGING_RECONCILIATION_HMAC_KEY: reconciliationKey,
             },
             serviceBindings: {
               STAGING_AUTHORITY: { name: 'authority', entrypoint: 'DeliveryAuthority' },
               STAGING_CONTROL: { name: 'authority', entrypoint: 'StagingControl' },
+              STAGING_RECONCILIATION: () => new Response(null, { status: 503 }),
+            },
+            durableObjects: {
+              STAGING_UNINSTALLS: { className: 'StagingUninstall', useSQLite: true },
             },
             ...(github ? { outboundService: github.transport } : {}),
           },

@@ -31,10 +31,10 @@ describe('unapproved staging remains isolated and closed', () => {
     expect(s.vars.STAGING_ENABLED).toBe('false');
     for (const binding of s.services ?? [])
       expect(binding.service).toMatch(
-        /^bugdrop-managed-(authority|ingress|delivery|github)-staging$/
+        /^bugdrop-managed-(authority|ingress|delivery|github|reconciliation)-staging$/
       );
     for (const binding of s.durable_objects?.bindings ?? [])
-      expect(binding.class_name).toMatch(/^Staging(Authorization|Receipt)$/);
+      expect(binding.class_name).toMatch(/^Staging(Authorization|Receipt|Uninstall)$/);
     const publicConfig = readFileSync('wrangler.toml', 'utf8');
     expect(publicConfig).not.toContain(s.name);
     for (const id of publicConfig.matchAll(/"([a-f0-9]{32})"/g))

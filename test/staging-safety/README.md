@@ -4,6 +4,10 @@
 `scenarios.mjs` exports `runRemoteSafety(provider, approvedTarget)` and thirteen
 adversarial scenarios. These modules do not provision a target or select credentials.
 The isolated SDK runner may import the oracle from an explicitly SHA-pinned file.
+The separately SHA-pinned runner exports `packedSdkSafetyContract` with exact
+`{version: 2, sdkVersion: '0.1.0'}`. Reject a missing or mismatched handshake before
+provider access. This private runner version does not change the public submission
+protocol or evidence schema version 1.
 
 No staging App/repository/hostname has been approved or provisioned by this task.
 There is no implemented remote provider or successful remote run in this change.
@@ -12,13 +16,15 @@ unavailable observer is a blocking prerequisite, never a skipped passing test.
 
 The approved target contains `approved: true`, `environment: 'staging'`, exact
 `serviceRevision` (40 hex), `deploymentDigest` (64 hex), `repositoryId` (decimal
-string), configured `origin`, and pinned `sdkVersion`. Approval must come from the
+string), operational `applicationId`, configured `origin`, and pinned `sdkVersion`. Approval must come from the
 operator; no code in this directory grants it. The provider's read-only
 `inspectTarget()` must verify those values through provider APIs and supply a fresh
 UUID `runId`. Version labels in responses alone are not sufficient provenance.
 Its observed `sdkVersion` identifies the actual SDK client used by the collector,
 not a Worker deployment property; inspect the pinned client package before starting
 any potentially mutating scenario. Missing or mismatched observations fail preflight.
+The provider must independently substantiate applicationId against the approved
+target; echoing configuration does not establish that scope.
 
 Each scenario uses a fresh synthetic authorization fixture in the same dedicated
 approved application/repository; fixture isolation and cleanup are provider-owned.
@@ -39,6 +45,26 @@ fault; a failed baseline mint is a test failure, not evidence of revocation.
 Origin aliases also require successful configured-origin issuance first. Expected
 issuance denials must record the staging issuer's HTTP 403; authentication-layer
 errors, rate limits and server failures cannot substitute for that rejection.
+For packed SDK execution, `rejectInvalidOrigin({binding,origin})` may prove the SDK's
+own local noncanonical-origin validation. It returns exactly `outcome:
+'client_validation_rejected'`, `networkAttempts: 0`, and `before`/`after` counter
+snapshots. Each snapshot has exactly `runId`, `scenario: 'origin-aliases'`,
+`applicationId`, `count`, `complete: true`, and `exclusive: true`. Counts must be safe
+nonnegative integers from an independent trusted provider scoped to this exact
+run/application; missing, incomplete or concurrently ambiguous observations fail.
+Copy snapshots immediately. Local rejection requires equal counts, not a fabricated
+HTTP 403. The hook must exercise the installed SDK and classify its actual origin
+validation error without replacing fetch or bypassing validation.
+
+`readExchangeCount()` returns that same snapshot shape. Every origin run also sends
+a canonical but wrong origin to the actual service and requires an independently
+observed one-request delta plus HTTP 403 in the existing evidence oracle. The
+configured-origin baseline is the first network exchange. Origin results include
+`originChecks`, ordered records of `index`, `outcome`, `networkAttempts`, `before`,
+and `after`, distinguishing `client_validation_rejected` from `http_denied`. Raw
+provider alias mode also uses these counters and actual HTTP denials. All other
+scenario results retain `{scenario,passed:true}`. No local validation result claims
+remote alias rejection.
 Receipt state and at-most-one
 attempt admission must come from actual durable storage, not request counters.
 
@@ -77,7 +103,7 @@ for the shared runtime, publisher and lifecycle completion contract.
 
 `waitForSignedUninstall()` can establish the verified edge latch only. End-to-end
 completion additionally requires durable normalized lifecycle intake, independent
-permanent edge and Supabase `apply_installation_event`/cleanup acknowledgements,
+permanent edge and Supabase `apply_verified_uninstall` (including `apply_installation_event`)/cleanup acknowledgements,
 and reconciliation of pending/quarantined partial failures. Canonical provider
 installation IDs are positive decimal strings on wire, distinct from internal SQL
 UUIDs. SQL revocation acknowledgement requires an authenticated post-sync receipt
@@ -85,20 +111,25 @@ or private status result matching application/key, exact sequence, projection
 digest, configurationVersion and authorizationVersion. Resolve lost acknowledgements
 through private status or exact-byte retries returning the same receipt without
 renewing observedAt; altered same-sequence bytes must reject. The current generic
-HTTP 200 and duplicate-sequence HTTP 403 cannot acknowledge revocation.
+HTTP 200 or rejection response cannot acknowledge revocation. The merged runtime
+implements signed durable receipts, exact retries and private status; the publisher
+must verify the matching receipt before SQL acknowledgement.
 
 Hosted activation also remains blocked on a trusted locked authoritative
 mapping/read, durable monotonic outbox and authorizationVersion, original observedAt,
-scoped verifier provisioning and secret-custody bootstrap. The current SQL model
-cannot represent active applications/installations. Pending credentials stay
+scoped verifier provisioning and secret-custody bootstrap. The merged SQL contract
+supports explicit activation, the locked mapping and monotonic outbox; these still
+require hosted transport and provider proof before activation. Pending credentials stay
 SQL-only because credentialActive:false is terminal for that key. First positive
 publication requires committed activation, verified installation eligibility and
-reviewed transaction/order. A future reviewed coordinator schema may retain minimal
+reviewed transaction/order. The [local coordinator](../../managed/uninstall/README.md) retains minimal
 keyed nonidentity operational commitments (eventHash, installationHash,
 projectionDigest); it must exclude raw payloads, end-user identity and secrets.
 This does not expand the current evidence schema or introduce control RPCs.
 
-No collector for these completion records exists here. The uninstall scenario
+Actual local Postgres/Workerd cases now prove durable intake, independent edge/SQL
+acknowledgements, recovery, fencing and retention. No remote collector for these
+completion records exists here. The uninstall scenario
 therefore deliberately throws `staging_uninstall_completion_unavailable` after
 verifying edge rejection; no aggregate remote run may report success until a
-reviewed coordinator schema and actual observations replace that explicit gate.
+reviewed remote observation contract and actual observations replace that explicit gate.
