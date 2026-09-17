@@ -6,12 +6,15 @@ import assert from 'node:assert/strict';
 
 const directory = mkdtempSync(join(tmpdir(), 'bugdrop-staging-dry-'));
 try {
-  for (const role of ['authority', 'ingress', 'delivery', 'github']) {
+  for (const role of ['authority', 'ingress', 'delivery', 'github', 'reconciliation']) {
     const path = `managed/staging/${role}.json`;
     const config = JSON.parse(readFileSync(path, 'utf8'));
     const staging = config.env.staging;
     assert.equal(config.account_id, 'STAGING_ACCOUNT_NOT_APPROVED');
-    assert.equal(staging.account_id, 'STAGING_ACCOUNT_NOT_APPROVED');
+    assert.equal(
+      staging.account_id,
+      role === 'reconciliation' ? '341a3846c29902f6363c151395932f5a' : 'STAGING_ACCOUNT_NOT_APPROVED'
+    );
     assert.equal(staging.name, `bugdrop-managed-${role}-staging`);
     assert.equal(staging.vars.STAGING_ENABLED, 'false');
     assert.equal(staging.workers_dev, false);

@@ -16,6 +16,7 @@
     "src/managed/staging/ingress.ts",
     "src/managed/staging/delivery.ts",
     "src/managed/staging/github.ts",
+    "src/managed/staging/reconciliation.ts",
     "src/managed/uninstall/reconciliation.ts"
   ],
   "project": ["src/**/*.ts", "scripts/**/*.{js,mjs}"],
