@@ -197,6 +197,7 @@ export async function runRemoteSafety(provider, approvedTarget) {
     'deploymentDigest',
     'repositoryId',
     'origin',
+    'sdkVersion',
   ]) {
     check(observed[key] === approvedTarget[key]);
   }

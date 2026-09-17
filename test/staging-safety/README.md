@@ -16,6 +16,9 @@ string), configured `origin`, and pinned `sdkVersion`. Approval must come from t
 operator; no code in this directory grants it. The provider's read-only
 `inspectTarget()` must verify those values through provider APIs and supply a fresh
 UUID `runId`. Version labels in responses alone are not sufficient provenance.
+Its observed `sdkVersion` identifies the actual SDK client used by the collector,
+not a Worker deployment property; inspect the pinned client package before starting
+any potentially mutating scenario. Missing or mismatched observations fail preflight.
 
 Each scenario uses a fresh synthetic authorization fixture in the same dedicated
 approved application/repository; fixture isolation and cleanup are provider-owned.

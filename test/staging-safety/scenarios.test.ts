@@ -2,6 +2,32 @@ import { describe, expect, it, vi } from 'vitest';
 import { runRemoteSafety, runScenario } from './scenarios.mjs';
 
 describe('remote runner prerequisite mutations, without any remote provider', () => {
+  it.each([undefined, '0.1.1'])(
+    'rejects observed SDK client pin %s before scenarios',
+    async sdkVersion => {
+      const target = {
+        approved: true,
+        environment: 'staging',
+        serviceRevision: 'a'.repeat(40),
+        deploymentDigest: 'b'.repeat(64),
+        repositoryId: '404',
+        origin: 'https://staging.example',
+        sdkVersion: '0.1.0',
+      };
+      const provider = {
+        inspectTarget: vi.fn(async () => ({
+          ...target,
+          sdkVersion,
+          runId: 'ad51c858-77ce-4ba2-b806-8fbf07924ace',
+        })),
+        startScenario: vi.fn(async () => {
+          throw new Error('scenario_started');
+        }),
+      };
+      await expect(runRemoteSafety(provider, target)).rejects.toThrow('staging_safety_failed');
+      expect(provider.startScenario).not.toHaveBeenCalled();
+    }
+  );
   it('never claims full uninstall completion from successful edge rejection alone', async () => {
     const service = {
       mint: vi
