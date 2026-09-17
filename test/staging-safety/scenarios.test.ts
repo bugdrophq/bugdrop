@@ -2,6 +2,24 @@ import { describe, expect, it, vi } from 'vitest';
 import { runRemoteSafety, runScenario } from './scenarios.mjs';
 
 describe('remote runner prerequisite mutations, without any remote provider', () => {
+  it.each(['', 'garbage', '0.1.1'])(
+    'rejects unsupported SDK pin %s before provider access',
+    async sdkVersion => {
+      const provider = { inspectTarget: vi.fn(async () => ({})), startScenario: vi.fn() };
+      await expect(
+        runRemoteSafety(provider, {
+          approved: true,
+          environment: 'staging',
+          serviceRevision: 'a'.repeat(40),
+          deploymentDigest: 'b'.repeat(64),
+          repositoryId: '404',
+          origin: 'https://staging.example',
+          sdkVersion,
+        })
+      ).rejects.toThrow();
+      expect(provider.inspectTarget).not.toHaveBeenCalled();
+    }
+  );
   it('does not call a provider before explicit target approval', async () => {
     const provider = { inspectTarget: vi.fn(), startScenario: vi.fn() };
     await expect(

@@ -62,6 +62,16 @@ function fixture() {
   };
 }
 describe('remote evidence oracle mutations (synthetic, not remote proof)', () => {
+  it.each(['', 'garbage', '0.1.1', 'https://private.invalid'])(
+    'rejects unsupported SDK pin %s',
+    sdkVersion => {
+      const evidence = fixture();
+      evidence.exchanges[0].sdkVersion = sdkVersion;
+      expect(() =>
+        assertEvidence({ evidence, expected: { ...expected, sdkVersion }, forbiddenValues })
+      ).toThrow('staging_evidence_rejected');
+    }
+  );
   it.each(['failed_before_delivery', 'indeterminate', 'delivering'])(
     'rejects durable %s contradicting delivered replay responses',
     state => {

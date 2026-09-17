@@ -175,6 +175,7 @@ export const scenarios = Object.freeze([
 
 export async function runRemoteSafety(provider, approvedTarget) {
   check(approvedTarget.environment === 'staging' && approvedTarget.approved === true);
+  check(approvedTarget.sdkVersion === '0.1.0');
   check(/^[0-9a-f]{40}$/.test(approvedTarget.serviceRevision));
   check(/^[0-9a-f]{64}$/.test(approvedTarget.deploymentDigest));
   check(/^[1-9][0-9]*$/.test(approvedTarget.repositoryId));

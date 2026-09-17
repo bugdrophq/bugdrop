@@ -74,6 +74,7 @@ export function assertEvidence({ evidence, expected, forbiddenValues }) {
   ]);
   requireThat(evidence.schemaVersion === 1 && evidence.environment === 'staging');
   requireThat(expected.environment === 'staging');
+  requireThat(expected.sdkVersion === '0.1.0');
   requireThat(/^[0-9a-f]{40}$/.test(expected.serviceRevision));
   requireThat(/^[0-9a-f]{64}$/.test(expected.deploymentDigest));
   requireThat(/^[1-9][0-9]*$/.test(expected.repositoryId));
