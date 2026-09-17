@@ -64,7 +64,7 @@ export async function start({
     };
     async function boot() {
       runtime = new Miniflare({
-        host: '127.0.0.1',
+        host: 'staging.bugdrop.localhost',
         log: new CaptureLog(LogLevel.INFO),
         durableObjectsPersist: join(directory, 'state'),
         workers: [
