@@ -13,6 +13,7 @@ export async function start({
   installationId = '42',
   deliveryEnabled = true,
   github,
+  enableControlFaults = false,
 }) {
   const directory = await mkdtemp(join(tmpdir(), 'bugdrop-staging-test-'));
   const controlKey = randomBytes(32).toString('base64url');
@@ -21,6 +22,7 @@ export async function start({
   let runtime,
     attempts = 0;
   let deliveryDelay = 0;
+  let controlFault = '';
   const logs = [],
     network = [];
   class CaptureLog extends Log {
@@ -44,7 +46,11 @@ export async function start({
   try {
     for (const role of ['authority', 'ingress', 'delivery', 'github'])
       await build({
-        entryPoints: [`src/managed/staging/${role}.ts`],
+        entryPoints: [
+          role === 'authority' && enableControlFaults
+            ? 'managed/staging/control-fault-worker.mjs'
+            : `src/managed/staging/${role}.ts`,
+        ],
         outfile: join(directory, `${role}.mjs`),
         bundle: true,
         format: 'esm',
@@ -86,7 +92,18 @@ export async function start({
             ...common,
             name: 'authority',
             scriptPath: join(directory, 'authority.mjs'),
-            bindings: authority,
+            bindings: { ...authority, STAGING_TEST_ROLLBACK: String(controlFault === 'rollback') },
+            ...(enableControlFaults
+              ? {
+                  serviceBindings: {
+                    TEST_CONTROL_SYNC: async () => {
+                      const action = controlFault;
+                      controlFault = '';
+                      return new Response(action);
+                    },
+                  },
+                }
+              : {}),
             durableObjects: {
               STAGING_AUTHORIZATIONS: { className: 'StagingAuthorization', useSQLite: true },
             },
@@ -156,8 +173,8 @@ export async function start({
     const request = (path, init) =>
       runtime.dispatchFetch(`http://staging.bugdrop.localhost${path}`, init);
     return {
-      async control(path, body, { tamper = false, useProjectionKey = false } = {}) {
-        const raw = JSON.stringify(body);
+      async control(path, body, { tamper = false, useProjectionKey = false, rawBody } = {}) {
+        const raw = rawBody ?? JSON.stringify(body);
         const key = await webcrypto.subtle.importKey(
           'raw',
           Buffer.from(
@@ -169,7 +186,13 @@ export async function start({
           ['sign']
         );
         const signature = Buffer.from(
-          await webcrypto.subtle.sign('HMAC', key, Buffer.from(raw))
+          await webcrypto.subtle.sign(
+            'HMAC',
+            key,
+            Buffer.from(
+              path === '/projection-status' ? 'bugdrop:staging:control-status:v1\n' + raw : raw
+            )
+          )
         ).toString('base64url');
         return request(`/control${path}`, {
           method: 'POST',
@@ -177,9 +200,43 @@ export async function start({
           headers: { 'X-BugDrop-Control-Signature': signature },
         });
       },
+      async receipt(response, uninstall = false) {
+        const raw = await response.text();
+        const key = await webcrypto.subtle.importKey(
+          'raw',
+          Buffer.from(uninstall ? uninstallKey : controlKey, 'base64url'),
+          { name: 'HMAC', hash: 'SHA-256' },
+          false,
+          ['verify']
+        );
+        const signature = response.headers.get(
+          uninstall
+            ? 'X-BugDrop-Uninstall-Receipt-Signature'
+            : 'X-BugDrop-Control-Receipt-Signature'
+        );
+        const valid =
+          signature !== null &&
+          (await webcrypto.subtle.verify(
+            'HMAC',
+            key,
+            Buffer.from(signature, 'base64url'),
+            Buffer.from(
+              (uninstall
+                ? 'bugdrop:uninstall:edge-receipt:v1\0'
+                : 'bugdrop:staging:control-receipt:v1\n') + raw
+            )
+          ));
+        return { status: response.status, valid, raw, body: JSON.parse(raw) };
+      },
       request,
       async publicRequest(path, init) {
         return request(`/public${path}`, init);
+      },
+      async setControlFault(mode) {
+        if (!enableControlFaults) throw new Error('test_control_faults_disabled');
+        controlFault = mode;
+        await runtime.dispose();
+        await boot();
       },
       setDeliveryDelay(ms) {
         deliveryDelay = ms;

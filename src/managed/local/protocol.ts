@@ -123,7 +123,10 @@ export function exchange(headers: Headers, value: unknown, configuredOrigin: str
     reject();
   return binding(body);
 }
-export async function readBounded(request: Request, max = 64 * 1024): Promise<Uint8Array> {
+export async function readBounded(
+  request: Pick<Request, 'body'>,
+  max = 64 * 1024
+): Promise<Uint8Array> {
   if (!request.body) return new Uint8Array();
   const reader = request.body.getReader();
   const parts: Uint8Array[] = [];
