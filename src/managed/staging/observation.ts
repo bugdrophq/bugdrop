@@ -112,7 +112,8 @@ export class Observation {
         ))
       )
         reject();
-      const body = exactObservation(json(raw), [...common, ...requestFields(path)]);
+      const body = exactObservation(json(raw), [...common, 'requestNonce', ...requestFields(path)]);
+      observationUuid(body.requestNonce);
       if (
         common.some(name => body[name] !== scope[name as keyof typeof scope]) ||
         JSON.stringify(observationScope(env)) !== JSON.stringify(scope) ||
@@ -133,7 +134,10 @@ export class Observation {
           typeof body.scenario !== 'string' ||
           !scenarios.has(body.scenario) ||
           this.poisoned ||
-          (item && (!item.closed || (item.runId === body.runId && item.scenario === body.scenario)))
+          (item &&
+            (!item.closed ||
+              item.exchanges.some(entry => entry.status === null) ||
+              (item.runId === body.runId && item.scenario === body.scenario)))
         )
           reject();
         item = {
@@ -219,7 +223,8 @@ export class Observation {
       return await observationReply(
         path,
         {
-          schemaVersion: 1,
+          schemaVersion: 2,
+          requestNonce: body.requestNonce,
           leaseId: item.leaseId,
           expiresAt: item.expiresAt,
           sequence,

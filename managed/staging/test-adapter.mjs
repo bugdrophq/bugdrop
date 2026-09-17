@@ -201,9 +201,15 @@ export async function start({
       runtime.dispatchFetch(`http://staging.bugdrop.localhost${path}`, init);
     return {
       async observation(path, fields = {}, tamper = false) {
-        const raw = JSON.stringify({ schemaVersion: 1, applicationId, installationId, ...fields });
+        const raw = JSON.stringify({
+          schemaVersion: 2,
+          requestNonce: crypto.randomUUID(),
+          applicationId,
+          installationId,
+          ...fields,
+        });
         const signature = createHmac('sha256', Buffer.from(observationKey, 'base64url'))
-          .update(`bugdrop:staging:observation-request:v1\0${path}\0${raw}`)
+          .update(`bugdrop:staging:observation-request:v2\0${path}\0${raw}`)
           .digest('base64url');
         const response = await request(`/observation${path}`, {
           method: 'POST',
@@ -212,12 +218,14 @@ export async function start({
         });
         const text = await response.text();
         const expected = createHmac('sha256', Buffer.from(observationKey, 'base64url'))
-          .update(`bugdrop:staging:observation-response:v1\0${path}\0${text}`)
+          .update(`bugdrop:staging:observation-response:v2\0${path}\0${text}`)
           .digest('base64url');
         return {
           status: response.status,
           valid: response.headers.get('X-BugDrop-Observation-Signature') === expected,
           body: JSON.parse(text),
+          raw: text,
+          signature: response.headers.get('X-BugDrop-Observation-Signature'),
         };
       },
       async observationTest(fields) {

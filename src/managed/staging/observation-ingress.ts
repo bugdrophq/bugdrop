@@ -19,12 +19,12 @@ export async function observeCapability(
       await observationCall(target.STAGING_OBSERVATION, target, '/observation/begin', {
         sdkVersion: request.headers.get('X-BugDrop-SDK-Version') === '0.1.0' ? '0.1.0' : null,
       }),
-      ['schemaVersion', 'leaseId', 'expiresAt', 'sequence', 'snapshot', 'exchanges']
+      ['schemaVersion', 'requestNonce', 'leaseId', 'expiresAt', 'sequence', 'snapshot', 'exchanges']
     );
     observationUuid(begun.leaseId);
     const snapshot = record(begun.snapshot);
     if (
-      begun.schemaVersion !== 1 ||
+      begun.schemaVersion !== 2 ||
       snapshot.applicationId !== target.STAGING_APPLICATION_ID ||
       typeof begun.sequence !== 'number' ||
       !Number.isSafeInteger(begun.sequence) ||

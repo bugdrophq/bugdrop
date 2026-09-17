@@ -186,6 +186,32 @@ describe('private durable staging observation', () => {
     expect(state.observation).toEqual([]);
     expect(state.revocation).toEqual([{ id: 1 }]);
   });
+  it('does not replace a closed lease while its old admission is unfinished', async () => {
+    expect((await begin()).status).toBe(200);
+    expect((await service.observation('/observation/close', scope)).status).toBe(200);
+    expect(
+      (
+        await service.observation('/observation/start', {
+          runId: crypto.randomUUID(),
+          scenario: 'revoked',
+        })
+      ).status
+    ).toBe(403);
+  });
+  it('echoes fresh nonces without retaining them and rejects old schema', async () => {
+    const first = await read(),
+      second = await read();
+    expect(first.body.requestNonce).not.toBe(second.body.requestNonce);
+    expect(JSON.stringify(await service.observationTest({}))).not.toContain(
+      first.body.requestNonce
+    );
+    expect(
+      (await service.observation('/observation/read', { ...scope, schemaVersion: 1 })).status
+    ).toBe(403);
+    expect(
+      (await service.observation('/observation/read', { ...scope, requestNonce: 'invalid' })).status
+    ).toBe(403);
+  });
   it('close prevents zero-reset reads and active lease replacement', async () => {
     expect(
       (

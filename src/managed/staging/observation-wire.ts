@@ -21,14 +21,14 @@ export function observationScope(env: ObservationEnv) {
   )
     reject();
   return {
-    schemaVersion: 1,
+    schemaVersion: 2,
     applicationId: env.STAGING_APPLICATION_ID,
     installationId: env.STAGING_INSTALLATION_ID,
   };
 }
 export function observationMessage(path: string, raw: Uint8Array, response = false) {
   const prefix = utf8(
-    `bugdrop:staging:observation-${response ? 'response' : 'request'}:v1\0${path}\0`
+    `bugdrop:staging:observation-${response ? 'response' : 'request'}:v2\0${path}\0`
   );
   const message = new Uint8Array(prefix.length + raw.length);
   message.set(prefix);
@@ -53,7 +53,8 @@ export async function observationCall(
 ) {
   const scope = observationScope(env);
   const secret = env.STAGING_OBSERVATION_HMAC_KEY;
-  const raw = utf8(JSON.stringify({ ...scope, ...fields }));
+  const requestNonce = crypto.randomUUID();
+  const raw = utf8(JSON.stringify({ ...scope, ...fields, requestNonce }));
   const controller = new AbortController();
   let timer: ReturnType<typeof setTimeout> | undefined;
   let reader: ReadableStreamDefaultReader<Uint8Array> | undefined;
@@ -108,7 +109,7 @@ export async function observationCall(
     ))
   )
     reject();
-  return validateObservationReply(json(body), scope.applicationId, fields);
+  return validateObservationReply(json(body), scope.applicationId, { ...fields, requestNonce });
 }
 export function exactObservation(value: unknown, fields: string[]) {
   const body = record(value);
@@ -127,6 +128,7 @@ export function observationUuid(value: unknown): asserts value is string {
 function validateObservationReply(value: unknown, applicationId: string, expected: object) {
   const body = exactObservation(value, [
     'schemaVersion',
+    'requestNonce',
     'leaseId',
     'expiresAt',
     'sequence',
@@ -134,6 +136,7 @@ function validateObservationReply(value: unknown, applicationId: string, expecte
     'exchanges',
   ]);
   observationUuid(body.leaseId);
+  observationUuid(body.requestNonce);
   const snapshot = exactObservation(body.snapshot, [
     'runId',
     'scenario',
@@ -144,7 +147,7 @@ function validateObservationReply(value: unknown, applicationId: string, expecte
   ]);
   observationUuid(snapshot.runId);
   if (
-    body.schemaVersion !== 1 ||
+    body.schemaVersion !== 2 ||
     typeof body.expiresAt !== 'number' ||
     !Number.isSafeInteger(body.expiresAt) ||
     body.expiresAt <= Date.now() ||
@@ -181,6 +184,7 @@ function validateObservationReply(value: unknown, applicationId: string, expecte
   )
     reject();
   const selectors = record(expected);
+  if (selectors.requestNonce !== body.requestNonce) reject();
   if (
     ('leaseId' in selectors && selectors.leaseId !== body.leaseId) ||
     ('runId' in selectors && selectors.runId !== snapshot.runId) ||

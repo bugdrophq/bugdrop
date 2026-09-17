@@ -12,7 +12,7 @@ The collector must reconcile the actual packed SDK invocation/outcome transcript
 
 ## Signed wire
 
-All operations are private POST `/observation/start`, `/observation/read`, `/observation/close`, `/observation/begin`, or `/observation/finish`. Request body maximum is 1024 bytes. Unknown fields are rejected. All bodies contain exactly `{schemaVersion:1,applicationId,installationId}` plus:
+All operations are private POST `/observation/start`, `/observation/read`, `/observation/close`, `/observation/begin`, or `/observation/finish`. Request body maximum is 1024 bytes. Unknown fields are rejected. All bodies contain exactly `{schemaVersion:2,requestNonce,applicationId,installationId}` plus:
 
 | Operation   | Additional fields                                                             |
 | ----------- | ----------------------------------------------------------------------------- |
@@ -23,17 +23,19 @@ All operations are private POST `/observation/start`, `/observation/read`, `/obs
 
 The application and provider installation must match the configured immutable scope. The actual loaded issuance authority must match that scope too; mismatches leave an unfinished admission and return 503. Begin selects the sole active scope lease, because the SDK emits no run ID. Reads require every exact selector; missing, closed, expired or mismatched leases return unsigned 403, never a zero snapshot.
 
+Every operation uses a fresh caller-generated UUIDv4 `requestNonce`, echoed exactly in the signed response and compared by the caller. Nonces are not persisted. A prior signed response, including one for the same lease, cannot satisfy a new read. Private wire version 1 is rejected; public submission V1 and the packed runner handshake are unchanged.
+
 Request and response header: `X-BugDrop-Observation-Signature`, canonical base64url HMAC-SHA256 using the distinct observer key. Sign exact UTF-8 bytes:
 
-- Request: `bugdrop:staging:observation-request:v1` + NUL + exact path + NUL + raw body.
-- Response: `bugdrop:staging:observation-response:v1` + NUL + exact path + NUL + raw body.
+- Request: `bugdrop:staging:observation-request:v2` + NUL + exact path + NUL + raw body.
+- Response: `bugdrop:staging:observation-response:v2` + NUL + exact path + NUL + raw body.
 
-Successful response has exactly `{schemaVersion:1,leaseId,expiresAt,sequence,snapshot,exchanges}`. `sequence` is the newly admitted sequence for begin, otherwise null. `expiresAt` is server Unix milliseconds. Snapshot is exactly `{runId,scenario,applicationId,count,complete,exclusive}`. Exchanges are ordered `{sequence,sdkVersion,status}` records; status is null while unfinished. Consumers verify signature, status, exact schema and selectors before reading fields. The ingress RPC deadline is two seconds including response-body consumption, maximum 16384 bytes.
+Successful response has exactly `{schemaVersion:2,requestNonce,leaseId,expiresAt,sequence,snapshot,exchanges}`. `sequence` is the newly admitted sequence for begin, otherwise null. `expiresAt` is server Unix milliseconds. Snapshot is exactly `{runId,scenario,applicationId,count,complete,exclusive}`. Exchanges are ordered `{sequence,sdkVersion,status}` records; status is null while unfinished. Consumers verify signature, status, exact schema and selectors before reading fields. The ingress RPC deadline is two seconds including response-body consumption, maximum 16384 bytes.
 
 Private errors are unsigned HTTP 403 `{error:"staging_observation_rejected"}` (entrypoint admission can return the existing `managed_request_rejected`). Public observer failure is HTTP 503 `{error:"staging_observation_unavailable"}`. These are not expected issuance denials. Ordinary issuer denials remain HTTP 403 `{error:"managed_request_rejected"}`.
 
 ## Bounds and cleanup
 
-One lease per configured application, 15 minutes, at most 64 entries. No active lease replacement. Overlapping admissions, overflow, storage failures and observer restart invalidate evidence. Begin persists before issuance validation; finish persists before the response returns. Repeated finish is rejected. Closing prevents later reads; a new scenario gets a fresh lease ID. Expiry deletes only observer rows; it preserves authorization, control receipts and the permanent revocation latch.
+One lease per configured application, 15 minutes, at most 64 entries. No active lease replacement. Overlapping admissions, overflow, storage failures and observer restart invalidate evidence. Begin persists before issuance validation; finish persists before the response returns. Repeated finish is rejected. Closing prevents later reads. A closed lease with unfinished admissions cannot be replaced before expiry. A new scenario gets a fresh lease ID; the collector must abort or drain all prior SDK invocations before opening it, including after an expired window. Expiry deletes only observer rows; it preserves authorization, control receipts and the permanent revocation latch.
 
 Only run/scenario identifiers, application/provider scope, lease expiry, bounded sequence/status and the allowlisted version enum are retained. No feedback bodies, arbitrary headers, URL, IP, end-user identity or secrets are retained. Synthetic tests and fault controls are absent from deployed manifests.
