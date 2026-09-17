@@ -133,6 +133,49 @@ private signing material and verifier pepper but no receipt HMAC key; DeliveryAu
 receives public signing keys and receipt HMAC but no private key or verifier pepper.
 These entrypoints have no public fetch equivalent.
 
+## Closed cross-plane activation gates
+
+The following contracts are agreed prerequisites, not implemented features. The
+publisher owns the authoritative locked SQL join, sequence/version transaction and
+durable outbox. A Cloudflare follow-up owns authenticated durable control receipts
+and private status queries. The trusted webhook adapter owns durable normalized
+intake and retries; its SQL adapter must be reviewed with the data-plane owner.
+
+- Map the internal installation UUID through the authoritative tenant/application
+  join to canonical positive decimal `github_installation_id`; reject unsafe numeric
+  values rather than rounding. SQL lifecycle operations continue using the UUID.
+- Add an authenticated control receipt with `applicationId`, `sequence`,
+  `configurationVersion`, `authorizationVersion`, `projectionDigest`, and
+  `accepted:true` after durable sync. Identical signed bytes at the latest sequence
+  must return the same receipt without renewing `observedAt`; altered bytes or older
+  sequences reject. A private status query must resolve ambiguous writes. The current
+  handler rejects every duplicate sequence and returns only a generic acknowledgement;
+  neither HTTP 200 nor 403 satisfies this future publisher acknowledgement contract.
+- Keep pending credentials SQL-only. First positive publication requires committed
+  activation, scoped verifier provisioning and verified installation eligibility.
+  Credential false is terminal; temporary app/tenant disable uses its own state.
+  SQL revocation acknowledgement requires a matching durable terminal edge receipt.
+  Outbox retries preserve exact bytes, source time and ordering; rotation remains
+  blocked by the single-key/destination scope pending a separate reviewed contract.
+- Persist normalized verified uninstall work before webhook 2xx, with independent
+  edge-latch and SQL event/cleanup acknowledgements. Current `accepted:true` proves
+  only the edge latch and is insufficient for hosted activation. Preserve minimal
+  trusted routing across SQL cleanup, stable domain-separated keyed hashes,
+  occurrence time and request ID; never retain raw payloads, identity or secrets.
+  Retry partial failures, quarantine missing mappings, fence positive publication,
+  and require affirmative provider evidence for reconciliation. Durable intake,
+  retention/key policy and the SQL reconciliation adapter are absent here.
+
+Required cross-plane acceptance tests must exercise real Postgres and SQLite DOs:
+correct and mismatched UUID/provider/tenant joins; consistent concurrent publication;
+lost acknowledgement, restart, exact/altered duplicate and expired status queries;
+pending activation versus terminal revocation; delayed positives racing revocation;
+key/destination replacement; duplicate uninstall across restart; failed durable intake;
+SQL-down/edge-up and edge-down/SQL-up; missing mapping and SQL cascade; stable retry
+hashes with changed delivery headers; forged payloads; secret/content canaries; and
+source freshness plus original signed-context changes during delivery preflight.
+These tests are future acceptance gates, not claims covered by the local harness.
+
 ## Secrets and observability
 
 Provision only through provider secret storage after target approval, using
