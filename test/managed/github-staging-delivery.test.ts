@@ -34,6 +34,7 @@ async function outcome(transport: GitHubTransport, configuration: unknown = conf
     configuration,
     { privateKey },
     Date.now() + 30_000,
+    async () => {},
     transport
   );
   expect(response.headers.get('Cache-Control')).toBe('no-store');
@@ -45,6 +46,33 @@ async function outcome(transport: GitHubTransport, configuration: unknown = conf
 }
 
 describe('staging GitHub adapter with intercepted external transport', () => {
+  it('requires the final authorization check and fails closed if it rejects', async () => {
+    const missing = upstream();
+    const denied = await handleGitHubDelivery(
+      request(),
+      config,
+      { privateKey },
+      Date.now() + 30000,
+      undefined!,
+      missing.transport
+    );
+    expect(await denied.json()).toEqual({ outcome: 'failed_before_delivery' });
+    expect(missing.calls).toHaveLength(0);
+    const revoked = upstream();
+    const reply = await handleGitHubDelivery(
+      request(),
+      config,
+      { privateKey },
+      Date.now() + 30000,
+      async () => {
+        throw new Error('revoked');
+      },
+      revoked.transport
+    );
+    expect(await reply.json()).toEqual({ outcome: 'failed_before_delivery' });
+    expect(revoked.calls).toHaveLength(2);
+  });
+
   it('accepts current opaque stateless installation tokens without a format override', async () => {
     const opaque = `${'a'.repeat(180)}.${'b-'.repeat(150)}.${'c_'.repeat(25)}`;
     const { calls, transport: fallback } = upstream();
@@ -95,6 +123,7 @@ describe('staging GitHub adapter with intercepted external transport', () => {
       config,
       { privateKey },
       Date.now() + 1_000,
+      async () => {},
       transport
     );
     expect(await response.json()).toEqual({ outcome: 'failed_before_delivery' });
@@ -110,6 +139,7 @@ describe('staging GitHub adapter with intercepted external transport', () => {
         config,
         { privateKey },
         Date.now() + offset,
+        async () => {},
         transport
       );
       expect(await response.json()).toEqual({ outcome: 'failed_before_delivery' });
@@ -133,7 +163,7 @@ describe('staging GitHub adapter with intercepted external transport', () => {
       body: report,
     });
     expect(calls[2].headers.get('Authorization')).toBe(`Bearer ${token}`);
-    expect(calls.every(call => call.redirect === 'error')).toBe(true);
+    expect(calls.every(call => call.redirect === 'manual')).toBe(true);
   });
 
   it.each([

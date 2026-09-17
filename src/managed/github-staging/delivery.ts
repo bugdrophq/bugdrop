@@ -79,6 +79,7 @@ export async function handleGitHubDelivery(
   configuration: unknown,
   secrets: GitHubSecrets,
   authorizationExpiresAt: number,
+  beforeDispatch: () => Promise<void>,
   transport: GitHubTransport = request => fetch(request)
 ): Promise<Response> {
   let dispatched = false;
@@ -88,6 +89,7 @@ export async function handleGitHubDelivery(
     Response.json({ outcome }, { headers: { 'Cache-Control': 'no-store' } });
   try {
     const config = stagingConfig(configuration);
+    if (typeof beforeDispatch !== 'function') reject();
     const authorized = () => {
       const now = Date.now();
       if (
@@ -109,7 +111,7 @@ export async function handleGitHubDelivery(
       return transport(
         new Request(`${API}${path}`, {
           method: body === undefined ? 'GET' : 'POST',
-          redirect: 'error',
+          redirect: 'manual',
           signal: controller.signal,
           headers: {
             Accept: 'application/vnd.github+json',
@@ -127,6 +129,7 @@ export async function handleGitHubDelivery(
       record(json(raw));
       const body = new TextDecoder('utf8', { fatal: true, ignoreBOM: true }).decode(raw);
       const token = await installationToken(config, secrets.privateKey, send);
+      await beforeDispatch();
       controller.signal.throwIfAborted();
       authorized();
       // This is the only issue-creating dispatch; never retry any result or exception.
