@@ -62,6 +62,16 @@ function fixture() {
   };
 }
 describe('remote evidence oracle mutations (synthetic, not remote proof)', () => {
+  it.each(['failed_before_delivery', 'indeterminate', 'delivering'])(
+    'rejects durable %s contradicting delivered replay responses',
+    state => {
+      const evidence = fixture();
+      evidence.receipts[0].state = state;
+      expect(() => assertEvidence({ evidence, expected, forbiddenValues })).toThrow(
+        'staging_evidence_rejected'
+      );
+    }
+  );
   it('accepts the exact complete contract', () => {
     expect(assertEvidence({ evidence: fixture(), expected, forbiddenValues })).toBe(true);
   });

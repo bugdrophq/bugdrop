@@ -128,11 +128,21 @@ export function assertEvidence({ evidence, expected, forbiddenValues }) {
       ['delivering', 'delivered', 'indeterminate', 'failed_before_delivery'].includes(receipt.state)
     );
     requireThat(receipt.attempts === 0 || receipt.attempts === 1);
+    if (receipt.state === 'failed_before_delivery') requireThat(receipt.attempts === 0);
+    if (receipt.state === 'delivered') requireThat(receipt.attempts === 1);
     requireThat(Number.isSafeInteger(receipt.expiresAt) && receipt.expiresAt > 0);
   }
   requireThat(
     evidence.receipts.reduce((count, receipt) => count + receipt.attempts, 0) === expected.attempts
   );
+  // Each scenario is scoped to one logical report. Successful replay responses must
+  // agree with the final durable row, not merely with a separate attempt counter.
+  const finalState = expected.submissionOutcomes.findLast(outcome =>
+    ['delivered', 'indeterminate', 'failed_before_delivery'].includes(outcome)
+  );
+  if (finalState !== undefined) {
+    requireThat(evidence.receipts.length === 1 && evidence.receipts[0].state === finalState);
+  }
   exactKeys(evidence.sources, ['deployment', 'logs', 'storage', 'analytics', 'queues', 'github']);
   for (const name of ['deployment', 'logs', 'storage', 'analytics', 'queues', 'github']) {
     const source = evidence.sources[name];
