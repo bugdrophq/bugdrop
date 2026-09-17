@@ -93,10 +93,28 @@ The wire installation identifier is GitHub's canonical positive decimal numeric
 string. It is not the SQL installation row's internal UUID. Resolve the explicit
 provider-to-row mapping at the authoritative database boundary; an unknown mapping
 is pending/quarantined and cannot be treated as applied. Before SQL acknowledges
-a revocation control update, require the destination's durable control receipt and
-applied status. Sending an HTTP request or receiving a transport success does not
-establish that durable status. These are activation requirements; this change does
-not invent new control RPCs, tables, or provider status formats.
+a revocation control update, require an authenticated receipt or private status
+result written after durable sync, matching the application/key, exact sequence,
+projection digest, configurationVersion and authorizationVersion. A lost
+acknowledgement must be resolved by private status or an exact-byte retry returning
+the same receipt without renewing observedAt. Altered bytes at the same sequence
+must reject. The current generic HTTP 200 and duplicate-sequence HTTP 403 cannot
+acknowledge revocation.
+
+Hosted activation also requires a trusted locked authoritative mapping/read and a
+durable monotonic outbox with authorizationVersion, exact retry bytes and original
+observedAt. The current SQL model cannot represent an active application/install.
+Keep pending credentials SQL-only: publishing credentialActive:false is terminal
+for that key. First positive publication requires committed activation, verified
+installation eligibility, scoped verifier provisioning and secret-custody bootstrap
+in a reviewed transaction/order. These requirements are unimplemented; do not
+fabricate active flags, source timestamps or acknowledgements.
+
+A reviewed future coordinator schema may retain minimal keyed nonidentity
+operational commitments such as eventHash, installationHash and projectionDigest.
+Raw payloads, end-user identity and secrets remain forbidden. This allowance does
+not widen the current evidence schema. These are activation requirements; this
+change does not invent new control RPCs, tables, or provider status formats.
 
 ## Delivery and privacy boundary
 

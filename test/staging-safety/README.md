@@ -71,7 +71,24 @@ completion additionally requires durable normalized lifecycle intake, independen
 permanent edge and Supabase `apply_installation_event`/cleanup acknowledgements,
 and reconciliation of pending/quarantined partial failures. Canonical provider
 installation IDs are positive decimal strings on wire, distinct from internal SQL
-UUIDs. SQL revocation acknowledgement must follow a durable control receipt/status.
+UUIDs. SQL revocation acknowledgement requires an authenticated post-sync receipt
+or private status result matching application/key, exact sequence, projection
+digest, configurationVersion and authorizationVersion. Resolve lost acknowledgements
+through private status or exact-byte retries returning the same receipt without
+renewing observedAt; altered same-sequence bytes must reject. The current generic
+HTTP 200 and duplicate-sequence HTTP 403 cannot acknowledge revocation.
+
+Hosted activation also remains blocked on a trusted locked authoritative
+mapping/read, durable monotonic outbox and authorizationVersion, original observedAt,
+scoped verifier provisioning and secret-custody bootstrap. The current SQL model
+cannot represent active applications/installations. Pending credentials stay
+SQL-only because credentialActive:false is terminal for that key. First positive
+publication requires committed activation, verified installation eligibility and
+reviewed transaction/order. A future reviewed coordinator schema may retain minimal
+keyed nonidentity operational commitments (eventHash, installationHash,
+projectionDigest); it must exclude raw payloads, end-user identity and secrets.
+This does not expand the current evidence schema or introduce control RPCs.
+
 No collector for these completion records exists here. The uninstall scenario
 therefore deliberately throws `staging_uninstall_completion_unavailable` after
 verifying edge rejection; no aggregate remote run may report success until a
