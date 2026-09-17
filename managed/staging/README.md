@@ -96,10 +96,10 @@ remain activation blockers; this runtime does not pretend that reads are acknowl
 
 ## Private control contract
 
-Only an explicit binding to `StagingControl` can reach POST `/projection` and
-`/revoke-installation`. These are private service interfaces, not SDK HTTP contracts.
-The header `X-BugDrop-Control-Signature` is canonical base64url HMAC-SHA256 over the
-exact raw UTF-8 request body, using `STAGING_CONTROL_HMAC_KEY` for projections and the distinct
+Only an explicit binding to `StagingControl` can reach POST `/projection`,
+`/projection-status` and `/revoke-installation`. These are private service interfaces, not SDK HTTP contracts.
+For projection and uninstall writes, `X-BugDrop-Control-Signature` is canonical
+base64url HMAC-SHA256 over the exact raw UTF-8 request body, using `STAGING_CONTROL_HMAC_KEY` for projections and the distinct
 `STAGING_UNINSTALL_HMAC_KEY` for uninstall latches (32 random bytes each, base64url). Unknown fields, more than 8192 bytes, invalid signature and malformed
 values fail with fixed errors and no reflection.
 
@@ -117,13 +117,55 @@ IDs are bounded operational strings. `origin` must equal its canonical URL origi
 serialization and cannot have a trailing dot. `observedAt` is authoritative source
 observation time in Unix milliseconds, never a delivery/read timestamp. A future
 observation or age over 30 seconds is rejected. Sequence, time and versions cannot
-regress; repeated sequence is rejected. Compare-and-store happens synchronously after
-signature verification, and acceptance follows durable storage sync.
+regress. Compare-and-store happens synchronously after signature verification and
+exact-byte hashing. Projection and receipt are written in one SQLite transaction;
+acceptance follows durable storage sync. No control-state lookup occurs before
+request authentication. A failed sync or interrupted response is not an acknowledgement.
+
+Successful projection writes return exactly:
+
+```text
+{schemaVersion:1, accepted:true, applicationId, keyId, sequence,
+ configurationVersion, authorizationVersion, projectionDigest}
+```
+
+`projectionDigest` is lowercase hexadecimal SHA-256 over the exact signed UTF-8
+request bytes, including whitespace; it is not a digest of reserialized JSON.
+`X-BugDrop-Control-Receipt-Signature` is canonical base64url HMAC-SHA256 using the
+publisher control key over UTF-8 `bugdrop:staging:control-receipt:v1\n` followed by
+exact response bytes. The `\n` denotes one newline byte. `verifyReceipt` in
+`src/managed/staging/control-receipt.ts` verifies status, bounded body, signature,
+exact schema and every expected selector; a generic HTTP 200/403 is never proof.
+
+An exact-byte retry at the latest sequence returns the same receipt without any
+write or timestamp refresh, even if its original observation has expired. Altered
+bytes at that sequence and older sequences reject. The receipt proves historical
+persistence only: it does not prove current eligibility, fresh authority, or SQL
+acknowledgement. The permanent installation latch always overrides authority.
+
+Private POST `/projection-status` accepts the same fields without `accepted`.
+Its request signature uses the same control key over UTF-8
+`bugdrop:staging:control-status:v1\n` followed by exact request bytes, preventing
+reuse of projection or response signatures. It returns the same signed receipt
+only when every selector matches the latest stored receipt; absent, superseded or
+mismatched state returns fixed HTTP 403 with no receipt signature. The publisher
+must verify the receipt against its immutable outbox before acknowledging SQL.
+
+Existing authorization rows without an accompanying receipt cannot be backfilled:
+original signed bytes are unavailable. Exact retries and status cannot acknowledge
+those rows; a fresh higher-sequence authoritative publication is required. This
+migration preserves existing false states and latches, never resets objects.
 
 Revocation body: `{schemaVersion:1, installationId}`. Only the separately verified
 Managed App webhook authority may sign this after verifying the real raw GitHub HMAC
 and matching the exact allowed App/installation/repository context. Repeated valid
-revocation is idempotent. No later projection clears the installation latch. The public staging webhook path
+revocation is idempotent. After durable sync its exact response is
+`{schemaVersion:1,accepted:true,applicationId,installationId,revoked:true}` with
+`X-BugDrop-Uninstall-Receipt-Signature`: HMAC-SHA256 under the uninstall key over
+UTF-8 `bugdrop:uninstall:edge-receipt:v1\0` plus exact response bytes (`\0` is one NUL
+byte). Repeating the signed request recovers this permanent edge proof after a lost
+response. It is separate from projection acknowledgement and SQL cleanup completion.
+No later projection clears the installation latch. The public staging webhook path
 forwards to a private GithubWebhook binding, which verifies the exact raw GitHub
 signature and App/installation owner before signing the distinct uninstall latch.
 
@@ -135,22 +177,22 @@ These entrypoints have no public fetch equivalent.
 
 ## Closed cross-plane activation gates
 
-The following contracts are agreed prerequisites, not implemented features. The
+The remaining integration contracts below are activation prerequisites. The
 publisher owns the authoritative locked SQL join, sequence/version transaction and
-durable outbox. A Cloudflare follow-up owns authenticated durable control receipts
-and private status queries. The trusted webhook adapter owns durable normalized
+durable outbox. The private runtime implements authenticated durable control receipts
+and status queries; trusted publisher integration and SQL acknowledgement are still required. The trusted webhook adapter owns durable normalized
 intake and retries; its SQL adapter must be reviewed with the data-plane owner.
 
 - Map the internal installation UUID through the authoritative tenant/application
   join to canonical positive decimal `github_installation_id`; reject unsafe numeric
   values rather than rounding. SQL lifecycle operations continue using the UUID.
-- Add an authenticated control receipt with `applicationId`, `sequence`,
+- Integrate the authenticated control receipt with `applicationId`, `sequence`,
   `configurationVersion`, `authorizationVersion`, `projectionDigest`, and
   `accepted:true` after durable sync. Identical signed bytes at the latest sequence
   must return the same receipt without renewing `observedAt`; altered bytes or older
-  sequences reject. A private status query must resolve ambiguous writes. The current
-  handler rejects every duplicate sequence and returns only a generic acknowledgement;
-  neither HTTP 200 nor 403 satisfies this future publisher acknowledgement contract.
+  sequences reject. The private status query resolves ambiguous writes for the latest
+  matching receipt. Integrate its signature and selector verification with the SQL
+  acknowledgement contract; generic HTTP 200 or 403 never satisfies that contract.
 - Keep pending credentials SQL-only. First positive publication requires committed
   activation, scoped verifier provisioning and verified installation eligibility.
   Credential false is terminal; temporary app/tenant disable uses its own state.
@@ -174,7 +216,10 @@ key/destination replacement; duplicate uninstall across restart; failed durable 
 SQL-down/edge-up and edge-down/SQL-up; missing mapping and SQL cascade; stable retry
 hashes with changed delivery headers; forged payloads; secret/content canaries; and
 source freshness plus original signed-context changes during delivery preflight.
-These tests are future acceptance gates, not claims covered by the local harness.
+The local control harness covers exact/altered retry, lost response, DO abort,
+transaction rollback, sync failure, restart, expired acknowledgement and conflicting
+same-sequence writes. These remaining cross-plane tests are activation gates, not
+claims covered by the local harness.
 
 ## Secrets and observability
 
@@ -215,7 +260,7 @@ product analytics. Product analytics remains session-only in its own product lay
 ```sh
 node managed/generate-types.mjs
 node managed/staging/check.mjs
-npx vitest run test/managed/staging-runtime.test.ts test/managed/staging-isolation.test.ts
+npx vitest run test/managed/staging-*.test.ts
 npm run validate
 make check
 ```
@@ -230,7 +275,11 @@ that the pinned local runtime supports it.
 
 `test-adapter.mjs` runs the actual staging sources on temporary local Miniflare
 storage with fresh ephemeral test keys and fake delivery. It is **not** a remote SDK
-conformance provider. All local URLs use named `.localhost` domains. The remote
+conformance provider. Its opt-in `control-fault-worker.mjs` wrapper runs the actual
+handler and SQLite transaction while injecting receipt-write failure, sync failure,
+and post-sync `ctx.abort()`. It is absent from all deployment manifests. These
+faults exercise bounded local crash points, not provider-region disaster recovery.
+All local URLs use named `.localhost` domains. The remote
 provider, target observation digest and per-scenario isolation are separate gates.
 
 ## Activation, rollback and cleanup

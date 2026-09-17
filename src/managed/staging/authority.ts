@@ -126,7 +126,9 @@ export class StagingControl extends WorkerEntrypoint<StagingAuthorityEnv> {
     try {
       if (
         request.method !== 'POST' ||
-        !['/projection', '/revoke-installation'].includes(new URL(request.url).pathname)
+        !['/projection', '/projection-status', '/revoke-installation'].includes(
+          new URL(request.url).pathname
+        )
       )
         return denied();
       // Size check at the binding edge, followed by exact-byte authentication in the DO.

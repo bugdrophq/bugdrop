@@ -91,16 +91,17 @@ describe.sequential('actual staging Workers with provider-shaped ephemeral secre
     ).toBe(403);
     expect((await mint(await bound())).status).toBe(403);
   });
-  it('serializes concurrent update admission, rejects replay and never exposes private controls publicly', async () => {
+  it('serializes concurrent exact retries and never exposes private controls publicly', async () => {
     const results = await Promise.all(
       Array.from({ length: 12 }, () => service.control('/projection', update()))
     );
-    expect(results.filter(r => r.status === 200)).toHaveLength(1);
-    expect((await service.control('/projection', update())).status).toBe(403);
+    expect(results.filter(r => r.status === 200)).toHaveLength(12);
+    expect((await service.control('/projection', update())).status).toBe(200);
     for (const path of [
       '/submit',
       '/_local/submit',
       '/projection',
+      '/projection-status',
       '/snapshot',
       '/revoke-installation',
     ])
