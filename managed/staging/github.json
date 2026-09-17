@@ -50,7 +50,8 @@
       "services": [
         {
           "binding": "STAGING_RECONCILIATION",
-          "service": "bugdrop-managed-reconciliation-staging"
+          "service": "bugdrop-managed-reconciliation-staging",
+          "entrypoint": "StagingReconciliation"
         },
         {
           "binding": "STAGING_AUTHORITY",
