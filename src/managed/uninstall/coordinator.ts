@@ -4,7 +4,7 @@ import { hmac, json, readBounded, record, reject, utf8, verifyHmac } from '../lo
 import { applyEdge, applySql, type UninstallAdapters } from './adapters';
 import { commitments, type UninstallWork } from './contracts';
 
-export interface UninstallEnv extends UninstallAdapters {
+interface UninstallEnv extends UninstallAdapters {
   ENVIRONMENT: string;
   STAGING_ENABLED: string;
   STAGING_GITHUB_TARGET_JSON: string;

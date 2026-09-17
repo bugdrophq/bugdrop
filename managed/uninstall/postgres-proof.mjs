@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { pathToFileURL } from 'node:url';
 import { join, resolve } from 'node:path';
 import { start } from './test-adapter.mjs';
+import { execFile } from 'node:child_process';
 
 const dataRoot = process.env.BUGDROP_DATA_TEST_ROOT;
 const controlRoot = process.env.BUGDROP_CONTROL_TEST_ROOT ?? process.cwd();
@@ -10,6 +11,31 @@ if (!dataRoot) throw new Error('local_postgres_adapter_unavailable');
 const data = await import(
   pathToFileURL(join(resolve(dataRoot), 'supabase/tests/helpers/reconciliation.mjs')).href
 );
+const { session } = await import(
+  pathToFileURL(join(resolve(dataRoot), 'supabase/tests/helpers/sql-session.mjs')).href
+);
+const applySql = command =>
+  new Promise((resolveResult, rejectResult) => {
+    const child = execFile(
+      process.execPath,
+      [
+        resolve('managed/uninstall/sql-child.mjs'),
+        join(resolve(dataRoot), 'supabase/tests/helpers/reconciliation.mjs'),
+      ],
+      { timeout: 5000, maxBuffer: 4096 },
+      (error, stdout) => {
+        if (error) rejectResult(new Error('local_reconciliation_pending'));
+        else {
+          try {
+            resolveResult(JSON.parse(stdout));
+          } catch {
+            rejectResult(new Error('local_reconciliation_pending'));
+          }
+        }
+      }
+    );
+    child.stdin.end(JSON.stringify(command));
+  });
 const cases = [];
 for (const [slot, failedSide] of [
   [87, 'sql'],
@@ -37,7 +63,7 @@ for (const [slot, failedSide] of [
       config,
       applicationId: fixture.applicationId,
       controlRoot: resolve(controlRoot),
-      sqlApply: data.applyVerifiedUninstall,
+      sqlApply: applySql,
     });
     const projection = {
       schemaVersion: 1,
@@ -60,7 +86,29 @@ for (const [slot, failedSide] of [
     };
     assert.equal((await service.projection(projection)).status, 200);
     if (failedSide !== 'none') service.modes[failedSide] = 'lost';
-    assert.equal((await service.request('/intake')).status, 200);
+    let intake;
+    if (failedSide === 'none') {
+      const publisher = session();
+      try {
+        await publisher.run(
+          `begin; set local role bugdrop_publisher; select private.enqueue_publication('${fixture.tenantId}','${fixture.applicationId}');`
+        );
+        intake = service.request('/intake');
+        let latched = false;
+        for (let attempt = 0; attempt < 40; attempt++) {
+          if ((await service.edgeStorage()).revocation.length === 1) {
+            latched = true;
+            break;
+          }
+          await new Promise(resolveWait => setTimeout(resolveWait, 20));
+        }
+        assert.equal(latched, true, 'edge must progress while SQL publisher holds its transaction');
+        await publisher.run('commit;');
+      } finally {
+        publisher.close();
+      }
+    }
+    assert.equal((await (intake ?? service.request('/intake'))).status, 200);
     const first = await service.status();
     assert.equal(first.state, failedSide === 'none' ? 'complete' : 'pending');
     // Both actual stores committed even when one response was lost.
@@ -83,6 +131,19 @@ for (const [slot, failedSide] of [
       assert.equal(completed.work[field], first.work[field]);
     await Promise.all(Array.from({ length: 5 }, () => service.request('/intake')));
     assert.equal(data.inspectReconciliationFixture(slot).sqlReceiptCount, 1);
+    const publisher = session();
+    try {
+      const closed = await publisher.run(
+        `set role bugdrop_publisher; select private.enqueue_publication('${fixture.tenantId}','${fixture.applicationId}') is null;`
+      );
+      assert.match(
+        closed,
+        /\bt\b/,
+        'closed SQL scope must not create another positive publication'
+      );
+    } finally {
+      publisher.close();
+    }
     // A delayed positive publication cannot undo the permanent edge latch.
     assert.equal(
       (

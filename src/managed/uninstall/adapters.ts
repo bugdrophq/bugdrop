@@ -1,4 +1,4 @@
-import { hmac, readBounded, utf8 } from '../local/protocol';
+import { hmac, utf8 } from '../local/protocol';
 import { edgeReceipt, sqlReceipt, type SignedProof, type UninstallWork } from './contracts';
 
 export interface UninstallAdapters {
@@ -19,6 +19,7 @@ async function exchange(
   const raw = utf8(JSON.stringify(body));
   const controller = new AbortController();
   let timer: ReturnType<typeof setTimeout> | undefined;
+  let reader: ReadableStreamDefaultReader<Uint8Array> | undefined;
   const request = new Request(`http://uninstall.bugdrop.localhost${path}`, {
     method: 'POST',
     body: raw,
@@ -35,19 +36,26 @@ async function exchange(
     return await Promise.race([
       (async () => {
         const response = await service.fetch(request);
-        if (response.status !== 200) {
-          await response.body?.cancel();
+        if (response.status !== 200 || controller.signal.aborted) {
+          void response.body?.cancel().catch(() => {});
           return null;
         }
-        const bytes = await readBounded(
-          new Request(request.url, { method: 'POST', body: response.body }),
-          2048
-        );
-        return { raw: bytes, signature: response.headers.get(responseHeader) ?? '' };
+        reader = response.body?.getReader();
+        const bytes = new Uint8Array(2048);
+        let size = 0;
+        while (reader) {
+          const chunk = await reader.read();
+          if (chunk.done) break;
+          if (size + chunk.value.length > bytes.length) return null;
+          bytes.set(chunk.value, size);
+          size += chunk.value.length;
+        }
+        return { raw: bytes.slice(0, size), signature: response.headers.get(responseHeader) ?? '' };
       })(),
       new Promise<null>(resolve => {
         timer = setTimeout(() => {
           controller.abort();
+          void reader?.cancel().catch(() => {});
           resolve(null);
         }, 2000);
       }),
@@ -56,6 +64,8 @@ async function exchange(
     return null;
   } finally {
     if (timer) clearTimeout(timer);
+    // Cancellation also covers oversized bodies and transports that ignore AbortSignal.
+    void reader?.cancel().catch(() => {});
   }
 }
 export async function applyEdge(env: UninstallAdapters, installationId: string): Promise<boolean> {
