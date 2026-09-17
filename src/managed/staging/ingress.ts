@@ -11,6 +11,14 @@ export default {
   async fetch(request: Request, env: StagingIngressEnv): Promise<Response> {
     try {
       if (
+        enabled(env) &&
+        request.method === 'POST' &&
+        new URL(request.url).pathname === '/github/staging/webhook'
+      ) {
+        const body = await readBounded(request);
+        return await env.STAGING_GITHUB_WEBHOOK.fetch(new Request(request, { body }));
+      }
+      if (
         !enabled(env) ||
         request.method !== 'POST' ||
         new URL(request.url).pathname !== '/v1/submission-capabilities'

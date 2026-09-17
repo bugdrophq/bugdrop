@@ -29,8 +29,30 @@
       "vars": {
         "ENVIRONMENT": "staging",
         "STAGING_ENABLED": "false",
-        "STAGING_DELIVERY_ENABLED": "false"
-      }
+        "STAGING_DELIVERY_ENABLED": "false",
+        "STAGING_GITHUB_TARGET_JSON": "{}",
+        "STAGING_APPLICATION_ID": "UNAPPROVED",
+        "STAGING_DESTINATION_ID": "UNAPPROVED"
+      },
+      "secrets": {
+        "required": [
+          "STAGING_GITHUB_PRIVATE_KEY",
+          "STAGING_GITHUB_WEBHOOK_SECRET",
+          "STAGING_UNINSTALL_HMAC_KEY"
+        ]
+      },
+      "services": [
+        {
+          "binding": "STAGING_AUTHORITY",
+          "service": "bugdrop-managed-authority-staging",
+          "entrypoint": "DeliveryAuthority"
+        },
+        {
+          "binding": "STAGING_CONTROL",
+          "service": "bugdrop-managed-authority-staging",
+          "entrypoint": "StagingControl"
+        }
+      ]
     }
   }
 }

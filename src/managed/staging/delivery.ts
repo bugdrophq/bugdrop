@@ -10,6 +10,7 @@ const adapted = (env: StagingDeliveryEnv): DeliveryBindings => ({
   LOCAL_RECEIPTS: env.STAGING_RECEIPTS,
 });
 export class StagingReceipt extends LocalManagedReceipt {
+  protected deliveryTimeoutMs = 11_000;
   constructor(
     ctx: DurableObjectState,
     private stagingEnv: StagingDeliveryEnv

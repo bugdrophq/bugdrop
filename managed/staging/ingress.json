@@ -40,6 +40,11 @@
           "binding": "STAGING_DELIVERY",
           "service": "bugdrop-managed-delivery-staging",
           "entrypoint": "StagingDelivery"
+        },
+        {
+          "binding": "STAGING_GITHUB_WEBHOOK",
+          "service": "bugdrop-managed-github-staging",
+          "entrypoint": "GithubWebhook"
         }
       ]
     }

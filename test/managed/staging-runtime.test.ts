@@ -199,6 +199,25 @@ describe.sequential('actual staging Workers with provider-shaped ephemeral secre
     expect((await reply.json()).outcome).toBe('rejected');
     expect(service.evidence().attempts).toBe(0);
   });
+  it('allows bounded real-adapter preflight time without a second attempt', async () => {
+    expect((await service.control('/projection', update())).status).toBe(200);
+    service.setDeliveryDelay(1500);
+    const binding = await bound();
+    const capability = await (await mint(binding)).json();
+    const input = {
+      token: capability.token,
+      binding,
+      origin: projection.origin,
+      body: Buffer.from('{"report":"PRIVATE_REPORT_CANARY"}').toString('base64url'),
+    };
+    const submit = () =>
+      service
+        .request('/submit/submit', { method: 'POST', body: JSON.stringify(input) })
+        .then(r => r.json());
+    expect((await submit()).outcome).toBe('delivered');
+    expect((await submit()).outcome).toBe('delivered');
+    expect(service.evidence().attempts).toBe(1);
+  });
   it('rejects impossible V1 key IDs before poisoning an immutable scope', async () => {
     expect((await service.control('/projection', update(1, { keyId: 'key-test' }))).status).toBe(
       403

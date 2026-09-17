@@ -32,12 +32,23 @@ cost-bearing resources without the explicit target/budget decision.
 
 ## Configuration and authority
 
-| Manifest       | Proposed staging Worker           | Private authority                                                                                    |
-| -------------- | --------------------------------- | ---------------------------------------------------------------------------------------------------- |
-| authority.json | bugdrop-managed-authority-staging | Dedicated StagingAuthorization SQLite namespace; signed control updates; scoped snapshot entrypoints |
-| ingress.json   | bugdrop-managed-ingress-staging   | V1 issuance; private StagingSubmission entrypoint                                                    |
-| delivery.json  | bugdrop-managed-delivery-staging  | Dedicated StagingReceipt SQLite namespace; private StagingDelivery entrypoint                        |
-| github.json    | bugdrop-managed-github-staging    | Closed delivery stub until reviewed adapter and exact dogfood targets exist                          |
+| Manifest       | Proposed staging Worker           | Private authority                                                                                           |
+| -------------- | --------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| authority.json | bugdrop-managed-authority-staging | Dedicated StagingAuthorization SQLite namespace; signed control updates; scoped snapshot entrypoints        |
+| ingress.json   | bugdrop-managed-ingress-staging   | V1 issuance; private StagingSubmission entrypoint                                                           |
+| delivery.json  | bugdrop-managed-delivery-staging  | Dedicated StagingReceipt SQLite namespace; private StagingDelivery entrypoint                               |
+| github.json    | bugdrop-managed-github-staging    | Private GitHub delivery adapter and signed uninstall entrypoint; disabled until exact dogfood targets exist |
+
+The GitHub wrapper validates its provider target against fresh application/destination/
+installation authority. The adapter verifies the exact App, selected installation,
+private repository and Issues-only one-repository token; it follows no redirects and
+never retries the Issue POST. A mandatory callback reloads authorization after GitHub
+preflight, followed by the original source-time deadline check immediately before
+Issue creation. A revocation or expired snapshot during preflight prevents creation.
+The outer receipt timeout is 11 seconds, enclosing the adapter's 10-second limit;
+local harness timeout remains one second. Ambiguous post-admission outcomes remain
+indeterminate and unretryable. Known adapter preflight failure is conservatively
+represented as indeterminate by the shared receipt adapter port.
 
 The shared core implements V1 exact-origin and payload binding, ES256 capabilities,
 30-second authorization age, 30-day receipt retention and at-most-once attempts.
@@ -95,7 +106,9 @@ signature verification, and acceptance follows durable storage sync.
 Revocation body: `{schemaVersion:1, installationId}`. Only the separately verified
 Managed App webhook authority may sign this after verifying the real raw GitHub HMAC
 and matching the exact allowed App/installation/repository context. Repeated valid
-revocation is idempotent. No later projection clears the installation latch.
+revocation is idempotent. No later projection clears the installation latch. The public staging webhook path
+forwards to a private GithubWebhook binding, which verifies the exact raw GitHub
+signature and App/installation owner before signing the distinct uninstall latch.
 
 Snapshots contain operational configuration only. Provider signing keys, HMAC keys
 and verifier are never written to the authorization DO. IssuerAuthority receives
@@ -116,6 +129,13 @@ Required names on authority:
 - STAGING_AUTH_VERIFIER
 - STAGING_RECEIPT_HMAC_KEY
 - STAGING_SIGNING_KEYSET
+
+GitHub-only secret names are `STAGING_GITHUB_PRIVATE_KEY` (Managed App PEM),
+`STAGING_GITHUB_WEBHOOK_SECRET` and the shared `STAGING_UNINSTALL_HMAC_KEY`.
+Ingress has no secrets. `STAGING_GITHUB_TARGET_JSON` is non-secret reviewed config:
+`{schemaVersion:1,environment:"staging",enabled:true,dedicatedDogfood:true,appId,appSlug,installationId,owner,ownerId,repository,repositoryId}`.
+Its checked-in value is `{}` and delivery activation is false. Exact application and
+destination IDs must also match the trusted projection. No target comes from a report.
 
 HMAC keys are independent 32-byte random base64url values. Verifier is the 32-byte
 HMAC of the derived auth secret under the pepper. The keyset secret is

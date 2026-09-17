@@ -12,6 +12,7 @@ export async function start({
   applicationId = 'app-test',
   installationId = '42',
   deliveryEnabled = true,
+  github,
 }) {
   const directory = await mkdtemp(join(tmpdir(), 'bugdrop-staging-test-'));
   const controlKey = randomBytes(32).toString('base64url');
@@ -19,6 +20,7 @@ export async function start({
   const receiptKey = randomBytes(32).toString('base64url');
   let runtime,
     attempts = 0;
+  let deliveryDelay = 0;
   const logs = [],
     network = [];
   class CaptureLog extends Log {
@@ -40,7 +42,7 @@ export async function start({
     STAGING_SIGNING_KEYSET: JSON.stringify(keyset),
   };
   try {
-    for (const role of ['authority', 'ingress', 'delivery'])
+    for (const role of ['authority', 'ingress', 'delivery', 'github'])
       await build({
         entryPoints: [`src/managed/staging/${role}.ts`],
         outfile: join(directory, `${role}.mjs`),
@@ -77,6 +79,7 @@ export async function start({
               issuer: { name: 'authority', entrypoint: 'IssuerAuthority' },
               reader: { name: 'authority', entrypoint: 'DeliveryAuthority' },
               submit: { name: 'ingress', entrypoint: 'StagingSubmission' },
+              github: 'github',
             },
           },
           {
@@ -96,7 +99,29 @@ export async function start({
             serviceBindings: {
               STAGING_AUTHORITY: { name: 'authority', entrypoint: 'IssuerAuthority' },
               STAGING_DELIVERY: { name: 'delivery', entrypoint: 'StagingDelivery' },
+              STAGING_GITHUB_WEBHOOK: { name: 'github', entrypoint: 'GithubWebhook' },
             },
+          },
+          {
+            ...common,
+            name: 'github',
+            scriptPath: join(directory, 'github.mjs'),
+            bindings: {
+              ENVIRONMENT: 'staging',
+              STAGING_ENABLED: 'true',
+              STAGING_DELIVERY_ENABLED: String(deliveryEnabled),
+              STAGING_GITHUB_TARGET_JSON: JSON.stringify(github?.config ?? {}),
+              STAGING_APPLICATION_ID: applicationId,
+              STAGING_DESTINATION_ID: 'destination-test',
+              STAGING_GITHUB_PRIVATE_KEY: github?.privateKey ?? '',
+              STAGING_GITHUB_WEBHOOK_SECRET: github?.webhookSecret ?? '',
+              STAGING_UNINSTALL_HMAC_KEY: uninstallKey,
+            },
+            serviceBindings: {
+              STAGING_AUTHORITY: { name: 'authority', entrypoint: 'DeliveryAuthority' },
+              STAGING_CONTROL: { name: 'authority', entrypoint: 'StagingControl' },
+            },
+            ...(github ? { outboundService: github.transport } : {}),
           },
           {
             ...common,
@@ -109,10 +134,14 @@ export async function start({
             },
             serviceBindings: {
               STAGING_AUTHORITY: { name: 'authority', entrypoint: 'DeliveryAuthority' },
-              STAGING_GITHUB: () => {
-                attempts++;
-                return Response.json({ outcome: 'delivered' });
-              },
+              STAGING_GITHUB: github
+                ? 'github'
+                : async () => {
+                    attempts++;
+                    if (deliveryDelay)
+                      await new Promise(resolve => setTimeout(resolve, deliveryDelay));
+                    return Response.json({ outcome: 'delivered' });
+                  },
             },
             durableObjects: { STAGING_RECEIPTS: { className: 'StagingReceipt', useSQLite: true } },
           },
@@ -148,6 +177,9 @@ export async function start({
       request,
       async publicRequest(path, init) {
         return request(`/public${path}`, init);
+      },
+      setDeliveryDelay(ms) {
+        deliveryDelay = ms;
       },
       async disableDelivery() {
         deliveryEnabled = false;

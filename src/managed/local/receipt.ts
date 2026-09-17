@@ -16,6 +16,7 @@ interface StoredReceipt extends Record<string, SqlStorageValue> {
 }
 export class LocalManagedReceipt extends DurableObject<ReceiptEnv> {
   private liveAttempt = false;
+  protected deliveryTimeoutMs = 1000;
   constructor(ctx: DurableObjectState, env: ReceiptEnv) {
     super(ctx, env);
     this.ctx.storage.sql.exec(
@@ -74,7 +75,11 @@ export class LocalManagedReceipt extends DurableObject<ReceiptEnv> {
         this.ctx.storage.sql.exec("UPDATE receipt SET state='failed_before_delivery' WHERE id=1");
         return response('failed_before_delivery');
       }
-      const outcome = await attemptOnce(this.env.LOCAL_FAKE_GITHUB, bytes(input.body));
+      const outcome = await attemptOnce(
+        this.env.LOCAL_FAKE_GITHUB,
+        bytes(input.body),
+        this.deliveryTimeoutMs
+      );
       this.ctx.storage.sql.exec('UPDATE receipt SET state=? WHERE id=1', outcome);
       return response(outcome);
     } catch {
