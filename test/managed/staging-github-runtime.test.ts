@@ -12,14 +12,36 @@ async function setup({
   publicRepository = false,
   revokeInPreflight = false,
   expireInPreflight = false,
+  changeBeforeAdapter = false,
+  changeAt = '',
+  changeField = 'configurationVersion',
 } = {}) {
   const events: string[] = [];
+  let changed = false;
+  async function change() {
+    if (changed) return;
+    changed = true;
+    const edits =
+      changeField === 'applicationActive' || changeField === 'installationActive'
+        ? { [changeField]: false, authorizationVersion: 2 }
+        : { [changeField]: 2 };
+    expect(
+      (
+        await service.control('/projection', {
+          schemaVersion: 1,
+          sequence: 2,
+          projection: { ...projection, ...edits, observedAt: Date.now() },
+        })
+      ).status
+    ).toBe(200);
+  }
   const webhookSecret = 'synthetic_webhook_key_for_local_worker_only';
   const transport = async (request: Request) => {
     const url = new URL(request.url);
     expect(url.origin).toBe('https://api.github.com');
     if (url.pathname.endsWith('/access_tokens')) {
       events.push('token');
+      if (changeAt === 'preflight') await change();
       if (revokeInPreflight)
         expect(
           (
@@ -64,7 +86,15 @@ async function setup({
         },
       ],
     },
-    github: { config, privateKey, webhookSecret, transport },
+    github: {
+      config,
+      privateKey,
+      webhookSecret,
+      transport,
+      beforeAdapter: async () => {
+        if (changeBeforeAdapter || changeAt === 'adapter') await change();
+      },
+    },
   });
   const projection = {
     tenantId: 'tenant-test',
@@ -121,6 +151,27 @@ describe.sequential('staging wrapper with actual workerd crypto and intercepted 
     expect(events).toEqual(['installation', 'token', 'issue']);
     expect(JSON.stringify(service.evidence())).not.toContain('private-canary');
     expect(JSON.stringify(service.evidence())).not.toContain(report);
+  });
+  it('rejects the original admitted capability when authority changes before adapter entry', async () => {
+    const { events, submit } = await setup({ changeBeforeAdapter: true });
+    expect((await submit()).outcome).toBe('indeterminate');
+    expect(events).toEqual([]);
+  });
+  it.each(
+    ['adapter', 'preflight'].flatMap(stage =>
+      [
+        'configurationVersion',
+        'authorizationVersion',
+        'applicationActive',
+        'installationActive',
+      ].map(field => ({ stage, field }))
+    )
+  )('retains original authority across $stage changes to $field', async ({ stage, field }) => {
+    const { events, submit } = await setup({ changeAt: stage, changeField: field });
+    expect((await submit()).outcome).toBe('indeterminate');
+    expect(events).toEqual(stage === 'adapter' ? [] : ['installation', 'token']);
+    await submit();
+    expect(events).toEqual(stage === 'adapter' ? [] : ['installation', 'token']);
   });
   it.each(['public', 'revoked', 'expired'])(
     'does not create an Issue when %s at final preflight',

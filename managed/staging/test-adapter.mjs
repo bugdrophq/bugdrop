@@ -135,7 +135,10 @@ export async function start({
             serviceBindings: {
               STAGING_AUTHORITY: { name: 'authority', entrypoint: 'DeliveryAuthority' },
               STAGING_GITHUB: github
-                ? 'github'
+                ? async request => {
+                    await github.beforeAdapter?.();
+                    return (await runtime.getWorker('github')).fetch(request);
+                  }
                 : async () => {
                     attempts++;
                     if (deliveryDelay)

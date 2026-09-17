@@ -3,6 +3,9 @@ import type { StagingDeliveryEnv } from './delivery-env';
 import type { DeliveryBindings } from '../local/delivery';
 import localDelivery from '../local/delivery';
 import { LocalManagedReceipt } from '../local/receipt';
+import { attemptOnce } from '../local/fake-github';
+import type { LocalSubmission } from '../local/submission';
+import { utf8 } from '../local/protocol';
 import { response } from '../local/outcome';
 const adapted = (env: StagingDeliveryEnv): DeliveryBindings => ({
   LOCAL_AUTHORITY: env.STAGING_AUTHORITY,
@@ -11,6 +14,13 @@ const adapted = (env: StagingDeliveryEnv): DeliveryBindings => ({
 });
 export class StagingReceipt extends LocalManagedReceipt {
   protected deliveryTimeoutMs = 11_000;
+  protected deliver(input: LocalSubmission): Promise<'delivered' | 'indeterminate'> {
+    return attemptOnce(
+      this.stagingEnv.STAGING_GITHUB,
+      utf8(JSON.stringify(input)),
+      this.deliveryTimeoutMs
+    );
+  }
   constructor(
     ctx: DurableObjectState,
     private stagingEnv: StagingDeliveryEnv

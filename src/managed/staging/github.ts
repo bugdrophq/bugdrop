@@ -1,7 +1,9 @@
 import { WorkerEntrypoint } from 'cloudflare:workers';
 import type { StagingGithubEnv } from './github-env';
 import { loadAuthority, type Authority } from '../local/authority';
-import { hmac, json, readBounded, reject, utf8 } from '../local/protocol';
+import { verifySubmission } from '../local/capability';
+import { submission } from '../local/submission';
+import { bytes, hmac, json, readBounded, reject, utf8 } from '../local/protocol';
 import { stagingConfig } from '../github-staging/config';
 import { handleGitHubDelivery } from '../github-staging/delivery';
 import { verifyGitHubUninstall } from '../github-staging/webhook';
@@ -35,9 +37,10 @@ export default {
       )
         return refused();
       const config = configured(env);
-      const raw = await readBounded(request, 60_000);
+      const input = submission(json(await readBounded(request)));
+      const raw = bytes(input.body);
       const initial = await authority(env, config.installationId);
-      const baseline = JSON.stringify({ ...initial.projection, observedAt: 0 });
+      await verifySubmission(input.token, input.origin, input.binding, raw, initial);
       return await handleGitHubDelivery(
         new Request('http://github.bugdrop.localhost/deliver', { method: 'POST', body: raw }),
         config,
@@ -45,7 +48,7 @@ export default {
         initial.projection.observedAt + 30_000,
         async () => {
           const fresh = await authority(env, config.installationId);
-          if (JSON.stringify({ ...fresh.projection, observedAt: 0 }) !== baseline) reject();
+          await verifySubmission(input.token, input.origin, input.binding, raw, fresh);
         }
       );
     } catch {

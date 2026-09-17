@@ -42,8 +42,10 @@ cost-bearing resources without the explicit target/budget decision.
 The GitHub wrapper validates its provider target against fresh application/destination/
 installation authority. The adapter verifies the exact App, selected installation,
 private repository and Issues-only one-repository token; it follows no redirects and
-never retries the Issue POST. A mandatory callback reloads authorization after GitHub
-preflight, followed by the original source-time deadline check immediately before
+never retries the Issue POST. The original full signed submission travels only over the private receipt-to-GitHub
+binding. The wrapper verifies it against fresh authority initially and in a mandatory
+callback after GitHub preflight; it never replaces signed claims with current configuration.
+This is followed by the original source-time deadline check immediately before
 Issue creation. A revocation or expired snapshot during preflight prevents creation.
 The outer receipt timeout is 11 seconds, enclosing the adapter's 10-second limit;
 local harness timeout remains one second. Ambiguous post-admission outcomes remain
@@ -71,6 +73,21 @@ The publisher must map non-null `canonical_origin` to exact `origin`, preserve
 the current draft/disabled database model. It must not fabricate activation, verifier
 storage, sequence, authorizationVersion or observation timestamps. Those lifecycle
 and publisher capabilities remain explicit activation prerequisites.
+
+The publisher must join the SQL internal installation UUID to `github_installation_id`
+and serialize that provider numeric ID as `projection.installationId`. SQL lifecycle
+commands retain the internal UUID; they must not receive the edge provider ID instead.
+Do not publish a pending credential as `credentialActive:false`: false is terminal for
+that edge key identity. Publication begins only after explicit activation is implemented
+and acknowledged; its transaction/ordering and bootstrap remain unimplemented gates.
+
+Webhook acknowledgement currently proves only the durable edge revocation latch.
+A separate authoritative reconciliation adapter must call the Supabase installation
+event/cleanup contract using the verified provider-to-internal mapping, retry safely,
+and record acknowledgement without clearing the edge latch. It is not implemented or
+configured here, and hosted activation stays blocked until it is reviewed and tested.
+This tranche does not add OAuth PKCE; operator OAuth must remain disabled until its
+separate callback/session flow is implemented and approved.
 
 Control and data are separate: a private control publisher is responsible for mapping
 the authoritative database transaction into the schema below. Its remote transport,
