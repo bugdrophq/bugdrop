@@ -1,3 +1,4 @@
+import { Observation } from './observation';
 import { DurableObject } from 'cloudflare:workers';
 import type { StagingAuthorityEnv } from './authority-env';
 import { json, keys, readBounded, record, reject, verifyHmac, hmac, utf8 } from '../local/protocol';
@@ -13,8 +14,10 @@ import {
 } from './control-receipt';
 
 export class StagingAuthorization extends DurableObject<StagingAuthorityEnv> {
+  private observation: Observation;
   constructor(ctx: DurableObjectState, env: StagingAuthorityEnv) {
     super(ctx, env);
+    this.observation = new Observation(this.ctx.storage);
     this.ctx.storage.sql.exec(
       'CREATE TABLE IF NOT EXISTS authorization (id INTEGER PRIMARY KEY CHECK(id=1), snapshot TEXT NOT NULL)'
     );
@@ -25,7 +28,12 @@ export class StagingAuthorization extends DurableObject<StagingAuthorityEnv> {
       'CREATE TABLE IF NOT EXISTS revocation (id INTEGER PRIMARY KEY CHECK(id=1))'
     );
   }
+  async alarm() {
+    await this.observation.expire();
+  }
   async fetch(request: Request): Promise<Response> {
+    if (new URL(request.url).pathname.startsWith('/observation/'))
+      return this.observation.fetch(request, this.env);
     try {
       if (this.env.ENVIRONMENT !== 'staging' || this.env.STAGING_ENABLED !== 'true') reject();
       const path = new URL(request.url).pathname;

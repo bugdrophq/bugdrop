@@ -4,7 +4,7 @@ import { Miniflare, Log, LogLevel } from 'miniflare';
 import { mkdtemp, rm } from 'node:fs/promises';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
-import { randomBytes, webcrypto } from 'node:crypto';
+import { randomBytes, webcrypto, createHmac } from 'node:crypto';
 export async function start({
   pepper,
   verifier,
@@ -14,8 +14,11 @@ export async function start({
   deliveryEnabled = true,
   github,
   enableControlFaults = false,
+  enableObservation = false,
+  issuerOverride,
 }) {
   const directory = await mkdtemp(join(tmpdir(), 'bugdrop-staging-test-'));
+  const observationKey = randomBytes(32).toString('base64url');
   const controlKey = randomBytes(32).toString('base64url');
   const uninstallKey = randomBytes(32).toString('base64url');
   const uninstallCommitmentKey = randomBytes(32).toString('base64url');
@@ -36,6 +39,8 @@ export async function start({
   const authority = {
     ENVIRONMENT: 'staging',
     STAGING_ENABLED: 'true',
+    STAGING_OBSERVATION_ENABLED: String(enableObservation),
+    STAGING_OBSERVATION_HMAC_KEY: observationKey,
     STAGING_APPLICATION_ID: applicationId,
     STAGING_INSTALLATION_ID: installationId,
     STAGING_CONTROL_HMAC_KEY: controlKey,
@@ -49,9 +54,11 @@ export async function start({
     for (const role of ['authority', 'ingress', 'delivery', 'github'])
       await build({
         entryPoints: [
-          role === 'authority' && enableControlFaults
-            ? 'managed/staging/control-fault-worker.mjs'
-            : `src/managed/staging/${role}.ts`,
+          role === 'authority' && enableObservation
+            ? 'managed/staging/observation-fault-worker.mjs'
+            : role === 'authority' && enableControlFaults
+              ? 'managed/staging/control-fault-worker.mjs'
+              : `src/managed/staging/${role}.ts`,
         ],
         outfile: join(directory, `${role}.mjs`),
         bundle: true,
@@ -83,6 +90,8 @@ export async function start({
             scriptPath: join(directory, 'probe.mjs'),
             serviceBindings: {
               public: 'ingress',
+              observation: { name: 'authority', entrypoint: 'StagingObservation' },
+              observationTest: 'authority',
               control: { name: 'authority', entrypoint: 'StagingControl' },
               issuer: { name: 'authority', entrypoint: 'IssuerAuthority' },
               reader: { name: 'authority', entrypoint: 'DeliveryAuthority' },
@@ -114,9 +123,19 @@ export async function start({
             ...common,
             name: 'ingress',
             scriptPath: join(directory, 'ingress.mjs'),
-            bindings: { ENVIRONMENT: 'staging', STAGING_ENABLED: 'true' },
+            bindings: {
+              ENVIRONMENT: 'staging',
+              STAGING_ENABLED: 'true',
+              STAGING_OBSERVATION_ENABLED: String(enableObservation),
+              STAGING_OBSERVATION_HMAC_KEY: observationKey,
+              STAGING_APPLICATION_ID: applicationId,
+              STAGING_INSTALLATION_ID: installationId,
+            },
             serviceBindings: {
-              STAGING_AUTHORITY: { name: 'authority', entrypoint: 'IssuerAuthority' },
+              STAGING_AUTHORITY: issuerOverride
+                ? () => Response.json(issuerOverride)
+                : { name: 'authority', entrypoint: 'IssuerAuthority' },
+              STAGING_OBSERVATION: { name: 'authority', entrypoint: 'StagingObservation' },
               STAGING_DELIVERY: { name: 'delivery', entrypoint: 'StagingDelivery' },
               STAGING_GITHUB_WEBHOOK: { name: 'github', entrypoint: 'GithubWebhook' },
             },
@@ -181,6 +200,34 @@ export async function start({
     const request = (path, init) =>
       runtime.dispatchFetch(`http://staging.bugdrop.localhost${path}`, init);
     return {
+      async observation(path, fields = {}, tamper = false) {
+        const raw = JSON.stringify({ schemaVersion: 1, applicationId, installationId, ...fields });
+        const signature = createHmac('sha256', Buffer.from(observationKey, 'base64url'))
+          .update(`bugdrop:staging:observation-request:v1\0${path}\0${raw}`)
+          .digest('base64url');
+        const response = await request(`/observation${path}`, {
+          method: 'POST',
+          body: raw,
+          headers: { 'X-BugDrop-Observation-Signature': tamper ? 'bad' : signature },
+        });
+        const text = await response.text();
+        const expected = createHmac('sha256', Buffer.from(observationKey, 'base64url'))
+          .update(`bugdrop:staging:observation-response:v1\0${path}\0${text}`)
+          .digest('base64url');
+        return {
+          status: response.status,
+          valid: response.headers.get('X-BugDrop-Observation-Signature') === expected,
+          body: JSON.parse(text),
+        };
+      },
+      async observationTest(fields) {
+        return (
+          await request('/observationTest/_test/observation', {
+            method: 'POST',
+            body: JSON.stringify(fields),
+          })
+        ).json();
+      },
       async control(path, body, { tamper = false, useProjectionKey = false, rawBody } = {}) {
         const raw = rawBody ?? JSON.stringify(body);
         const key = await webcrypto.subtle.importKey(
