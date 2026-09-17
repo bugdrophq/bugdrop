@@ -58,6 +58,23 @@ Actual hosted binding TLS, role grants, and wrong-role denial still require live
 verification before activation. A pg error listener also records asynchronous
 socket errors independently of query rejection, withholding any later receipt.
 
+The runtime owner created and read back the following isolated resources on
+2026-09-17 under account `341a3846c29902f6363c151395932f5a`:
+
+- Hyperdrive `bugdrop-reconciliation-staging`, ID
+  `cd391593693a4a128fcd5caa80cf217a`, caching disabled, origin connection limit 5,
+  `verify-full`, CA ID `2195ca15-9bd3-4fec-8e00-325cdb512de1`.
+- CA `bugdrop-staging-supabase-ca`, SHA256 of DER
+  `807025ad50d4ed219d2c9c7d299c004f824eb00cf7f65afef607d07b72e6cafa`.
+- Origin `aws-0-us-west-1.pooler.supabase.com:5432`, database `postgres`, login
+  `bugdrop_reconciliation_transport.xwvgzjmzjilkkofvmrat`.
+
+The manifest binds that exact resource and keeps activation disabled. The private
+Worker itself has not yet been deployed or qualified. To roll back, disable the
+consumer binding first; delete only this Hyperdrive after confirming no consumers
+remain, then remove the new CA only after confirming it has no remaining
+references. The existing unrelated Gateway CA was not modified.
+
 ## Recovery agreement with the data owner
 
 Proposed private SQL signature:

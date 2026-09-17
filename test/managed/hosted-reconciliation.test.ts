@@ -1,5 +1,6 @@
 import { Buffer } from 'node:buffer';
 import { Client } from 'pg';
+import { readFileSync } from 'node:fs';
 import { describe, expect, it, vi } from 'vitest';
 import { hmac, utf8 } from '../../src/managed/local/protocol';
 import { applySqlUninstall, databaseConfig } from '../../src/managed/staging/reconciliation-sql';
@@ -49,6 +50,20 @@ function connection(receipt: unknown = { ...command, sqlApplied: true }) {
 }
 
 describe('hosted private reconciliation transport', () => {
+  it('keeps the approved database binding private and activation disabled', () => {
+    const manifest = JSON.parse(readFileSync('managed/staging/reconciliation.json', 'utf8'));
+    for (const config of [manifest, manifest.env.staging]) {
+      expect(config.workers_dev).toBe(false);
+      expect(config.preview_urls).toBe(false);
+      expect(config.routes).toEqual([]);
+    }
+    expect(manifest.env.staging.vars.STAGING_ENABLED).toBe('false');
+    expect(manifest.env.staging.vars.STAGING_PROVIDER_INSTALLATION_ID).toBe('UNAPPROVED');
+    expect(manifest.env.staging.account_id).toBe('341a3846c29902f6363c151395932f5a');
+    expect(manifest.env.staging.hyperdrive).toEqual([
+      { binding: 'STAGING_RECONCILIATION_DATABASE', id: 'cd391593693a4a128fcd5caa80cf217a' },
+    ]);
+  });
   it('contains pg error events even when a query also resolves', async () => {
     const client = new Client();
     vi.spyOn(client, 'connect').mockResolvedValue(undefined);
