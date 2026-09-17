@@ -115,7 +115,10 @@ describe('cleanup and approval boundaries', () => {
   it('rejects duplicate or noncanonical descriptor bytes even with matching hash', async () => {
     const value = await setup();
     const { hash } = await import('../../managed/staging/private-readiness-descriptor.mjs');
-    const text = canonical(value.descriptor).replace('{', '{"schemaVersion":1,');
+    const canonicalText = canonical(value.descriptor);
+    const text = '{"schemaVersion":1,' + canonicalText.slice(1);
+    expect(text.match(/"schemaVersion":1/g)).toHaveLength(2);
+    expect(JSON.parse(text)).toEqual(value.descriptor);
     await writeFile(value.descriptorPath, text);
     await expect(runClosedDenials({ ...value, approvedDigest: hash(text) })).rejects.toThrow();
     expect(value.state).not.toHaveProperty('opened');
