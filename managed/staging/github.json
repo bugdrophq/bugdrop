@@ -1,0 +1,36 @@
+{
+  "$schema": "../../node_modules/wrangler/config-schema.json",
+  "account_id": "STAGING_ACCOUNT_NOT_APPROVED",
+  "compatibility_date": "2026-06-10",
+  "compatibility_flags": ["nodejs_compat"],
+  "workers_dev": false,
+  "preview_urls": false,
+  "routes": [],
+  "observability": {
+    "enabled": true,
+    "logs": {
+      "enabled": true,
+      "invocation_logs": false,
+      "head_sampling_rate": 1
+    },
+    "traces": {
+      "enabled": false
+    }
+  },
+  "name": "bugdrop-managed-github-disabled",
+  "main": "../../src/managed/staging/github.ts",
+  "env": {
+    "staging": {
+      "name": "bugdrop-managed-github-staging",
+      "account_id": "STAGING_ACCOUNT_NOT_APPROVED",
+      "workers_dev": false,
+      "preview_urls": false,
+      "routes": [],
+      "vars": {
+        "ENVIRONMENT": "staging",
+        "STAGING_ENABLED": "false",
+        "STAGING_DELIVERY_ENABLED": "false"
+      }
+    }
+  }
+}

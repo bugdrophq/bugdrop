@@ -7,14 +7,16 @@ import { response, type Outcome } from './outcome';
 import { submission } from './submission';
 import { attemptOnce } from './fake-github';
 
+type ReceiptEnv = Pick<LocalDeliveryEnv, 'LOCAL_AUTHORITY' | 'LOCAL_FAKE_GITHUB'>;
+
 interface StoredReceipt extends Record<string, SqlStorageValue> {
   commitment: string;
   state: Outcome;
   expiresAt: number;
 }
-export class LocalManagedReceipt extends DurableObject<LocalDeliveryEnv> {
+export class LocalManagedReceipt extends DurableObject<ReceiptEnv> {
   private liveAttempt = false;
-  constructor(ctx: DurableObjectState, env: LocalDeliveryEnv) {
+  constructor(ctx: DurableObjectState, env: ReceiptEnv) {
     super(ctx, env);
     this.ctx.storage.sql.exec(
       'CREATE TABLE IF NOT EXISTS receipt (id INTEGER PRIMARY KEY CHECK(id=1), commitment TEXT NOT NULL, state TEXT NOT NULL, expiresAt INTEGER NOT NULL)'
