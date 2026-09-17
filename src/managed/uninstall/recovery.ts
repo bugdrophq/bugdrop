@@ -8,6 +8,7 @@ export interface RecoveryEnvironment {
 export interface RecoveryExpectation extends UninstallWork {
   tombstonedAt: number;
   tombstoneId: string;
+  routingHash: string;
   recoveryGeneration: string;
   recoveryRequestId: string;
   deployment: string;
@@ -46,6 +47,7 @@ export async function recoverUninstall(
       requestId: expected.requestId,
     });
     bytes(expected.challenge, 32);
+    bytes(expected.routingHash, 32);
     const now = clock();
     if (
       !uuid(expected.tombstoneId) ||

@@ -46,6 +46,12 @@ export class TestUninstall extends StagingUninstall {
   }
   async fetch(request) {
     const path = new URL(request.url).pathname;
+    if (path === '/_test/scope') {
+      const body = await request.json();
+      this.env.STAGING_GITHUB_TARGET_JSON = JSON.stringify(body.config);
+      this.env.STAGING_APPLICATION_ID = body.applicationId;
+      return new Response('ok');
+    }
     if (path === '/_test/fail-transaction') {
       this.failTransaction = true;
       return new Response('ok');

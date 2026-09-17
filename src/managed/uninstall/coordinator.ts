@@ -1,9 +1,11 @@
 import { DurableObject } from 'cloudflare:workers';
 import { stagingConfig } from '../github-staging/config';
-import { hmac, json, readBounded, record, reject, utf8, verifyHmac } from '../local/protocol';
+import { json, readBounded, record, reject, utf8, verifyHmac } from '../local/protocol';
 import { applyEdge, applySql, type UninstallAdapters } from './adapters';
 import { commitments } from './contracts';
-import { delays, originalWork, retention, tombstone, type WorkState } from './state';
+import { routingSnapshot } from './routing';
+import { signedStatus } from './status';
+import { delays, originalWork, retention, tombstone, type Pending, type WorkState } from './state';
 import { continueUninstall } from './continuation';
 
 interface UninstallEnv extends UninstallAdapters {
@@ -81,6 +83,8 @@ export class StagingUninstall extends DurableObject<UninstallEnv> {
         body.installationHash !== expected.installationHash
       )
         reject();
+      const routing = await routingSnapshot(this.env, config);
+      if (!routing.matches(this.env, this.target())) reject();
       // After asynchronous authentication, admission is a single synchronous transaction.
       let item = this.read();
       if (
@@ -91,6 +95,7 @@ export class StagingUninstall extends DurableObject<UninstallEnv> {
         item = {
           ...expected,
           state: 'pending',
+          routingHash: routing.hash,
           cycleStartedAt: this.now(),
           requestId: crypto.randomUUID(),
           occurredAt: this.now(),
@@ -117,7 +122,7 @@ export class StagingUninstall extends DurableObject<UninstallEnv> {
             now: () => this.now(),
           },
           this.env,
-          config,
+          () => this.target(),
           body.recoveryRequestId,
           body.tombstonedAt,
           body.tombstoneId
@@ -136,29 +141,11 @@ export class StagingUninstall extends DurableObject<UninstallEnv> {
         await this.drain();
       }
       if (path === '/intake') return Response.json({ schemaVersion: 1, accepted: true });
-      const current = this.read();
-      const state = current
-        ? current.state === 'operator_action_required'
-          ? current.state
-          : current.completedAt !== null
-            ? 'complete'
-            : current.sqlQuarantined
-              ? 'quarantined'
-              : 'pending'
-        : this.ctx.storage.sql.exec('SELECT id FROM uninstall_fence').toArray().length
-          ? 'retired'
-          : 'absent';
-      const response = JSON.stringify({ schemaVersion: 1, state, work: current ?? null });
-      return new Response(response, {
-        headers: {
-          'Content-Type': 'application/json',
-          'Cache-Control': 'no-store',
-          'X-BugDrop-Uninstall-Receipt-Signature': await hmac(
-            this.env.STAGING_UNINSTALL_COMMITMENT_KEY,
-            utf8(`bugdrop:uninstall:status:v1\0${response}`)
-          ),
-        },
-      });
+      return signedStatus(
+        this.env.STAGING_UNINSTALL_COMMITMENT_KEY,
+        this.read(),
+        this.ctx.storage.sql.exec('SELECT id FROM uninstall_fence').toArray().length > 0
+      );
     } catch {
       return Response.json({ error: 'uninstall_request_rejected' }, { status: 503 });
     }
@@ -170,8 +157,22 @@ export class StagingUninstall extends DurableObject<UninstallEnv> {
       });
     return this.running;
   }
+  private async routing() {
+    try {
+      return await routingSnapshot(this.env, this.target());
+    } catch {
+      return null;
+    }
+  }
+  private matches(snapshot: Awaited<ReturnType<typeof routingSnapshot>>): boolean {
+    try {
+      return snapshot.matches(this.env, this.target());
+    } catch {
+      return false;
+    }
+  }
   private async attempt(): Promise<void> {
-    const config = this.target();
+    const snapshot = await this.routing();
     await this.expire();
     let item = this.read();
     if (
@@ -183,26 +184,55 @@ export class StagingUninstall extends DurableObject<UninstallEnv> {
       item.nextAttemptAt > this.now()
     )
       return;
+    if (!snapshot || item.routingHash !== snapshot.hash || !this.matches(snapshot)) {
+      await this.pauseRouting(item);
+      return;
+    }
     item.attempts++;
     item.nextAttemptAt = this.now() + delays[item.attempts - 1];
     this.save(item);
     await this.arm();
     await this.ctx.storage.sync();
-    const original = originalWork(item);
-    const cycle = item.cycleStartedAt;
-    const [edge, sql] = await Promise.all([
-      item.edgeAcknowledged
-        ? true
-        : applyEdge(this.env, String(config.installationId)).catch(() => false),
-      item.sqlAcknowledged
-        ? 'applied'
-        : item.sqlQuarantined
-          ? 'quarantined'
-          : applySql(this.env, original, String(config.installationId)).catch(() => 'pending'),
-    ]);
+    const cycle = item.continuationId ?? item.requestId;
     await this.expire();
     item = this.read();
-    if (!item || item.state !== 'pending' || item.cycleStartedAt !== cycle) return;
+    if (
+      !item ||
+      item.state !== 'pending' ||
+      (item.continuationId ?? item.requestId) !== cycle ||
+      item.completedAt !== null
+    )
+      return;
+    if (!this.matches(snapshot)) {
+      await this.pauseRouting(item);
+      return;
+    }
+    const original = originalWork(item);
+    const edge =
+      item.edgeAcknowledged ||
+      (await applyEdge(snapshot.adapters, snapshot.installationId).catch(() => false));
+    // Re-read scope between independent effects; never carry current mutable env into an adapter.
+    const sqlSnapshot = await this.routing();
+    await this.expire();
+    item = this.read();
+    if (!item || item.state !== 'pending' || (item.continuationId ?? item.requestId) !== cycle)
+      return;
+    item.edgeAcknowledged ||= edge;
+    if (!sqlSnapshot || item.routingHash !== sqlSnapshot.hash || !this.matches(sqlSnapshot)) {
+      await this.pauseRouting(item);
+      return;
+    }
+    const sql = item.sqlAcknowledged
+      ? 'applied'
+      : item.sqlQuarantined
+        ? 'quarantined'
+        : await applySql(sqlSnapshot.adapters, original, sqlSnapshot.installationId).catch(
+            () => 'pending'
+          );
+    await this.expire();
+    item = this.read();
+    if (!item || item.state !== 'pending' || (item.continuationId ?? item.requestId) !== cycle)
+      return;
     item.edgeAcknowledged ||= edge;
     item.sqlAcknowledged ||= sql === 'applied';
     item.sqlQuarantined = !item.sqlAcknowledged && sql === 'quarantined';
@@ -212,6 +242,22 @@ export class StagingUninstall extends DurableObject<UninstallEnv> {
     } else if (item.attempts >= delays.length || (item.edgeAcknowledged && item.sqlQuarantined))
       item.nextAttemptAt = 0;
     this.save(item);
+    await this.arm();
+    await this.ctx.storage.sync();
+  }
+  private async pauseRouting(item: Pending): Promise<void> {
+    await this.expire();
+    const current = this.read();
+    if (
+      !current ||
+      current.state !== 'pending' ||
+      current.completedAt !== null ||
+      (current.continuationId ?? current.requestId) !== (item.continuationId ?? item.requestId)
+    )
+      return;
+    current.edgeAcknowledged ||= item.edgeAcknowledged;
+    current.nextAttemptAt = 0;
+    this.save(current);
     await this.arm();
     await this.ctx.storage.sync();
   }

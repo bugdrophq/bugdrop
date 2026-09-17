@@ -1,6 +1,7 @@
 import { encode, reject } from '../local/protocol';
 import { recoverUninstall, hashRecoveryChallenge, type RecoveryEnvironment } from './recovery';
 import { originalWork, type Pending, type WorkState } from './state';
+import { routingSnapshot, type RoutingEnvironment } from './routing';
 
 interface ContinuationStore {
   read(): WorkState | undefined;
@@ -11,8 +12,8 @@ interface ContinuationStore {
 }
 export async function continueUninstall(
   store: ContinuationStore,
-  env: RecoveryEnvironment & { STAGING_APPLICATION_ID: string },
-  config: { appId: number; installationId: number },
+  env: RecoveryEnvironment & RoutingEnvironment,
+  config: () => { appId: number; installationId: number },
   requestId: unknown,
   tombstonedAt: unknown,
   tombstoneId: unknown
@@ -27,7 +28,18 @@ export async function continueUninstall(
     !/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/.test(requestId)
   )
     reject();
+  const recoveryEnv: RecoveryEnvironment = Object.freeze({
+    STAGING_UNINSTALL_RECOVERY: env.STAGING_UNINSTALL_RECOVERY,
+    STAGING_UNINSTALL_RECOVERY_HMAC_KEY: env.STAGING_UNINSTALL_RECOVERY_HMAC_KEY,
+  });
+  const route = await routingSnapshot(env, config());
+  const matches = () =>
+    route.matches(env, config()) &&
+    env.STAGING_UNINSTALL_RECOVERY === recoveryEnv.STAGING_UNINSTALL_RECOVERY &&
+    env.STAGING_UNINSTALL_RECOVERY_HMAC_KEY === recoveryEnv.STAGING_UNINSTALL_RECOVERY_HMAC_KEY;
+  if (!matches()) reject();
   let item = store.read();
+  if (!item || item.routingHash !== route.hash) reject();
   if (
     item?.state === 'pending' &&
     item.recoveryRequestId === requestId &&
@@ -40,6 +52,8 @@ export async function continueUninstall(
     item.state !== 'operator_action_required' ||
     item.tombstonedAt !== tombstonedAt ||
     item.tombstoneId !== tombstoneId ||
+    item.routingHash !== route.hash ||
+    !matches() ||
     item.recoveryRequestId === requestId ||
     !env.STAGING_UNINSTALL_RECOVERY ||
     !env.STAGING_UNINSTALL_RECOVERY_HMAC_KEY ||
@@ -56,6 +70,8 @@ export async function continueUninstall(
     item.state !== 'operator_action_required' ||
     item.tombstonedAt !== tombstonedAt ||
     item.tombstoneId !== tombstoneId ||
+    item.routingHash !== route.hash ||
+    !matches() ||
     item.recoveryAttempts >= 8 ||
     (item.recoveryAttempt && item.recoveryAttempt.expiresAt > store.now())
   )
@@ -70,14 +86,16 @@ export async function continueUninstall(
   item.recoveryAttempt = attempt;
   store.replace(item);
   await store.sync();
+  if (!matches()) reject();
   const accepted = await recoverUninstall(
-    env,
+    recoveryEnv,
     {
       ...originalWork(item),
       deployment: 'staging',
-      githubAppId: config.appId,
-      applicationId: env.STAGING_APPLICATION_ID,
-      providerInstallationId: String(config.installationId),
+      githubAppId: route.githubAppId,
+      applicationId: route.adapters.STAGING_APPLICATION_ID,
+      providerInstallationId: route.installationId,
+      routingHash: route.hash,
       tombstonedAt: item.tombstonedAt,
       tombstoneId: item.tombstoneId,
       challenge,
@@ -94,6 +112,8 @@ export async function continueUninstall(
     current.state !== 'operator_action_required' ||
     current.tombstonedAt !== tombstonedAt ||
     current.tombstoneId !== tombstoneId ||
+    current.routingHash !== route.hash ||
+    !matches() ||
     current.recoveryAttempt?.generation !== attempt.generation ||
     current.recoveryAttempt.challengeHash !== challengeHash ||
     attempt.expiresAt <= store.now()
@@ -101,6 +121,7 @@ export async function continueUninstall(
     reject();
   const pending: Pending = {
     ...originalWork(current),
+    routingHash: current.routingHash,
     state: 'pending',
     edgeAcknowledged: current.edgeAcknowledged,
     sqlAcknowledged: current.sqlAcknowledged,

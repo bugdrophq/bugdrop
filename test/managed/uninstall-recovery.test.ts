@@ -1,6 +1,7 @@
 import { Buffer } from 'node:buffer';
 import { describe, expect, it, vi } from 'vitest';
 import { hmac, utf8, verifyHmac } from '../../src/managed/local/protocol';
+import { routingSnapshot } from '../../src/managed/uninstall/routing';
 import {
   hashRecoveryChallenge,
   recoverUninstall,
@@ -10,6 +11,7 @@ import {
 const key = Buffer.alloc(32, 7).toString('base64url');
 const now = 1_789_650_000_000;
 const expected: RecoveryExpectation = {
+  routingHash: Buffer.alloc(32, 9).toString('base64url'),
   deployment: 'staging',
   githubAppId: 101,
   applicationId: 'ad51c858-77ce-4ba2-b806-8fbf07924ace',
@@ -67,6 +69,37 @@ function environment(
   };
 }
 describe('trusted private uninstall recovery assertion', () => {
+  it('captures routing and adapters before hashing and detects configuration drift', async () => {
+    const service = { fetch: vi.fn() } as unknown as Fetcher;
+    const env = {
+      ENVIRONMENT: 'staging',
+      STAGING_UNINSTALL_COMMITMENT_KEY: key,
+      STAGING_APPLICATION_ID: expected.applicationId,
+      STAGING_CONTROL: service,
+      STAGING_RECONCILIATION: service,
+      STAGING_UNINSTALL_HMAC_KEY: key,
+      STAGING_RECONCILIATION_HMAC_KEY: key,
+    };
+    const config = { appId: 101, installationId: 202 };
+    const original = { ...env };
+    const pending = routingSnapshot(env, config);
+    env.STAGING_APPLICATION_ID = 'another-app';
+    env.STAGING_CONTROL = { fetch: vi.fn() } as unknown as Fetcher;
+    const route = await pending;
+    expect(route.adapters.STAGING_APPLICATION_ID).toBe(expected.applicationId);
+    expect(route.adapters.STAGING_CONTROL).toBe(service);
+    expect(route.matches(env, config)).toBe(false);
+    expect(route.matches(original, config)).toBe(true);
+    expect(Object.isFrozen(route.adapters)).toBe(true);
+    expect((await routingSnapshot(original, config)).hash).toBe(route.hash);
+    for (const changed of [
+      { appId: 102, installationId: 202 },
+      { appId: 101, installationId: 203 },
+    ]) {
+      expect((await routingSnapshot(original, changed)).hash).not.toBe(route.hash);
+    }
+    expect((await routingSnapshot(env, config)).hash).not.toBe(route.hash);
+  });
   it('accepts only bound fresh affirmative evidence and returns no identity or proof', async () => {
     expect(await recoverUninstall(environment(), expected, () => now)).toBe(true);
     expect(
@@ -100,6 +133,7 @@ describe('trusted private uninstall recovery assertion', () => {
     { requestId: proof.recoveryRequestId },
     { tombstonedAt: now - 999 },
     { tombstoneId: proof.requestId },
+    { routingHash: Buffer.alloc(32, 10).toString('base64url') },
     { recoveryGeneration: proof.requestId },
     { recoveryRequestId: proof.requestId },
     { challenge: Buffer.alloc(32, 3).toString('base64url') },

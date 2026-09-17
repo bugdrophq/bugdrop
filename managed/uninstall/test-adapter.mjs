@@ -97,6 +97,8 @@ export async function start({
     });
   async function transport(side, request) {
     calls[side]++;
+    const scopedInstallationId = String(config.installationId);
+    const scopedApplicationId = applicationId;
     await transportFixture.hook?.(side);
     const raw = await request.text();
     const secret = side === 'edge' ? edgeKey : sqlKey;
@@ -114,7 +116,7 @@ export async function start({
           body: raw,
           headers: Object.fromEntries(request.headers),
         }),
-        { installationId: String(config.installationId), key: sqlKey },
+        { installationId: scopedInstallationId, key: sqlKey },
         async input => {
           if (mode === 'missing') return { state: 'quarantined', reason: 'mapping_missing' };
           if (sqlApply) return sqlApply(input);
@@ -149,8 +151,8 @@ export async function start({
     const receipt = {
       schemaVersion: 1,
       accepted: true,
-      applicationId,
-      installationId: String(config.installationId),
+      applicationId: scopedApplicationId,
+      installationId: scopedInstallationId,
       revoked: true,
     };
     if (mode === 'lost') return new Response(null, { status: 503 });
@@ -300,6 +302,15 @@ export async function start({
   };
   return {
     calls,
+    async changeScope(change) {
+      if (change.applicationId !== undefined) applicationId = change.applicationId;
+      for (const field of ['appId', 'installationId'])
+        if (change[field] !== undefined) config[field] = change[field];
+      await rawRequest('/_test/scope', {
+        method: 'POST',
+        body: JSON.stringify({ config, applicationId }),
+      });
+    },
     recovery: recoveryFixture,
     transport: transportFixture,
     async advance(advance) {

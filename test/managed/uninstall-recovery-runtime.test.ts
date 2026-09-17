@@ -84,6 +84,7 @@ describe('actual SQLite retention and private continuation', () => {
         'occurredAt',
         'recoveryAttempts',
         'requestId',
+        'routingHash',
         'sqlAcknowledged',
         'state',
         'tombstonedAt',
@@ -129,6 +130,26 @@ describe('actual SQLite retention and private continuation', () => {
     expect((await service.status()).work.recoveryAttempts).toBe(0);
     expect(service.recovery.calls).toBe(0);
   });
+  it.each(['before', 'during'])(
+    'rejects changed mapping scope %s recovery verification',
+    async when => {
+      await expired();
+      const body = await continuation();
+      const change = () =>
+        service.changeScope({ applicationId: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb' });
+      if (when === 'before') await change();
+      else
+        service.recovery.hook = async proof => {
+          await change();
+          return proof;
+        };
+      expect((await service.request('/continue', body)).status).toBe(503);
+      expect((await service.status()).state).toBe('operator_action_required');
+      expect(service.recovery.calls).toBe(when === 'before' ? 0 : 1);
+      expect(service.calls.sql).toBe(1);
+      expect((await service.storage()).fence).toEqual([{ id: 1 }]);
+    }
+  );
   it('consumes a trusted challenge once and returns the same linked cycle after response loss', async () => {
     await expired();
     const original = await service.status();

@@ -6,7 +6,8 @@ one content-free work item and a recovery alarm before returning `accepted: true
 That response means durable intake, **not completed uninstall**.
 
 Each configured installation has one SQLite Durable Object, named by a keyed
-installation commitment. Event identity is a domain-separated HMAC of the configured
+installation commitment. A separate keyed routing commitment binds operational scope without storing raw IDs.
+Event identity is a domain-separated HMAC of the configured
 GitHub App ID, installation ID and deletion action. Changed delivery headers,
 irrelevant payload fields, retries and reordering cannot create a second event.
 Private payloads, headers, keys, tokens and end-user identities are never stored.
@@ -15,6 +16,14 @@ and retained exactly across retries. GitHub deletion payloads do not provide a
 trusted event timestamp; `occurredAt` is intake time in epoch milliseconds.
 
 ## Completion and recovery
+
+Before any side effect, alarm retries compare commitments derived from the current
+configured deployment, GitHub App, application and provider installation with the
+admitted work. Each side gets an immutable verified snapshot, and scope is checked
+again between edge and SQL calls. The application/provider pair commits to the SQL
+mapping scope; SQL remains the authority that resolves the internal mapping.
+Configuration drift stops retry
+routing, retains the original deadline and fence, and cannot redirect cleanup.
 
 The coordinator drives two independent private operations, each with a two-second
 response/body deadline. Edge failure does not suppress SQL work, or vice versa.

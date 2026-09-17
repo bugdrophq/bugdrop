@@ -2,6 +2,7 @@ import type { UninstallWork } from './contracts';
 export const retention = 30 * 86_400_000;
 export const delays = [1000, 5000, 30_000, 120_000, 600_000, 3_600_000, 21_600_000, 86_400_000];
 interface Acknowledgements extends UninstallWork {
+  routingHash: string;
   edgeAcknowledged: boolean;
   sqlAcknowledged: boolean;
   continuationId?: string;
@@ -42,6 +43,7 @@ export function originalWork(item: UninstallWork): UninstallWork {
 export function tombstone(item: Pending): Tombstone {
   return {
     ...originalWork(item),
+    routingHash: item.routingHash,
     state: 'operator_action_required',
     tombstoneId: crypto.randomUUID(),
     edgeAcknowledged: item.edgeAcknowledged,
