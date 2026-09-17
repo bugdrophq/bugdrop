@@ -13,7 +13,9 @@ try {
     assert.equal(config.account_id, 'STAGING_ACCOUNT_NOT_APPROVED');
     assert.equal(
       staging.account_id,
-      role === 'reconciliation' ? '341a3846c29902f6363c151395932f5a' : 'STAGING_ACCOUNT_NOT_APPROVED'
+      role === 'reconciliation'
+        ? '341a3846c29902f6363c151395932f5a'
+        : 'STAGING_ACCOUNT_NOT_APPROVED'
     );
     assert.equal(staging.name, `bugdrop-managed-${role}-staging`);
     assert.equal(staging.vars.STAGING_ENABLED, 'false');
