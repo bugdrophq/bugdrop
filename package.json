@@ -103,7 +103,7 @@
     "prettier": "^3.9.6",
     "typescript": "^5.7.2",
     "typescript-eslint": "^8.65.0",
-    "vitest": "^4.1.10",
+    "vitest": "^4.1.11",
     "wrangler": "4.98.0",
     "yaml": "^2.9.0"
   },
