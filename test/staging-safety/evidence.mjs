@@ -111,7 +111,7 @@ export function assertEvidence({ evidence, expected, forbiddenValues }) {
       requireThat(
         expected.exchangeSuccesses[index]
           ? exchange.status >= 200 && exchange.status < 300
-          : exchange.status >= 400
+          : exchange.status === 403
       );
     }
   });

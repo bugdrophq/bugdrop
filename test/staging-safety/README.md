@@ -33,6 +33,9 @@ all HTTP attempts (including failures), with sequence, SDK version, and status;
 submission records preserve observed response order. The safety driver supplies
 `expected.exchangeSuccesses` to require successful issuance before each authority
 fault; a failed baseline mint is a test failure, not evidence of revocation.
+Origin aliases also require successful configured-origin issuance first. Expected
+issuance denials must record the staging issuer's HTTP 403; authentication-layer
+errors, rate limits and server failures cannot substitute for that rejection.
 Receipt state and at-most-one
 attempt admission must come from actual durable storage, not request counters.
 

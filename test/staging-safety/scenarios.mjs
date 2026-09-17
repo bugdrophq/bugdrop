@@ -94,6 +94,7 @@ export async function runScenario(service, scenario, target) {
     await service.substituteTrustedContext(field);
     check(rejected(await submit(capability)));
   } else if (scenario === 'origin-aliases') {
+    await mint();
     const url = new URL(target.origin);
     const aliases = [
       target.origin.replace(url.hostname, `${url.hostname}.`),

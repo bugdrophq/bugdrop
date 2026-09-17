@@ -51,6 +51,17 @@ describe('remote runner prerequisite mutations, without any remote provider', ()
     expect(provider.inspectTarget).not.toHaveBeenCalled();
     expect(provider.startScenario).not.toHaveBeenCalled();
   });
+  it('requires successful configured-origin issuance before testing aliases', async () => {
+    const service = { mint: vi.fn(async () => null), evidence: vi.fn() };
+    await expect(
+      runScenario(service, 'origin-aliases', { origin: 'https://staging.example' })
+    ).rejects.toThrow('staging_safety_failed');
+    expect(service.mint).toHaveBeenCalledOnce();
+    expect(service.mint.mock.calls[0]).toEqual([
+      expect.objectContaining({ origin: 'https://staging.example' }),
+    ]);
+    expect(service.evidence).not.toHaveBeenCalled();
+  });
   it.each(['stale-authorization', 'substitute-tenantId', 'revoke-credential', 'uninstall'])(
     'requires a valid capability before the %s fault',
     async scenario => {

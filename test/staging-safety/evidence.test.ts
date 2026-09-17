@@ -85,6 +85,28 @@ describe('remote evidence oracle mutations (synthetic, not remote proof)', () =>
   it('accepts the exact complete contract', () => {
     expect(assertEvidence({ evidence: fixture(), expected, forbiddenValues })).toBe(true);
   });
+  it.each([401, 429, 500, 503])('rejects HTTP %s as proof of expected denial', status => {
+    const evidence = fixture();
+    evidence.exchanges[0].status = status;
+    expect(() =>
+      assertEvidence({
+        evidence,
+        expected: { ...expected, exchangeSuccesses: [false] },
+        forbiddenValues,
+      })
+    ).toThrow('staging_evidence_rejected');
+  });
+  it('accepts the staging issuer explicit HTTP 403 denial', () => {
+    const evidence = fixture();
+    evidence.exchanges[0].status = 403;
+    expect(
+      assertEvidence({
+        evidence,
+        expected: { ...expected, exchangeSuccesses: [false] },
+        forbiddenValues,
+      })
+    ).toBe(true);
+  });
   it('rejects a failed exchange when the scenario requires successful issuance', () => {
     const evidence = fixture();
     evidence.exchanges[0].status = 503;
