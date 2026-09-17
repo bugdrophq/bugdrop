@@ -38,10 +38,20 @@
         "required": [
           "STAGING_GITHUB_PRIVATE_KEY",
           "STAGING_GITHUB_WEBHOOK_SECRET",
-          "STAGING_UNINSTALL_HMAC_KEY"
+          "STAGING_UNINSTALL_HMAC_KEY",
+          "STAGING_UNINSTALL_COMMITMENT_KEY",
+          "STAGING_RECONCILIATION_HMAC_KEY"
         ]
       },
+      "durable_objects": {
+        "bindings": [{ "name": "STAGING_UNINSTALLS", "class_name": "StagingUninstall" }]
+      },
+      "migrations": [{ "tag": "staging-uninstall-v1", "new_sqlite_classes": ["StagingUninstall"] }],
       "services": [
+        {
+          "binding": "STAGING_RECONCILIATION",
+          "service": "bugdrop-managed-reconciliation-staging"
+        },
         {
           "binding": "STAGING_AUTHORITY",
           "service": "bugdrop-managed-authority-staging",
