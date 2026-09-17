@@ -161,7 +161,7 @@ intake and retries; its SQL adapter must be reviewed with the data-plane owner.
   edge-latch and SQL event/cleanup acknowledgements. Current `accepted:true` proves
   only the edge latch and is insufficient for hosted activation. Preserve minimal
   trusted routing across SQL cleanup, stable domain-separated keyed hashes,
-  occurrence time and request ID; never retain raw payloads, identity or secrets.
+  occurrence time and request ID; never retain raw payloads, end-user identity or secrets.
   Retry partial failures, quarantine missing mappings, fence positive publication,
   and require affirmative provider evidence for reconciliation. Durable intake,
   retention/key policy and the SQL reconciliation adapter are absent here.
