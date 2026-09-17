@@ -2,6 +2,29 @@ import { describe, expect, it, vi } from 'vitest';
 import { runRemoteSafety, runScenario } from './scenarios.mjs';
 
 describe('remote runner prerequisite mutations, without any remote provider', () => {
+  it('never claims full uninstall completion from successful edge rejection alone', async () => {
+    const service = {
+      mint: vi
+        .fn()
+        .mockResolvedValueOnce({
+          schemaVersion: 1,
+          token: 'synthetic-capability',
+          expiresAt: new Date(Date.now() + 300_000).toISOString(),
+        })
+        .mockResolvedValueOnce(null),
+      uninstallApprovedInstallation: vi.fn(),
+      waitForSignedUninstall: vi.fn(),
+      restart: vi.fn(),
+      submit: vi.fn(async () => ({ schemaVersion: 1, outcome: 'rejected' })),
+      evidence: vi.fn(),
+    };
+    await expect(
+      runScenario(service, 'uninstall', { origin: 'https://staging.example' })
+    ).rejects.toThrow('staging_uninstall_completion_unavailable');
+    expect(service.waitForSignedUninstall).toHaveBeenCalledOnce();
+    expect(service.submit).toHaveBeenCalledOnce();
+    expect(service.evidence).not.toHaveBeenCalled();
+  });
   it.each(['', 'garbage', '0.1.1'])(
     'rejects unsupported SDK pin %s before provider access',
     async sdkVersion => {

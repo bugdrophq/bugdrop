@@ -69,12 +69,34 @@ Do not reuse their credentials, installation, repositories, routes, or resources
    configuration with `dedicatedDogfood: true` and exact positive immutable IDs.
 6. Confirm the private GitHub delivery service has no public route. The public
    staging webhook must forward original bounded bytes and signature headers to
-   the verifier, then atomically persist a revocation latch before acknowledging.
+   the verifier. Before claiming end-to-end uninstall completion, require durable
+   normalized intake followed by two independent acknowledgements: the permanent
+   edge revocation latch and authoritative Supabase `apply_installation_event`
+   plus cleanup. Edge acceptance alone is not completion. Missing installation
+   mapping or a partial failure stays pending/quarantined for reconciliation.
    Reads cannot refresh authorization observation timestamps or clear the latch.
 7. Run the remote safety gate with synthetic content only. Independently query the
    allowlisted repository to establish the before/after issue-count delta, rather
    than trusting a delivery response. Uninstall last; prove issuance and submission
    remain blocked after restart and signed stale control updates.
+
+### Activation dependencies: lifecycle and control acknowledgement
+
+The current private webhook wrapper verifies GitHub and persists the edge latch.
+Its successful response describes edge acceptance only. It does not implement or
+prove durable lifecycle intake, Supabase application/cleanup acknowledgement, or
+their reconciliation. Keep staging activation disabled until a reviewed coordinator
+provides both independent completion records. Do not infer database cleanup from
+the edge response or fabricate a second acknowledgement in the test collector.
+
+The wire installation identifier is GitHub's canonical positive decimal numeric
+string. It is not the SQL installation row's internal UUID. Resolve the explicit
+provider-to-row mapping at the authoritative database boundary; an unknown mapping
+is pending/quarantined and cannot be treated as applied. Before SQL acknowledges
+a revocation control update, require the destination's durable control receipt and
+applied status. Sending an HTTP request or receiving a transport success does not
+establish that durable status. These are activation requirements; this change does
+not invent new control RPCs, tables, or provider status formats.
 
 ## Delivery and privacy boundary
 

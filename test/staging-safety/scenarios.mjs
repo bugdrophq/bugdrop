@@ -132,6 +132,9 @@ export async function runScenario(service, scenario, target) {
     await service.restart();
     check(rejected(await submit(capability)));
     check((await mint(target.origin, false)) === null);
+    // Edge rejection is necessary but does not prove authoritative SQL cleanup.
+    // No approved durable intake/dual-ack observer contract exists in this tranche.
+    throw new Error('staging_uninstall_completion_unavailable');
   } else {
     throw new Error('staging_scenario_unavailable');
   }

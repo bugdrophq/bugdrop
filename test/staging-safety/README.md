@@ -63,3 +63,16 @@ not a 30-day wall-clock observation. The merged local SQLite expiry
 test covers local behavior only. Repeat the supported-public 48-case comparison
 and 145-file fingerprint using `docs/protocol/cross-plane-safety.md` before and
 after any actual staging integration.
+
+## Uninstall completion is currently blocked
+
+`waitForSignedUninstall()` can establish the verified edge latch only. End-to-end
+completion additionally requires durable normalized lifecycle intake, independent
+permanent edge and Supabase `apply_installation_event`/cleanup acknowledgements,
+and reconciliation of pending/quarantined partial failures. Canonical provider
+installation IDs are positive decimal strings on wire, distinct from internal SQL
+UUIDs. SQL revocation acknowledgement must follow a durable control receipt/status.
+No collector for these completion records exists here. The uninstall scenario
+therefore deliberately throws `staging_uninstall_completion_unavailable` after
+verifying edge rejection; no aggregate remote run may report success until a
+reviewed coordinator schema and actual observations replace that explicit gate.
