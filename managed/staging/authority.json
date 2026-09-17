@@ -1,0 +1,61 @@
+{
+  "$schema": "../../node_modules/wrangler/config-schema.json",
+  "account_id": "STAGING_ACCOUNT_NOT_APPROVED",
+  "compatibility_date": "2026-06-10",
+  "compatibility_flags": ["nodejs_compat"],
+  "workers_dev": false,
+  "preview_urls": false,
+  "routes": [],
+  "observability": {
+    "enabled": true,
+    "logs": {
+      "enabled": true,
+      "invocation_logs": false,
+      "head_sampling_rate": 1
+    },
+    "traces": {
+      "enabled": false
+    }
+  },
+  "name": "bugdrop-managed-authority-disabled",
+  "main": "../../src/managed/staging/authority.ts",
+  "env": {
+    "staging": {
+      "name": "bugdrop-managed-authority-staging",
+      "account_id": "STAGING_ACCOUNT_NOT_APPROVED",
+      "workers_dev": false,
+      "preview_urls": false,
+      "routes": [],
+      "vars": {
+        "ENVIRONMENT": "staging",
+        "STAGING_ENABLED": "false",
+        "STAGING_APPLICATION_ID": "UNAPPROVED",
+        "STAGING_INSTALLATION_ID": "UNAPPROVED"
+      },
+      "secrets": {
+        "required": [
+          "STAGING_CONTROL_HMAC_KEY",
+          "STAGING_AUTH_PEPPER",
+          "STAGING_AUTH_VERIFIER",
+          "STAGING_RECEIPT_HMAC_KEY",
+          "STAGING_SIGNING_KEYSET",
+          "STAGING_UNINSTALL_HMAC_KEY"
+        ]
+      },
+      "durable_objects": {
+        "bindings": [
+          {
+            "name": "STAGING_AUTHORIZATIONS",
+            "class_name": "StagingAuthorization"
+          }
+        ]
+      },
+      "migrations": [
+        {
+          "tag": "staging-auth-v1",
+          "new_sqlite_classes": ["StagingAuthorization"]
+        }
+      ]
+    }
+  }
+}

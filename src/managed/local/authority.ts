@@ -24,6 +24,7 @@ interface SigningKey {
   verifyUntil: number;
 }
 export interface Authority {
+  realm?: 'staging';
   now: number;
   projection: Projection;
   pepper: string;

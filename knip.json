@@ -11,7 +11,11 @@
     "scripts/verify-legacy-compat.mjs",
     "src/managed/local/ingress.ts",
     "src/managed/local/delivery.ts",
-    "src/managed/local/uninstall.ts"
+    "src/managed/local/uninstall.ts",
+    "src/managed/staging/authority.ts",
+    "src/managed/staging/ingress.ts",
+    "src/managed/staging/delivery.ts",
+    "src/managed/staging/github.ts"
   ],
   "project": ["src/**/*.ts", "scripts/**/*.{js,mjs}"],
   "ignore": [],

@@ -29,8 +29,8 @@ interface Claims extends Binding {
   jti: string;
 }
 const authorityFields = (a: Authority) => ({
-  iss: 'bugdrop-managed-local',
-  aud: 'bugdrop-managed-local-ingress',
+  iss: a.realm === 'staging' ? 'bugdrop-managed-staging' : 'bugdrop-managed-local',
+  aud: a.realm === 'staging' ? 'bugdrop-managed-staging-ingress' : 'bugdrop-managed-local-ingress',
   tenantId: a.projection.tenantId,
   applicationId: a.projection.applicationId,
   destinationId: a.projection.destinationId,

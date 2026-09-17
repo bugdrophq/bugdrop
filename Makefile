@@ -121,7 +121,7 @@ check-release-workflow:
 	bash test/release-workflow-contract.test.sh
 
 # Combined Commands
-check: test-release lint format-check typecheck knip audit check-actions-node24 check-workflow-permissions check-security-analysis-workflows check-ci-scope check-ci-workflow check-production-heartbeat-workflow check-release-workflow
+check: check-managed-staging test-release lint format-check typecheck knip audit check-actions-node24 check-workflow-permissions check-security-analysis-workflows check-ci-scope check-ci-workflow check-production-heartbeat-workflow check-release-workflow
 	@echo "✓ All checks passed"
 
 ci: check test build-all test-e2e
@@ -187,3 +187,7 @@ help:
 	@echo "    make install          - Install dependencies"
 	@echo "    make install-playwright - Install Chromium Playwright browser"
 	@echo "    npx playwright install --with-deps firefox webkit - Install Firefox/WebKit Playwright browsers"
+
+.PHONY: check-managed-staging
+check-managed-staging:
+	node managed/staging/check.mjs

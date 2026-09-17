@@ -4,17 +4,23 @@ import { loadAuthority } from './authority';
 import { verifySubmission } from './capability';
 import { bytes, hmac, json, readBounded, utf8 } from './protocol';
 import { response, type Outcome } from './outcome';
-import { submission } from './submission';
+import { submission, type LocalSubmission } from './submission';
 import { attemptOnce } from './fake-github';
+
+type ReceiptEnv = Pick<LocalDeliveryEnv, 'LOCAL_AUTHORITY' | 'LOCAL_FAKE_GITHUB'>;
 
 interface StoredReceipt extends Record<string, SqlStorageValue> {
   commitment: string;
   state: Outcome;
   expiresAt: number;
 }
-export class LocalManagedReceipt extends DurableObject<LocalDeliveryEnv> {
+export class LocalManagedReceipt extends DurableObject<ReceiptEnv> {
   private liveAttempt = false;
-  constructor(ctx: DurableObjectState, env: LocalDeliveryEnv) {
+  protected deliveryTimeoutMs = 1000;
+  protected deliver(input: LocalSubmission): Promise<'delivered' | 'indeterminate'> {
+    return attemptOnce(this.env.LOCAL_FAKE_GITHUB, bytes(input.body), this.deliveryTimeoutMs);
+  }
+  constructor(ctx: DurableObjectState, env: ReceiptEnv) {
     super(ctx, env);
     this.ctx.storage.sql.exec(
       'CREATE TABLE IF NOT EXISTS receipt (id INTEGER PRIMARY KEY CHECK(id=1), commitment TEXT NOT NULL, state TEXT NOT NULL, expiresAt INTEGER NOT NULL)'
@@ -72,7 +78,7 @@ export class LocalManagedReceipt extends DurableObject<LocalDeliveryEnv> {
         this.ctx.storage.sql.exec("UPDATE receipt SET state='failed_before_delivery' WHERE id=1");
         return response('failed_before_delivery');
       }
-      const outcome = await attemptOnce(this.env.LOCAL_FAKE_GITHUB, bytes(input.body));
+      const outcome = await this.deliver(input);
       this.ctx.storage.sql.exec('UPDATE receipt SET state=? WHERE id=1', outcome);
       return response(outcome);
     } catch {

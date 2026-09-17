@@ -1,9 +1,10 @@
 import { json, readBounded } from './protocol';
 
-/** Only a private fake binding exists in this tranche; no GitHub URL or credential is available. */
+/** Private adapter port; only bounded, normalized outcomes leave this boundary. */
 export async function attemptOnce(
   adapter: Fetcher,
-  body: Uint8Array
+  body: Uint8Array,
+  timeoutMs = 1000
 ): Promise<'delivered' | 'indeterminate'> {
   let timer: ReturnType<typeof setTimeout> | undefined;
   try {
@@ -33,7 +34,7 @@ export async function attemptOnce(
     return await Promise.race([
       attempt,
       new Promise<'indeterminate'>(resolve => {
-        timer = setTimeout(() => resolve('indeterminate'), 1000);
+        timer = setTimeout(() => resolve('indeterminate'), timeoutMs);
       }),
     ]);
   } catch {

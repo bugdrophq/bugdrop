@@ -1,9 +1,19 @@
 import { appendFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 
-for (const role of ['ingress', 'delivery', 'consumer', 'local/ingress', 'local/delivery']) {
+for (const role of [
+  'ingress',
+  'delivery',
+  'consumer',
+  'local/ingress',
+  'local/delivery',
+  'staging/authority',
+  'staging/ingress',
+  'staging/delivery',
+  'staging/github',
+]) {
   const leaf = role.split('/').at(-1);
-  const name = `${role.startsWith('local/') ? 'Local' : 'Managed'}${leaf[0].toUpperCase()}${leaf.slice(1)}Env`;
+  const name = `${role.startsWith('staging/') ? 'Staging' : role.startsWith('local/') ? 'Local' : 'Managed'}${leaf[0].toUpperCase()}${leaf.slice(1)}Env`;
   const path = `src/managed/${role}-env.d.ts`;
   execFileSync(
     'node_modules/.bin/wrangler',
@@ -12,6 +22,7 @@ for (const role of ['ingress', 'delivery', 'consumer', 'local/ingress', 'local/d
       path,
       '-c',
       `managed/${role}.json`,
+      ...(role.startsWith('staging/') ? ['--env', 'staging', '--strict-vars', 'false'] : []),
       '--env-interface',
       name,
       '--include-runtime',

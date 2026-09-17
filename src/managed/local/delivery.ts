@@ -5,9 +5,14 @@ import { bytes, hmac, json, readBounded, utf8 } from './protocol';
 import { response } from './outcome';
 import { submission } from './submission';
 export { LocalManagedReceipt } from './receipt';
+export type DeliveryBindings = Omit<LocalDeliveryEnv, 'LOCAL_RECEIPTS'> & {
+  LOCAL_RECEIPTS: Pick<DurableObjectNamespace, 'idFromName'> & {
+    get(id: DurableObjectId): Pick<DurableObjectStub, 'fetch'>;
+  };
+};
 
 export default {
-  async fetch(request: Request, env: LocalDeliveryEnv): Promise<Response> {
+  async fetch(request: Request, env: DeliveryBindings): Promise<Response> {
     if (request.method !== 'POST' || new URL(request.url).pathname !== '/_local/submit')
       return response('rejected');
     let dispatched = false;
