@@ -1,0 +1,21 @@
+{
+  "$schema": "../../node_modules/wrangler/config-schema.json",
+  "name": "bugdrop-managed-https-gateway-disabled",
+  "account_id": "STAGING_ACCOUNT_NOT_APPROVED",
+  "main": "../../src/managed/staging/https-gateway.ts",
+  "compatibility_date": "2026-06-10",
+  "workers_dev": false,
+  "preview_urls": false,
+  "routes": [],
+  "observability": { "enabled": false },
+  "logpush": false,
+  "tail_consumers": [],
+  "vars": {
+    "ENVIRONMENT": "staging",
+    "GATEWAY_ENABLED": "false",
+    "GATEWAY_ORIGIN": "UNAPPROVED"
+  },
+  "services": [
+    { "binding": "STAGING_CAPABILITY_INGRESS", "service": "bugdrop-managed-ingress-staging" }
+  ]
+}
