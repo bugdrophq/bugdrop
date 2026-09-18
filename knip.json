@@ -14,6 +14,7 @@
     "src/managed/local/uninstall.ts",
     "src/managed/staging/authority.ts",
     "src/managed/staging/ingress.ts",
+    "src/managed/staging/https-gateway.ts",
     "src/managed/staging/delivery.ts",
     "src/managed/staging/github.ts",
     "src/managed/staging/reconciliation.ts",
