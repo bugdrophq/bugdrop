@@ -369,6 +369,12 @@ it('rejects malformed authenticated publication identifiers and nonselected key 
       },
     ],
     [
+      'invalid final DNS label',
+      value => {
+        value.scope.endpoint = 'https://issuance.example-/v2/submission-capabilities';
+      },
+    ],
+    [
       'extra key record',
       value => {
         value.keys.push({ ...structuredClone(value.keys[0]), kid: 'cap-v2-extra', notBefore: -1 });
@@ -484,6 +490,7 @@ async function outcomeRequest(input = command): Promise<ControlEnvelope> {
 const peer = {
   qualified: true as const,
   role: 'bugdrop-outcomes' as const,
+  keyId: 'synthetic-outcome',
   pin,
   scope: pub.scope,
   deploymentDigest: pub.scope.deploymentDigest,
@@ -563,6 +570,33 @@ it('does not reach SQL for missing, wrong-role or wrong-key peer authorization',
     executeScopedOutcome(
       request,
       () => ({ ...peer, requestKey: Buffer.alloc(32, 1) }),
+      execute,
+      signal,
+      now
+    )
+  ).rejects.toThrow('outcome_unavailable');
+  for (const badPeer of [
+    { ...peer, keyId: 'different-key' },
+    { ...peer, pin: { ...peer.pin, sourceEpoch: 'bad-epoch' } },
+    { ...peer, receiptKey: peer.requestKey },
+  ]) {
+    await expect(
+      executeScopedOutcome(request, () => badPeer, execute, signal, now)
+    ).rejects.toThrow('outcome_unavailable');
+  }
+  await expect(
+    executeScopedOutcome(
+      { ...request, extra: true } as ControlEnvelope,
+      () => peer,
+      execute,
+      signal,
+      now
+    )
+  ).rejects.toThrow('outcome_unavailable');
+  await expect(
+    executeScopedOutcome(
+      { ...request, raw: new Uint8Array(2049) },
+      () => peer,
       execute,
       signal,
       now

@@ -2,12 +2,14 @@ import { decodeOutcome, encodeOutcome } from './outcome-command';
 import { boundedOutcome } from './outcome-dispatcher';
 import { outcomeSqlTransport, type OutcomeSqlExecutor } from './outcome-sql';
 import { controlMac, verifyControlMac, type ControlEnvelope } from './current-control';
+import { uuid } from './protocol';
 import type { SourcePin } from './current-selection';
 import type { OriginalScope } from './protocol';
 
 export interface OutcomePeer {
   qualified: true;
   role: 'bugdrop-outcomes';
+  keyId: string;
   pin: SourcePin;
   scope: OriginalScope;
   deploymentDigest: string;
@@ -45,13 +47,20 @@ export async function executeScopedOutcome(
         !peer ||
         peer.qualified !== true ||
         peer.role !== 'bugdrop-outcomes' ||
+        peer.keyId !== request.keyId ||
         peer.pin.realm !== 'staging' ||
+        !/^[A-Za-z0-9_-]{1,64}$/.test(peer.pin.sourceId) ||
+        !uuid.test(peer.pin.sourceEpoch) ||
         peer.deploymentDigest !== peer.scope.deploymentDigest ||
+        !/^[0-9a-f]{64}$/.test(peer.deploymentDigest) ||
         peer.requestKey.length !== 32 ||
         peer.receiptKey.length !== 32 ||
         boundedSignal.aborted
       )
         unavailable();
+      let distinct = 0;
+      for (let i = 0; i < 32; i++) distinct |= peer.requestKey[i] ^ peer.receiptKey[i];
+      if (!distinct) unavailable();
       await verifyControlMac('outcome.execute', 'request', peer.requestKey, request);
       if (boundedSignal.aborted) unavailable();
       const command = decodeOutcome(request.raw);

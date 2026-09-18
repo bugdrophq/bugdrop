@@ -135,6 +135,14 @@ export async function verifyControlMac(
   key: Uint8Array,
   envelope: ControlEnvelope
 ): Promise<void> {
+  const max = operation === 'outcome.execute' ? (direction === 'receipt' ? 256 : 2048) : 65_536;
+  if (
+    !envelope ||
+    !same(Object.keys(envelope).sort(), ['keyId', 'mac', 'raw']) ||
+    !(envelope.raw instanceof Uint8Array) ||
+    envelope.raw.length > max
+  )
+    unavailable();
   if (!/^[A-Za-z0-9_-]{1,64}$/.test(envelope.keyId)) unavailable();
   const expected = await controlMac(operation, direction, key, envelope.raw);
   const actual = encodedMac(envelope.mac);

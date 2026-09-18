@@ -4,7 +4,7 @@ import { digest, fields, ordered, unavailable } from './current-control';
 const hash = /^[0-9a-f]{64}$/;
 const source = /^[A-Za-z0-9_-]{1,64}$/;
 const providerId = /^[1-9][0-9]*$/;
-const dottedDns = /^(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z][a-z0-9-]*$/;
+const dottedDns = /^(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z](?:[a-z0-9-]*[a-z0-9])?$/;
 function canonicalProviderId(value: unknown): boolean {
   return (
     typeof value === 'string' &&
