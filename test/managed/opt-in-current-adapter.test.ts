@@ -425,6 +425,22 @@ it('rejects malformed independent source pins and an unsorted V1 inventory', asy
     'current_authority_unavailable'
   );
 });
+it('accepts C0 alias length 100 and rejects 101 despite broader P5 syntax', async () => {
+  const accepted = structuredClone(pub);
+  accepted.scope.publicApplicationId = `app_${'a'.repeat(96)}`;
+  const good = harness();
+  good.setFence(accepted);
+  await good.selection.install(await bundle(accepted));
+  expect(good.selection.authority()?.scope.publicApplicationId).toHaveLength(100);
+
+  const rejected = structuredClone(pub);
+  rejected.scope.publicApplicationId = `app_${'a'.repeat(97)}`;
+  const bad = harness();
+  bad.setFence(rejected);
+  await expect(bad.selection.install(await bundle(rejected))).rejects.toThrow(
+    'current_authority_unavailable'
+  );
+});
 it('rejects a correctly MACed but noncanonical publication body', async () => {
   const h = harness();
   h.setFence(pub);

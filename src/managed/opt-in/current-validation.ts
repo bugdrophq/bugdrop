@@ -78,6 +78,7 @@ export async function validatePublicationDetails(
     !Array.isArray(catalog.widget) ||
     catalog.widget.length !== 0 ||
     typeof scope.publicApplicationId !== 'string' ||
+    // C0 publisher aliases intersect broader P1/P5 syntax with SQL's 100-char limit.
     !/^app_[A-Za-z0-9_-]{1,96}$/.test(scope.publicApplicationId)
   )
     unavailable();
