@@ -1,3 +1,5 @@
+import { AdmissionStore } from '../opt-in/admission-store';
+import { scheduleAlarm } from '../opt-in/pending-work';
 import { Observation } from './observation';
 import { DurableObject } from 'cloudflare:workers';
 import type { StagingAuthorityEnv } from './authority-env';
@@ -15,9 +17,16 @@ import {
 
 export class StagingAuthorization extends DurableObject<StagingAuthorityEnv> {
   private observation: Observation;
+  private optInStore: AdmissionStore;
   constructor(ctx: DurableObjectState, env: StagingAuthorityEnv) {
     super(ctx, env);
-    this.observation = new Observation(this.ctx.storage);
+    this.optInStore = new AdmissionStore(this.ctx.storage);
+    this.observation = new Observation(
+      this.ctx.storage,
+      () => Date.now(),
+      () => scheduleAlarm(this.ctx.storage)
+    );
+    this.ctx.blockConcurrencyWhile(() => scheduleAlarm(this.ctx.storage));
     this.ctx.storage.sql.exec(
       'CREATE TABLE IF NOT EXISTS authorization (id INTEGER PRIMARY KEY CHECK(id=1), snapshot TEXT NOT NULL)'
     );
@@ -29,7 +38,10 @@ export class StagingAuthorization extends DurableObject<StagingAuthorityEnv> {
     );
   }
   async alarm() {
+    this.optInStore.purge();
     await this.observation.expire();
+    await scheduleAlarm(this.ctx.storage);
+    await this.ctx.storage.sync();
   }
   async fetch(request: Request): Promise<Response> {
     if (new URL(request.url).pathname.startsWith('/observation/'))

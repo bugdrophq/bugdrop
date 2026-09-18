@@ -56,7 +56,8 @@ export class Observation {
   private poisoned = false;
   constructor(
     private storage: DurableObjectStorage,
-    private now = () => Date.now()
+    private now = () => Date.now(),
+    private schedule = (deadline: number) => storage.setAlarm(deadline)
   ) {
     storage.sql.exec(
       'CREATE TABLE IF NOT EXISTS staging_observation (id INTEGER PRIMARY KEY CHECK(id=1), value TEXT NOT NULL)'
@@ -240,7 +241,7 @@ export class Observation {
   private async persist(item: Lease) {
     try {
       this.storage.transactionSync(() => this.save(item));
-      await this.storage.setAlarm(item.expiresAt);
+      await this.schedule(item.expiresAt);
       await this.storage.sync();
     } catch (error) {
       this.poisoned = true;
