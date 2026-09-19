@@ -2,7 +2,7 @@ export const INSTALLATION_RECORD_PREFIX = 'installation:';
 
 type InstallationAccountType = 'User' | 'Organization';
 
-interface InstallationIdentityRecord {
+export interface InstallationIdentityRecord {
   schemaVersion: 1;
   installationId: number;
   account: {
@@ -47,6 +47,17 @@ export async function createInstallationRecord(
   assertInstallationIdentityRecord(record, installation.installationId);
   await store.put(key, JSON.stringify(record));
   return true;
+}
+
+export async function getInstallationRecord(
+  store: KVNamespace,
+  installationId: number
+): Promise<InstallationIdentityRecord | null> {
+  const value = await store.get(installationRecordKey(installationId));
+  if (value === null) return null;
+  const record = parseInstallationIdentityRecord(value, installationId);
+  assertInstallationIdentityRecord(record, installationId);
+  return record;
 }
 
 function parseInstallationIdentityRecord(value: string, installationId: number): unknown {

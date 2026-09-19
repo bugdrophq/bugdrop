@@ -441,6 +441,16 @@ describe('anonymous feedback counter', () => {
     expect(kvValues.has('installation-usage:42')).toBe(false);
   });
 
+  it('exposes only deletion status to the Worker inventory reader', async () => {
+    const counter = new FeedbackCounter(createState(new Map()), baseEnv);
+    const statusUrl = 'https://feedback-counter/installation/deleted';
+    expect(await (await counter.fetch(new Request(statusUrl))).json()).toEqual({ deleted: false });
+    await counter.fetch(
+      new Request('https://feedback-counter/installation/delete', { method: 'POST' })
+    );
+    expect(await (await counter.fetch(new Request(statusUrl))).json()).toEqual({ deleted: true });
+  });
+
   it('hard-purges without retaining a deletion marker while collection is disabled', async () => {
     const values = new Map<string, unknown>([
       ['total', 7],

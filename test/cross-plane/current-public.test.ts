@@ -2,7 +2,7 @@ import { createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import baseline from './fixtures/current-public-baseline.v1.json';
+import baseline from './fixtures/current-public-baseline.v2.json';
 
 function publicFiles(): string[] {
   return execFileSync('git', ['ls-files', '-z'], { encoding: 'utf8' })
@@ -22,8 +22,8 @@ function fingerprint(paths: string[], read: (path: string) => Uint8Array): strin
   return hash.digest('hex');
 }
 
-describe('current public plane remains unchanged through managed integration', () => {
-  it('matches the pre-tranche tracked runtime, assets and configuration byte for byte', () => {
+describe('current public plane matches the reviewed admin-read baseline', () => {
+  it('matches the reviewed tracked runtime, assets and configuration byte for byte', () => {
     const paths = publicFiles();
     expect(paths.length).toBe(baseline.fileCount);
     expect(fingerprint(paths, readFileSync)).toBe(baseline.sha256);
