@@ -80,6 +80,16 @@ export async function handleInstallationDeletion(state: DurableObjectState): Pro
   });
 }
 
+export async function handleInstallationDeletionStatus(
+  state: DurableObjectState
+): Promise<Response> {
+  const deletedUntil = await state.storage.get<unknown>(DELETED_UNTIL_KEY);
+  if (deletedUntil !== undefined && !isPositiveInteger(deletedUntil)) {
+    throw new Error('Invalid installation deletion marker');
+  }
+  return Response.json({ deleted: deletedUntil !== undefined });
+}
+
 export async function handleInstallationPurge(state: DurableObjectState): Promise<Response> {
   return state.blockConcurrencyWhile(async () => {
     await state.storage.deleteAlarm();

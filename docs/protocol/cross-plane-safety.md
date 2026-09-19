@@ -1,8 +1,13 @@
 # Local cross-plane safety harness
 
 The current public system remains supported. This harness compares its tracked
-runtime, assets, widget build inputs and Wrangler configuration to the starting
-`main` commit recorded in `test/cross-plane/fixtures/current-public-baseline.v1.json`.
+runtime, assets, widget build inputs and Wrangler configuration to the reviewed
+`test/cross-plane/fixtures/current-public-baseline.v2.json`. V1 remains the
+pre-admin-read historical record. V2 is an intentional public-plane change:
+the protected inventory route, read-only Durable Object deletion check, and
+admin URL-log exclusion. The change was independently reviewed, and the new
+inventory and legacy count paths have targeted regression tests. This baseline
+update does not itself authorize deployment or a change to public delivery.
 Public fingerprint mutations and changed/skipped/retried browser evidence must fail.
 An intentional future public change requires explicit baseline review; do not
 refresh the fingerprint merely to make a failure disappear.
