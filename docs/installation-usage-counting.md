@@ -85,8 +85,8 @@ The credential is a random 32-byte base64url string (43 characters). Provision i
 store, separately for preview and production. Never put it in `wrangler.toml`, source control,
 browser code, a URL, or a client response. For rotation, set the old value temporarily as
 `ADMIN_READ_API_PREVIOUS_SECRET`, replace the primary credential, update the backend, verify that
-the new credential works, then remove the previous secret. An absent or malformed primary or
-previous secret makes this route unavailable.
+the new credential works, then remove the previous secret. An absent or malformed primary secret,
+or a malformed previous secret when one is configured, makes this route unavailable.
 
 The route accepts an optional `limit` query parameter (1–8, default 8) and an opaque
 `X-BugDrop-Inventory-Cursor` request header. The cursor stays out of request URLs, which the
