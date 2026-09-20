@@ -5,7 +5,7 @@ const USAGE_PREFIX = 'installation-usage:';
 const DELETION_GUARD_PREFIX = 'installation-usage-deleted:';
 const DELETION_GUARD_TTL_SECONDS = 7 * 24 * 60 * 60;
 
-export interface InstallationUsageRecord {
+interface InstallationUsageRecord {
   schemaVersion: 1;
   installationId: number;
   successfulFeedbackCount: number;
@@ -30,22 +30,6 @@ export async function installationUsageWasDeleted(
   installationId: number
 ): Promise<boolean> {
   return (await store.get(installationUsageDeletionGuardKey(installationId))) !== null;
-}
-
-export async function getInstallationUsageRecord(
-  store: KVNamespace,
-  installationId: number
-): Promise<InstallationUsageRecord | null> {
-  const value = await store.get(installationUsageKey(installationId));
-  if (value === null) return null;
-  let record: unknown;
-  try {
-    record = JSON.parse(value) as unknown;
-  } catch {
-    throw new Error('Invalid installation usage record');
-  }
-  assertInstallationUsageRecord(record, installationId);
-  return record;
 }
 
 export async function installationIdentityExists(

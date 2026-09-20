@@ -3,7 +3,6 @@ import { installationUsageEnabled } from './installation-usage';
 import {
   handleInstallationAlarm,
   handleInstallationDeletion,
-  handleInstallationDeletionStatus,
   handleInstallationIncrement,
   handleInstallationPurge,
 } from './installation-feedback-counter';
@@ -61,10 +60,6 @@ export class FeedbackCounter {
 
     if (request.method === 'POST' && pathname === '/installation/purge') {
       return handleInstallationPurge(this.state);
-    }
-
-    if (request.method === 'GET' && pathname === '/installation/deleted') {
-      return handleInstallationDeletionStatus(this.state);
     }
 
     if (request.method === 'GET' && pathname === '/total') {
@@ -152,26 +147,6 @@ export async function purgeInstallationFeedbackCounter(
   if (!response.ok) {
     throw new Error(`Installation feedback counter purge failed with ${response.status}`);
   }
-}
-
-export async function installationCounterWasDeleted(
-  env: Env,
-  installationId: number
-): Promise<boolean> {
-  const response = await getInstallationCounterStub(env, installationId).fetch(
-    'https://feedback-counter/installation/deleted'
-  );
-  if (!response.ok) throw new Error('Installation deletion status is unavailable');
-  const body = (await response.json()) as unknown;
-  if (
-    !body ||
-    typeof body !== 'object' ||
-    Object.keys(body).length !== 1 ||
-    typeof (body as { deleted?: unknown }).deleted !== 'boolean'
-  ) {
-    throw new Error('Invalid installation deletion status');
-  }
-  return (body as { deleted: boolean }).deleted;
 }
 
 export async function getPublicFeedbackCount(env: Env): Promise<number | null> {

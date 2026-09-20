@@ -1,7 +1,0 @@
-{
-  "schemaVersion": 2,
-  "baseCommit": "7f0cf02ad92ab5b0edd2e9b8315319b014c97fde",
-  "description": "Reviewed public-plane change adding protected installation inventory, read-only deletion status, and admin URL-log exclusion. SHA-256 of sorted tracked path + NUL + exact bytes + NUL; V1 remains the pre-change record.",
-  "fileCount": 146,
-  "sha256": "05c038eeed72207c2df1a5af8f7bc92a5347d9a9cd8dc94c887fdb3163910180"
-}

@@ -1,7 +1,0 @@
-{
-  "schemaVersion": 3,
-  "baseCommit": "8c0d2b34d78a2a260513268112c5413e2d4d9d43",
-  "description": "Reviewed public-plane change aligning the admin URL-log exclusion with Hono's decoded routing path. SHA-256 of sorted tracked path + NUL + exact bytes + NUL; V2 remains the pre-fix record.",
-  "fileCount": 146,
-  "sha256": "aea765d5ecf2b93e83cae1733a11f60271c045016ef44e9dcbe7d646ebe212bb"
-}
