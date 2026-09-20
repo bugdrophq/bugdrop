@@ -1,15 +1,8 @@
 # Local cross-plane safety harness
 
 The current public system remains supported. This harness compares its tracked
-runtime, assets, widget build inputs and Wrangler configuration to the reviewed
-`test/cross-plane/fixtures/current-public-baseline.v3.json`. V1 remains the
-pre-admin-read historical record. V2 is an intentional public-plane change:
-the protected inventory route, read-only Durable Object deletion check, and
-admin URL-log exclusion. V3 corrects that exclusion to use Hono's decoded routing
-path, so percent-encoded aliases of the admin route do not leak query strings to
-the global request logger. The change was independently reviewed, and a regression
-test fails against V2 and passes against V3. This baseline
-update does not itself authorize deployment or a change to public delivery.
+runtime, assets, widget build inputs and Wrangler configuration to the starting
+`main` commit recorded in `test/cross-plane/fixtures/current-public-baseline.v1.json`.
 Public fingerprint mutations and changed/skipped/retried browser evidence must fail.
 An intentional future public change requires explicit baseline review; do not
 refresh the fingerprint merely to make a failure disappear.

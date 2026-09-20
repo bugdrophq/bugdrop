@@ -3,7 +3,6 @@ import { logger } from 'hono/logger';
 import type { Env } from './types';
 import api from './routes/api';
 import githubWebhook from './routes/github-webhook';
-import adminInstallations from './routes/admin-installations';
 import { createBoardDogfoodToken } from './lib/boardDogfood';
 import { sweepInstallationRecords } from './lib/installation-retention';
 import { listActiveGitHubInstallations } from './lib/github-installation-inventory';
@@ -47,20 +46,12 @@ app.use('*', async (c, next) => {
   return next();
 });
 
-// The standard logger includes the full URL. Keep all internal admin requests,
-// including malformed query strings, out of URL logs.
-const requestLogger = logger();
-app.use('*', (c, next) => {
-  // Use Hono's decoded path so aliases that reach this route cannot bypass the log exclusion.
-  const path = c.req.path;
-  if (path === '/internal/admin' || path.startsWith('/internal/admin/')) return next();
-  return requestLogger(c, next);
-});
+// Request logging
+app.use('*', logger());
 
 // Mount API routes
 app.route('/api', api);
 app.route('/api', githubWebhook);
-app.route('/internal/admin', adminInstallations);
 
 export function isWeakAuthTokenSecret(secret?: string): boolean {
   return typeof secret === 'string' && secret.length > 0 && secret.length < 32;
