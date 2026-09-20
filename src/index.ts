@@ -51,7 +51,8 @@ app.use('*', async (c, next) => {
 // including malformed query strings, out of URL logs.
 const requestLogger = logger();
 app.use('*', (c, next) => {
-  const path = new URL(c.req.url).pathname;
+  // Use Hono's decoded path so aliases that reach this route cannot bypass the log exclusion.
+  const path = c.req.path;
   if (path === '/internal/admin' || path.startsWith('/internal/admin/')) return next();
   return requestLogger(c, next);
 });

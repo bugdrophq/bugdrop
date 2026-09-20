@@ -147,7 +147,21 @@ describe('server-only administrator installation inventory', () => {
         env,
         {} as ExecutionContext
       );
+      await mounted.fetch(
+        new Request(
+          'https://worker.example/intern%61l/admin/installations?cursor=accidental-secret',
+          { headers: { Authorization: `Bearer ${SECRET}` } }
+        ),
+        env,
+        {} as ExecutionContext
+      );
       expect(logs).not.toHaveBeenCalled();
+      await mounted.fetch(
+        new Request('https://worker.example/api/health'),
+        env,
+        {} as ExecutionContext
+      );
+      expect(logs).toHaveBeenCalled();
     } finally {
       logs.mockRestore();
     }
