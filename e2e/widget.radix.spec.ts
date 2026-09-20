@@ -4,6 +4,7 @@ declare global {
   interface Window {
     BugDrop?: {
       open: () => void;
+      isOpen: () => boolean;
     };
     __hostModalOpen?: boolean;
     __hostDismissEvents?: string[];
@@ -31,10 +32,15 @@ async function openFeedbackForm(page: Page, viaTrigger = false) {
   if (viaTrigger) {
     await trigger.evaluate(async element => {
       await Promise.allSettled(element.getAnimations().map(animation => animation.finished));
+      // `finished` can resolve before Firefox/WebKit present the final hit-test geometry.
+      await new Promise<void>(resolve =>
+        requestAnimationFrame(() => requestAnimationFrame(() => resolve()))
+      );
     });
     const triggerLabel = trigger.locator('css=.bd-trigger-label');
     await expect(triggerLabel).toBeVisible({ timeout: 5000 });
     await triggerLabel.click();
+    await expect.poll(() => page.evaluate(() => window.BugDrop?.isOpen())).toBe(true);
   } else {
     await page.evaluate(() => window.BugDrop?.open());
   }
