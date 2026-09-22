@@ -150,8 +150,8 @@ grep -Fq 'persist-credentials: false' <<< "$coverage_block" ||
   fail 'coverage checkout must not persist repository credentials'
 grep -Fq 'uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1' <<< "$coverage_block" ||
   fail 'coverage artifact download must use the reviewed immutable Node 24 action'
-grep -Fq 'codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7.0.0' <<< "$coverage_block" ||
-  fail 'Codecov action must use the reviewed immutable v7.0.0 commit'
+grep -Fq 'codecov/codecov-action@303a32d7a59b442fa8d48b6a1cc6825c09c847a5 # v7.1.1' <<< "$coverage_block" ||
+  fail 'Codecov action must use the reviewed immutable v7.1.1 commit'
 grep -Fq 'files: coverage/lcov.info' <<< "$coverage_block" ||
   fail 'Codecov upload must select the exact LCOV report'
 grep -Fq 'disable_search: true' <<< "$coverage_block" ||
