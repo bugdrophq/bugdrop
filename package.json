@@ -91,7 +91,7 @@
     "@playwright/test": "^1.62.1",
     "@types/node": "^26.2.0",
     "@types/pg": "8.23.1",
-    "@vitest/coverage-v8": "^4.1.10",
+    "@vitest/coverage-v8": "^5.0.2",
     "esbuild": "^0.28.1",
     "eslint": "^10.8.0",
     "globals": "^17.11.0",
