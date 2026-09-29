@@ -67,7 +67,7 @@ checkEqual('codeql.yml: checkout configuration', codeqlCheckout?.with, {
 checkEqual(
   'codeql.yml: init action',
   codeqlInit?.uses,
-  'github/codeql-action/init@1c5b675653bb5c22dbe9b12b556ec555138e09fd'
+  'github/codeql-action/init@2892aa5e19bbd11bc0cff5427e3b750a04d9e3c2'
 );
 checkEqual('codeql.yml: init configuration', codeqlInit?.with, {
   languages: 'javascript-typescript',
@@ -77,7 +77,7 @@ checkEqual('codeql.yml: init configuration', codeqlInit?.with, {
 checkEqual(
   'codeql.yml: analyze action',
   codeqlAnalyze?.uses,
-  'github/codeql-action/analyze@1c5b675653bb5c22dbe9b12b556ec555138e09fd'
+  'github/codeql-action/analyze@2892aa5e19bbd11bc0cff5427e3b750a04d9e3c2'
 );
 checkEqual('codeql.yml: analyze configuration', codeqlAnalyze?.with, {
   category: '/language:javascript-typescript',
