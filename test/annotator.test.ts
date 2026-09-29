@@ -21,14 +21,30 @@ interface ContextMock {
   strokeStyle: string;
 }
 
-function mouse(type: string, x: number, y: number): MouseEvent {
-  return new MouseEvent(type, { bubbles: true, cancelable: true, clientX: x, clientY: y });
+function pointer(
+  type: string,
+  x: number,
+  y: number,
+  pointerType = 'mouse',
+  pointerId = 1,
+  isPrimary = true
+): Event {
+  const event = new Event(type, { bubbles: true, cancelable: true });
+  Object.defineProperties(event, {
+    button: { value: 0 },
+    clientX: { value: x },
+    clientY: { value: y },
+    isPrimary: { value: isPrimary },
+    pointerId: { value: pointerId },
+    pointerType: { value: pointerType },
+  });
+  return event;
 }
 
 function drag(canvas: HTMLCanvasElement, from: [number, number], to: [number, number]): void {
-  canvas.dispatchEvent(mouse('mousedown', ...from));
-  canvas.dispatchEvent(mouse('mousemove', ...to));
-  window.dispatchEvent(mouse('mouseup', ...to));
+  canvas.dispatchEvent(pointer('pointerdown', ...from));
+  window.dispatchEvent(pointer('pointermove', ...to));
+  window.dispatchEvent(pointer('pointerup', ...to));
 }
 
 describe('createAnnotator', () => {
@@ -127,6 +143,23 @@ describe('createAnnotator', () => {
     expect(context.getImageData).toHaveBeenCalledTimes(5);
   });
 
+  it('commits draw, arrow, rectangle, and redaction from touch drags', async () => {
+    const { annotator, canvas } = await setup();
+
+    for (const tool of ['draw', 'arrow', 'rect', 'redact'] as const) {
+      annotator.setTool(tool);
+      canvas.dispatchEvent(pointer('pointerdown', 30, 40, 'touch'));
+      window.dispatchEvent(pointer('pointermove', 90, 80, 'touch'));
+      window.dispatchEvent(pointer('pointerup', 90, 80, 'touch'));
+    }
+
+    expect(context.stroke).toHaveBeenCalled();
+    expect(context.fill).toHaveBeenCalled();
+    expect(context.strokeRect).toHaveBeenCalledWith(40, 40, 120, 80);
+    expect(context.fillRect).toHaveBeenCalledWith(39, 39, 122, 82);
+    expect(context.getImageData).toHaveBeenCalledTimes(5);
+  });
+
   it('undoes mixed completed annotations in order', async () => {
     const { annotator, canvas } = await setup();
     drag(canvas, [30, 40], [90, 80]);
@@ -150,8 +183,8 @@ describe('createAnnotator', () => {
     const removeWindowListener = vi.spyOn(window, 'removeEventListener');
     const { annotator, canvas } = await setup();
     annotator.setTool('rect');
-    canvas.dispatchEvent(mouse('mousedown', 30, 40));
-    canvas.dispatchEvent(mouse('mousemove', 90, 80));
+    canvas.dispatchEvent(pointer('pointerdown', 30, 40));
+    window.dispatchEvent(pointer('pointermove', 90, 80));
 
     context.putImageData.mockClear();
     annotator.setTool('arrow');
@@ -161,6 +194,23 @@ describe('createAnnotator', () => {
     annotator.destroy();
     expect(() => annotator.destroy()).not.toThrow();
     expect(canvas.isConnected).toBe(false);
-    expect(removeWindowListener).toHaveBeenCalledWith('mouseup', expect.any(Function));
+    expect(removeWindowListener).toHaveBeenCalledWith('pointerup', expect.any(Function));
+  });
+
+  it('discards a canceled touch redaction and accepts the next gesture', async () => {
+    const { annotator, canvas } = await setup();
+    annotator.setTool('redact');
+    canvas.dispatchEvent(pointer('pointerdown', 30, 40, 'touch', 1));
+    window.dispatchEvent(pointer('pointermove', 90, 80, 'touch', 1));
+    context.putImageData.mockClear();
+    window.dispatchEvent(pointer('pointercancel', 90, 80, 'touch', 1));
+
+    expect(context.putImageData).toHaveBeenCalledWith({ marker: 1 }, 0, 0);
+    expect(context.getImageData).toHaveBeenCalledTimes(1);
+
+    canvas.dispatchEvent(pointer('pointerdown', 30, 40, 'touch', 2));
+    window.dispatchEvent(pointer('pointermove', 90, 80, 'touch', 2));
+    window.dispatchEvent(pointer('pointerup', 90, 80, 'touch', 2));
+    expect(context.getImageData).toHaveBeenCalledTimes(2);
   });
 });
