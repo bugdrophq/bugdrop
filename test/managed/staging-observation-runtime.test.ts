@@ -28,15 +28,16 @@ const finish = (sequence: number) =>
 describe('private durable staging observation', () => {
   it('misbound authority cannot certify a different application as this lease', async () => {
     await service.close();
+    const observedAt = Date.now();
     service = await start({
       pepper: '',
       verifier: '',
       keyset: {},
       enableObservation: true,
       issuerOverride: {
-        now: Date.now(),
+        now: observedAt,
         projection: {
-          observedAt: Date.now(),
+          observedAt,
           credentialActive: true,
           applicationActive: true,
           installationActive: true,
