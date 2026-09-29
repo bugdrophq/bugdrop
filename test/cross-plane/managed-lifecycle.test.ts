@@ -11,7 +11,7 @@ afterEach(async () => {
   await service?.close();
 }, 60_000);
 
-describe.sequential('managed receipt and revocation failure injection', () => {
+describe('managed receipt and revocation failure injection', { concurrent: false }, () => {
   it('serializes concurrent duplicates and reminted capabilities into at most one attempt', async () => {
     const capability = await mint(service);
     const reminted = await mint(service);

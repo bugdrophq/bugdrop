@@ -11,7 +11,8 @@ afterEach(async () => {
   await service?.close();
 }, 60_000);
 
-describe.sequential('actual adapter observer detects poisoned emissions before filtering', () => {
+// prettier-ignore
+describe('actual adapter observer detects poisoned emissions before filtering', { concurrent: false }, () => {
   it('keeps extra Worker response fields visible to the privacy oracle', async () => {
     const poisoned = { schemaVersion: 1, outcome: 'delivered', token: canaries.header };
     await service.probeCapture({ submissionResponse: poisoned });

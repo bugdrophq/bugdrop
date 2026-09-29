@@ -30,7 +30,7 @@ async function mint() {
 }
 const submit = (capability: unknown) =>
   service.submit({ capability, binding: vector.bound, requestBody: vector.requestBody });
-describe.sequential('real managed Workers and durable SQLite receipt', () => {
+describe('real managed Workers and durable SQLite receipt', { concurrent: false }, () => {
   it('admits only one concurrent attempt and replays durable result across restart', async () => {
     const c = await mint();
     expect(c.status).toBe(200);

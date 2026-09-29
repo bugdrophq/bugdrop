@@ -70,7 +70,8 @@ async function mint(binding: Awaited<ReturnType<typeof bound>>) {
     body: JSON.stringify({ schemaVersion: 1, ...binding, origin: projection.origin }),
   });
 }
-describe.sequential('actual staging Workers with provider-shaped ephemeral secrets', () => {
+// prettier-ignore
+describe('actual staging Workers with provider-shaped ephemeral secrets', { concurrent: false }, () => {
   it('rejects unsigned/tampered, future, stale, extra-field and cross-context control writes', async () => {
     for (const payload of [
       update(1, { observedAt: Date.now() + 3600000 }),

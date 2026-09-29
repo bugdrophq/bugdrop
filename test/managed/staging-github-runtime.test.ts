@@ -142,7 +142,8 @@ async function setup({
       .then(r => r.json());
   return { events, submit, webhookSecret };
 }
-describe.sequential('staging wrapper with actual workerd crypto and intercepted GitHub', () => {
+// prettier-ignore
+describe('staging wrapper with actual workerd crypto and intercepted GitHub', { concurrent: false }, () => {
   it('uses PKCS1 key and opaque token, verifies private repo and dispatches once across restart', async () => {
     const { events, submit } = await setup();
     expect((await submit()).outcome).toBe('delivered');
