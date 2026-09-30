@@ -5,7 +5,7 @@ import { pl } from './locales/pl';
 import { zhCN } from './locales/zh-CN';
 import { escapeHtml } from './sanitize';
 
-export type FeedbackErrorCode =
+type FeedbackErrorCode =
   | 'INVALID_JSON'
   | 'MISSING_REQUIRED_FIELDS'
   | 'INVALID_APP_VERSION'
