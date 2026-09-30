@@ -8,7 +8,7 @@ goal:
   slug: "issue-300-form-prefill"
   kind: existing_plan # specific | open_ended | existing_plan | recovery | audit
   tranche: "Validate the existing plan, implement the complete built-in form prefill feature and user documentation, then prove compatibility and safety."
-  status: active # active | blocked | done
+  status: done # active | blocked | done
   oracle:
     signal: "Browser walkthrough and tests prove host-supplied prefills, category templates, edited-text preservation, email disclosure, and legacy behavior; API tests prove submitter formatting is safe."
     cadence: "after each Worker package and at final audit"
@@ -69,7 +69,7 @@ visual_board:
     url: "http://goalbuddy.localhost:41737/issue-300-form-prefill/"
     command: "node /Users/neonwatty/.codex/plugins/cache/goalbuddy/goalbuddy/0.4.3/skills/goal-prep/surfaces/local-goal-board/scripts/local-goal-board.mjs --goal docs/goals/issue-300-form-prefill"
 
-active_task: T013
+active_task: null
 
 tasks:
   - id: T001
@@ -922,7 +922,7 @@ tasks:
   - id: T013
     type: pm
     assignee: PM
-    status: active
+    status: done
     reasoning_hint: default
     objective: "Commit and push the T012 CI repair to PR #418, verify its new required CI checks and final diff, and route any remaining PR-scoped failures to bounded repair before final audit."
     inputs:
@@ -935,7 +935,28 @@ tasks:
     expected_output:
       - "Repaired PR head and passing required CI"
       - "Final local proof against exact pushed head"
-    receipt: null
+    receipt:
+      result: done
+      full_outcome_complete: false
+      summary: "Updated PR #418 with the Knip repair and a CI-only E2E readiness fix. The exact pushed head 1b9d94cb is mergeable. All applicable pull-request checks now pass: quality gate, unit/build, both E2E shards, Chromium/Firefox/WebKit, CodeQL, dependency review, and coverage upload. Deploy Preview and Live Preview are intentionally merge-group-only in ci.yml and were skipped on this PR event. No merge or deployment occurred."
+      evidence:
+        - "PR https://github.com/bugdrophq/bugdrop/pull/418 head 1b9d94cb301b389dfa02e4078c2f75b372ba9c6f targets base 79a6336c90654a9be3080becd5b7f7b27239b3d8 and GitHub reports MERGEABLE."
+        - "gh pr checks 418 exited 0: Lint/Typecheck/Knip/Audit, Unit Tests & Build, both E2E shards, three Radix cross-browser jobs, CodeQL, dependency review, and coverage upload all passed."
+        - "The previous E2E shard-1 failure was one hidden-fields test calling open before widget readiness. T014 kept all assertions, passed 10/10 repeats and 30/30 combined local browser tests; the new CI shard-1 run passed."
+        - ".github/workflows/ci.yml gates Deploy Preview and Live Preview Tests on github.event_name == merge_group, so their pull_request skip is expected and does not establish merge-queue success."
+        - "T012 recorded identical built widget SHA-256 before/after the type-only Knip repair and a reviewed strict protected-source fingerprint update."
+      commands:
+        - cmd: "npx knip && npm run test -- test/cross-plane/current-public.test.ts && git show --format= --check HEAD"
+          status: pass
+        - cmd: "gh pr checks 418"
+          status: pass
+        - cmd: "gh pr view 418 --json headRefOid,baseRefOid,mergeable,url"
+          status: pass
+      facts:
+        - "Merge-group-only preview checks remain unrun; no merge was requested."
+      contradictions: []
+      ambiguity_requiring_judge: []
+      note_needed: false
   - id: T014
     type: worker
     assignee: Worker
@@ -981,7 +1002,7 @@ tasks:
   - id: T998
     type: judge
     assignee: Judge
-    status: queued
+    status: done
     reasoning_hint: high
     objective: "Final audit of Issue #300 owner outcome on repaired PR #418 head after required CI passes."
     inputs:
@@ -995,11 +1016,31 @@ tasks:
       - "complete | not_complete"
       - "full_outcome_complete: true | false"
       - "concrete remaining gaps if any"
-    receipt: null
-
+    receipt:
+      result: done
+      decision: complete
+      full_outcome_complete: true
+      rationale: "The original outcome is implemented on PR #418 at the exact pushed head 1b9d94cb. The T003 blocker was repaired and verified by T007; later review and CI failures were repaired by T009–T014. Browser tests cover both runtimes and opening paths, all category templates, edited and cleared drafts, disclosure, and actual submitted values. API tests and GitHub Markdown checks cover malformed identity fields and Issue spoofing while preserving ordinary legacy output. The integration and privacy docs are included. All applicable PR checks pass. Preview jobs are merge-group-only; merge and deployment were outside the requested outcome. No required local work remains."
+      worker_package: null
+      evidence:
+        - "PR [#418](https://github.com/bugdrophq/bugdrop/pull/418) is open and mergeable at head 1b9d94cb301b389dfa02e4078c2f75b372ba9c6f."
+        - "Direct `gh pr checks 418` exits 0: quality gate, unit/build, both E2E shards, Chromium/Firefox/WebKit Radix E2E, CodeQL, dependency review, and coverage upload pass on that head."
+        - "T013 records the repaired hidden-fields E2E test passing 10/10 repeats and the combined local Chromium suite passing 30/30; the subsequent CI shard also passed."
+        - "Direct local Knip and strict cross-plane fingerprint tests pass on the exact head; `git show --check HEAD` is clean."
+        - "The widget tests assert both default runtimes and opening paths, all three submitted category templates, screenshot return, preserved edits, cleared email omission, hidden fields, localized disclosure, and absence of personal values in input attributes."
+        - "API tests cover ordinary legacy Issue-body bytes and adversarial submitter values; the v1 contract documents the narrow safety exception, and receipts record GitHub Markdown rendering without an active mention."
+        - "Configuration, JavaScript API, security, and FAQ docs include a host callback example and state that supplied identity is editable, unverified, and potentially public."
+        - "The CI workflow restricts Deploy Preview and Live Preview Tests to merge_group, explaining their pull-request skips."
+      required_board_updates:
+        - "Record this final audit and the exact PR head as the last verification, then mark the goal done."
+        - "Link the historical T003 blocked receipt to its completed T007 repair; preserve the audit trail."
+        - "Leave PR #418 unmerged and undeployed."
 checks:
   dirty_fingerprint: unknown
   last_verification:
-    result: unknown
-    task: null
-    commands: []
+    result: pass
+    task: T998
+    commands:
+      - "PR #418 head 1b9d94cb301b389dfa02e4078c2f75b372ba9c6f: gh pr checks 418 exited 0; all applicable PR checks passed."
+      - "T014: hidden-fields E2E 10/10 repeats, combined local browser suite 30/30."
+      - "T012/T013: Knip, make check, strict cross-plane fingerprint, full unit/protocol/legacy gates passed."
