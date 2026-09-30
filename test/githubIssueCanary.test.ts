@@ -103,6 +103,38 @@ function issueFetch(
 }
 
 describe('GitHub Issue canary discovery and verification', () => {
+  it('refreshes Issue discovery after a cached list misses a newly created canary', async () => {
+    const cachedLists = new Map<string, Issue[]>();
+    let listFetches = 0;
+    const fetchImpl = vi.fn<typeof fetch>(async (input, init) => {
+      const url = String(input);
+      if (!url.includes('/issues?')) return jsonResponse(issue());
+      if (!cachedLists.has(url)) {
+        cachedLists.set(url, listFetches === 0 ? [] : [issue()]);
+      }
+      listFetches += 1;
+      expect(new Headers(init?.headers).get('Cache-Control')).toBe('no-cache');
+      return jsonResponse(cachedLists.get(url));
+    });
+
+    await expect(
+      verifyCanaryIssue({
+        fetchImpl,
+        repo: REPO,
+        token: TOKEN,
+        marker: MARKER,
+        expectedSha: SHA,
+        result: result(),
+        consistencyAttempts: 4,
+        sleepImpl: noWait,
+      })
+    ).resolves.toMatchObject({ number: 42 });
+    const listUrls = fetchImpl.mock.calls
+      .map(call => String(call[0]))
+      .filter(url => url.includes('/issues?'));
+    expect(new Set(listUrls).size).toBe(listUrls.length);
+  });
+
   it('retries GET network and selected 5xx failures with 1s/2s delays', async () => {
     const retrySleepImpl = vi.fn(async () => {});
     const fetchImpl = vi

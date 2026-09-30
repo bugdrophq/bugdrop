@@ -23,6 +23,7 @@ const DEFAULT_CONSISTENCY_DELAY_MS = 2_000;
 const MAX_CONSISTENCY_ATTEMPTS = 20;
 const MAX_CONSISTENCY_DELAY_MS = 10_000;
 const GITHUB_GET_RETRY_DELAYS_MS = [1_000, 2_000];
+let issueListSequence = 0;
 
 class GitHubRequestError extends Error {
   constructor(category, message, { retryable = false } = {}) {
@@ -538,6 +539,9 @@ async function listRepositoryIssues({ fetchImpl, apiBaseUrl, repo, token, state,
   if (state !== 'all' && state !== 'open') throw new Error('Issue listing state is invalid');
   url.searchParams.set('state', state);
   url.searchParams.set('per_page', '100');
+  // GitHub caches Issue lists for up to 60 seconds. A new canary Issue can be
+  // visible by number while a repeated list URL still returns the old page.
+  url.searchParams.set('bugdrop_request', `${Date.now()}-${++issueListSequence}`);
   let nextUrl = url.toString();
   const issues = [];
   while (nextUrl) {
@@ -754,6 +758,7 @@ async function requestJsonOnce({ fetchImpl, url, token, method = 'GET', body }) 
         Accept: 'application/vnd.github+json',
         Authorization: `Bearer ${token}`,
         'X-GitHub-Api-Version': '2022-11-28',
+        ...(method === 'GET' ? { 'Cache-Control': 'no-cache' } : {}),
         ...(body ? { 'Content-Type': 'application/json' } : {}),
       },
       ...(body ? { body: JSON.stringify(body) } : {}),
