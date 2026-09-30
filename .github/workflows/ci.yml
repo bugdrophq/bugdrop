@@ -278,6 +278,9 @@ jobs:
   radix-e2e:
     name: Radix Cross-Browser E2E (${{ matrix.browser }})
     runs-on: ubuntu-latest
+    container:
+      image: mcr.microsoft.com/playwright:v1.63.0-noble@sha256:eff16c30e6f3f4af0a03fa4b706120d5e9b0891c344a27d64559aff5900a4a27
+      options: --user 1001
     needs: check
     permissions:
       contents: read
@@ -295,34 +298,19 @@ jobs:
           cache: 'npm'
 
       - name: Install dependencies
-        run: make install
+        run: npm ci
+
+      - name: Verify Playwright image version
+        run: test "$(npx playwright --version)" = 'Version 1.63.0'
 
       - name: Build widget
-        run: make build-widget
-
-      - name: Get Playwright version
-        id: pw-version
-        run: echo "version=$(npx playwright --version | awk '{print $2}')" >> "$GITHUB_OUTPUT"
-
-      - name: Cache Playwright browser
-        id: pw-cache
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        with:
-          path: ~/.cache/ms-playwright
-          key: pw-${{ runner.os }}-${{ matrix.browser }}-${{ steps.pw-version.outputs.version }}
-
-      - name: Install Playwright browser
-        timeout-minutes: 10
-        if: steps.pw-cache.outputs.cache-hit != 'true'
-        run: npx playwright install --with-deps ${{ matrix.browser }}
-
-      - name: Install Playwright system deps
-        timeout-minutes: 10
-        if: steps.pw-cache.outputs.cache-hit == 'true'
-        run: npx playwright install-deps ${{ matrix.browser }}
+        run: npm run build:widget
 
       - name: Run Radix E2E Tests (${{ matrix.browser }})
-        run: make test-radix-e2e BROWSER=${{ matrix.browser }}
+        run: >-
+          npx playwright test e2e/widget.radix.spec.ts e2e/variant-modal.radix.spec.ts
+          e2e/variant-accessibility.radix.spec.ts
+          --project=${{ matrix.browser }}-radix --workers=1 --retries=0
         env:
           CI: true
 
