@@ -11,7 +11,7 @@ These attributes control the fundamental behavior of the widget.
 | `data-repo` | **(required)** | GitHub repository in `owner/repo` format |
 | `data-app-version` | omitted | Host application version shown in System Info (1 to 128 printable characters) |
 | `data-theme` | `"auto"` | Widget theme: `"light"`, `"dark"`, or `"auto"` |
-| `data-locale` | `<html lang>` or `"en"` | UI language: `"de"`, `"en"`, `"nl"`, or `"pl"` |
+| `data-locale` | `<html lang>` or `"en"` | UI language: `"de"`, `"en"`, `"nl"`, `"pl"`; `"zh-CN"` in builds that include Simplified Chinese |
 | `data-position` | `"bottom-right"` | Button position: `"bottom-right"` or `"bottom-left"` |
 | `data-color` | `"#14b8a6"` | Primary accent color (any CSS color value) |
 | `data-icon` | *(default bug icon)* | Custom icon: URL to an image, `"none"` to hide, or omit for default |
@@ -63,8 +63,9 @@ The `data-theme` attribute controls the overall color scheme of the widget:
 The `data-locale` attribute controls BugDrop's built-in widget UI text -- the
 feedback form, screenshot flow, annotation tools, and most success/error messages.
 Brand attribution, custom labels, and server-provided error text may remain as
-provided. Supported locales: **`de`** (German), **`en`** (English), **`nl`** (Dutch),
-**`pl`** (Polish), and **`zh-CN`** (Simplified Chinese).
+provided. Built-in locales are **`de`** (German), **`en`** (English), **`nl`** (Dutch),
+and **`pl`** (Polish). Builds that include the Simplified Chinese update also
+support **`zh-CN`**. Check your deployed widget version before selecting it.
 
 Resolution order:
 
@@ -83,7 +84,7 @@ tags fall back to English. An unsupported value logs a console warning.
 <script src="https://bugdrop.neonwatty.workers.dev/widget.js"
   data-repo="owner/repo" data-locale="nl"></script>
 
-<!-- Simplified Chinese UI -->
+<!-- Simplified Chinese UI, after deploying a build that includes it -->
 <script src="https://bugdrop.neonwatty.workers.dev/widget.js"
   data-repo="owner/repo" data-locale="zh-CN"></script>
 ```
