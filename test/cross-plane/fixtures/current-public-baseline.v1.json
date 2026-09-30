@@ -1,11 +1,12 @@
 {
   "schemaVersion": 1,
-  "baseCommit": "3bd3dfdda83fe723bf2c767fdae3c89ea961de66",
+  "baseCommit": "ae23125dfc907ae0c5af418cba518a88144ed0ea",
   "description": "Tracked current public src (excluding src/managed), public assets, wrangler.toml, widget build script and widget tsconfig. SHA-256 of sorted path + NUL + exact bytes + NUL.",
   "fileCount": 146,
-  "sha256": "dd1bcf77b60ac91561803746bf0e5b6809e012450827434c434e3c2b738c3bf9",
+  "sha256": "4b22c27dcbe354226005068fa19efd5a51ca438db65b5212510a57d935942edf",
   "approvedDelta": {
     "issue": "https://github.com/bugdrophq/bugdrop/issues/300",
+    "previousBaseCommit": "3bd3dfdda83fe723bf2c767fdae3c89ea961de66",
     "previousFileCount": 145,
     "previousSha256": "ac7c93c9f6e797fc29e97c37a869640d565e008abee63477e02f646ad318ff10",
     "changedPublicSources": ["src/widget/index.ts", "src/widget/prefill.ts"],
@@ -44,5 +45,13 @@
     "previousSha256": "748ea26269fbac2658cfe60d4bdbcb00e609949ebba3455dc3fd4d68fd0d9306",
     "changedPublicSources": ["src/widget/prefill.ts"],
     "reason": "Remove two unused type exports flagged by Knip in PR CI; the generated widget bundle is byte-for-byte identical before and after this type-only change."
+  },
+  "mainIntegrationDelta": {
+    "mergedPullRequest": "https://github.com/bugdrophq/bugdrop/pull/414",
+    "previousMainFileCount": 145,
+    "previousMainSha256": "8e25450e69bf292138be25a8aed7241ae47c114693dab824a003c2ee87515a1d",
+    "previousIssue300Sha256": "dd1bcf77b60ac91561803746bf0e5b6809e012450827434c434e3c2b738c3bf9",
+    "changedPublicSources": ["src/widget/annotator.ts", "src/widget/ui.ts"],
+    "reason": "Combine the reviewed iOS annotation changes from main with the Issue #300 prefill source set, preserving both prior fingerprints and provenance."
   }
 }

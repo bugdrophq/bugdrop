@@ -1,11 +1,17 @@
 # Local cross-plane safety harness
 
 The current public system remains supported. This harness compares its tracked
-runtime, assets, widget build inputs and Wrangler configuration to the starting
-`main` commit recorded in `test/cross-plane/fixtures/current-public-baseline.v1.json`.
+runtime, assets, widget build inputs and Wrangler configuration to the reviewed
+commit recorded in `test/cross-plane/fixtures/current-public-baseline.v1.json`.
 Public fingerprint mutations and changed/skipped/retried browser evidence must fail.
 An intentional future public change requires explicit baseline review; do not
 refresh the fingerprint merely to make a failure disappear.
+
+The iOS annotation touch change in PR #414 intentionally updates
+`src/widget/annotator.ts` and `src/widget/ui.ts`. Its reviewed public file set
+remains at 145 files; its fingerprint was pinned to PR head
+`ae23125dfc907ae0c5af418cba518a88144ed0ea`. No managed files or other
+public files changed in that PR.
 
 ## Issue #300 public widget delta
 
@@ -15,7 +21,8 @@ The Issue #300 built-in form prefill implementation intentionally changes
 the protected source set grows from 145 to 146 files. The reviewed source-set
 delta contains only those two paths. The previous SHA-256
 `ac7c93c9f6e797fc29e97c37a869640d565e008abee63477e02f646ad318ff10`
-is retained as provenance in the fixture, alongside its original base commit.
+is retained as provenance in the fixture, alongside its original base commit
+in `approvedDelta.previousBaseCommit`.
 The new SHA-256 is
 `7d148ce0efce203fb93fe95853dab571d1cc4568e0ad8bd77a6a856d199657b8`.
 The fingerprint test and its mutation checks remain strict. Before this refresh,
@@ -69,6 +76,17 @@ The generated widget bundle had the same SHA-256 before and after the edit:
 `6776b41b2929a00d5a10d777f4fc132a016c33e04291a61d2217e93f2369aa36`.
 All earlier provenance stays in the fixture, and the fingerprint mutation tests
 remain strict.
+
+The merge of PR #414's iOS annotation changes with Issue #300 retains all
+reviewed source deltas. The protected set has 146 files. The mainline SHA-256
+before integration was
+`8e25450e69bf292138be25a8aed7241ae47c114693dab824a003c2ee87515a1d`;
+the Issue #300 branch SHA-256 was
+`dd1bcf77b60ac91561803746bf0e5b6809e012450827434c434e3c2b738c3bf9`.
+The combined SHA-256 is
+`4b22c27dcbe354226005068fa19efd5a51ca438db65b5212510a57d935942edf`.
+It was calculated after direct review of the merged source set. The fingerprint
+test and mutation checks remain strict.
 
 Managed tests run the implementation's actual `managed/local/adapter.mjs`: real
 Miniflare Workers, SQLite Durable Objects, V1 capability HTTP exchange, and a
