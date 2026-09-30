@@ -33,6 +33,7 @@ export interface WidgetStrings {
   namePlaceholder: string;
   emailLabel: string;
   emailPlaceholder: string;
+  prefilledEmailDisclosure: string;
   titleLabel: string;
   titlePlaceholder: string;
   descriptionLabel: string;

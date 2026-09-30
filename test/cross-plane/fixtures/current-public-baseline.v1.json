@@ -2,6 +2,40 @@
   "schemaVersion": 1,
   "baseCommit": "3bd3dfdda83fe723bf2c767fdae3c89ea961de66",
   "description": "Tracked current public src (excluding src/managed), public assets, wrangler.toml, widget build script and widget tsconfig. SHA-256 of sorted path + NUL + exact bytes + NUL.",
-  "fileCount": 145,
-  "sha256": "ac7c93c9f6e797fc29e97c37a869640d565e008abee63477e02f646ad318ff10"
+  "fileCount": 146,
+  "sha256": "748ea26269fbac2658cfe60d4bdbcb00e609949ebba3455dc3fd4d68fd0d9306",
+  "approvedDelta": {
+    "issue": "https://github.com/bugdrophq/bugdrop/issues/300",
+    "previousFileCount": 145,
+    "previousSha256": "ac7c93c9f6e797fc29e97c37a869640d565e008abee63477e02f646ad318ff10",
+    "changedPublicSources": ["src/widget/index.ts", "src/widget/prefill.ts"],
+    "reason": "Opt-in built-in form prefills; source review and focused unit/browser proof precede this baseline refresh."
+  },
+  "submitterSafetyDelta": {
+    "issue": "https://github.com/bugdrophq/bugdrop/issues/300",
+    "previousSha256": "7d148ce0efce203fb93fe95853dab571d1cc4568e0ad8bd77a6a856d199657b8",
+    "changedPublicSources": ["src/routes/api.ts"],
+    "reason": "Narrow v1 submitter validation and inline Markdown safety exception, after API and legacy proof."
+  },
+  "reviewRepairDelta": {
+    "issue": "https://github.com/bugdrophq/bugdrop/issues/300",
+    "previousSha256": "0c34c80ef9c2ab4d16c7091f9a18fa19db2aceec144213fed517a3903b0adf27",
+    "changedPublicSources": [
+      "src/routes/api.ts",
+      "src/widget/i18n.ts",
+      "src/widget/index.ts",
+      "src/widget/locales/de.ts",
+      "src/widget/locales/en.ts",
+      "src/widget/locales/nl.ts",
+      "src/widget/locales/pl.ts",
+      "src/widget/prefill.ts"
+    ],
+    "reason": "Pre-PR review repairs for DOM identity privacy, prefill validation, localized disclosure and mention-safe Markdown, after focused unit, browser and GitHub rendering proof."
+  },
+  "emailValidityDelta": {
+    "issue": "https://github.com/bugdrophq/bugdrop/issues/300",
+    "previousSha256": "9d359a905ced325771173bd07d766dc02b705dd81ef6c9bdf1a3741a3e3a472c",
+    "changedPublicSources": ["src/routes/api.ts", "src/widget/prefill.ts"],
+    "reason": "Align host prefill and direct API email syntax with Chromium's form acceptance, after focused unit and 30 local browser tests; preserve ordinary valid legacy Issue-body bytes."
+  }
 }

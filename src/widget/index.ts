@@ -39,6 +39,7 @@ import { runDefaultJourney } from './default-flow/runtime';
 import { normalizeDefaultDefinition } from './default-flow/definition';
 import { createFlowManager, type FlowManager } from './flows/manager';
 import { parseAppVersion } from '../app-version';
+import { getPrefill, type BugDropPrefill } from './prefill';
 
 declare const __BUGDROP_ENABLE_TEST_HOOKS__: boolean;
 declare const __BUGDROP_DEFAULT_FLOW_RUNTIME__: 'fixed' | 'private';
@@ -56,6 +57,7 @@ interface WidgetConfig {
   repo: string;
   apiUrl: string;
   authTokenProvider?: BugDropAuthTokenProvider;
+  prefillProviderName?: string;
   appVersion?: string;
   position: 'bottom-right' | 'bottom-left';
   theme: 'light' | 'dark' | 'auto';
@@ -426,6 +428,7 @@ const config: WidgetConfig = {
   repo: script?.dataset.repo || '',
   apiUrl: script?.src.replace(/\/widget(?:\.v[\d.]+)?\.js$/, '/api') || '',
   authTokenProvider: resolveAuthTokenProvider(script?.dataset.authTokenProvider),
+  prefillProviderName: script?.dataset.prefillProvider,
   appVersion,
   position: rawPosition === 'bottom-left' ? 'bottom-left' : 'bottom-right',
   theme: isValidTheme(rawTheme) ? rawTheme : 'auto', // Default to auto-detection
@@ -1415,9 +1418,14 @@ interface FeedbackFormResult {
   category: FeedbackCategory;
   name?: string;
   email?: string;
+  draftName?: string;
+  draftEmail?: string;
   includeScreenshot: boolean;
   attachments: FeedbackAttachment[];
   sendConsoleLogs: boolean;
+  descriptionEdited: boolean;
+  prefilledEmail: boolean;
+  prefillSnapshot: BugDropPrefill;
 }
 
 function showFeedbackFormWithScreenshotOption(
@@ -1426,12 +1434,20 @@ function showFeedbackFormWithScreenshotOption(
   initialValues?: FeedbackFormResult | null
 ): Promise<FeedbackFormResult | null> {
   return new Promise(resolve => {
+    const prefill: BugDropPrefill = initialValues
+      ? initialValues.prefillSnapshot
+      : getPrefill(config.prefillProviderName);
+    const initialDescription =
+      initialValues?.description ?? prefill.descriptionTemplates?.bug ?? '';
+    let descriptionEdited = initialValues?.descriptionEdited ?? false;
+    const prefilledEmail =
+      initialValues?.prefilledEmail ?? Boolean(config.showEmail && prefill.email);
     // Build optional name field
     const nameFieldHtml = config.showName
       ? `
           <div class="bd-form-group">
             <label class="bd-label" for="name">${escapeWidgetText(t().nameLabel)}${config.requireName ? ' *' : ''}</label>
-            <input type="text" id="name" class="bd-input" ${config.requireName ? 'required' : ''} placeholder="${escapeWidgetText(t().namePlaceholder)}" value="${escapeHtml(initialValues?.name || '')}" />
+            <input type="text" id="name" class="bd-input" ${config.requireName ? 'required' : ''} placeholder="${escapeWidgetText(t().namePlaceholder)}" />
           </div>
         `
       : '';
@@ -1441,7 +1457,8 @@ function showFeedbackFormWithScreenshotOption(
       ? `
           <div class="bd-form-group">
             <label class="bd-label" for="email">${escapeWidgetText(t().emailLabel)}${config.requireEmail ? ' *' : ''}</label>
-            <input type="email" id="email" class="bd-input" ${config.requireEmail ? 'required' : ''} placeholder="${escapeWidgetText(t().emailPlaceholder)}" value="${escapeHtml(initialValues?.email || '')}" />
+            <input type="email" id="email" class="bd-input" ${config.requireEmail ? 'required' : ''} ${prefilledEmail ? 'aria-describedby="bd-prefilled-email-disclosure"' : ''} placeholder="${escapeWidgetText(t().emailPlaceholder)}" />
+            ${prefilledEmail ? `<p id="bd-prefilled-email-disclosure" class="bd-field-hint">${escapeWidgetText(t().prefilledEmailDisclosure)}</p>` : ''}
           </div>
         `
       : '';
@@ -1474,7 +1491,7 @@ function showFeedbackFormWithScreenshotOption(
           </div>
           <div class="bd-form-group">
             <label class="bd-label" for="description">${escapeWidgetText(t().descriptionLabel)}</label>
-            <textarea id="description" class="bd-textarea" placeholder="${escapeWidgetText(t().descriptionPlaceholder)}">${escapeHtml(initialValues?.description || '')}</textarea>
+            <textarea id="description" class="bd-textarea" placeholder="${escapeWidgetText(t().descriptionPlaceholder)}">${escapeHtml(initialDescription)}</textarea>
           </div>
           ${nameFieldHtml}
           ${emailFieldHtml}
@@ -1514,6 +1531,20 @@ function showFeedbackFormWithScreenshotOption(
     const closeBtn = modal.querySelector('.bd-close') as HTMLElement;
     const cancelBtn = modal.querySelector('[data-action="cancel"]') as HTMLElement;
     let attachments = [...(initialValues?.attachments ?? [])];
+    if (nameInput)
+      nameInput.value = initialValues ? (initialValues.draftName ?? '') : (prefill.name ?? '');
+    if (emailInput)
+      emailInput.value = initialValues ? (initialValues.draftEmail ?? '') : (prefill.email ?? '');
+    descInput.addEventListener('input', () => {
+      descriptionEdited = true;
+    });
+    modal.querySelectorAll<HTMLInputElement>('input[name="category"]').forEach(input => {
+      input.addEventListener('change', () => {
+        if (!descriptionEdited) {
+          descInput.value = prefill.descriptionTemplates?.[input.value as FeedbackCategory] ?? '';
+        }
+      });
+    });
 
     const closeModal = () => {
       modal.remove();
@@ -1565,9 +1596,14 @@ function showFeedbackFormWithScreenshotOption(
         category,
         name: nameInput?.value.trim() || undefined,
         email: emailInput?.value.trim() || undefined,
+        draftName: nameInput?.value.trim(),
+        draftEmail: emailInput?.value.trim(),
         includeScreenshot,
         attachments,
         sendConsoleLogs: consoleLogsCheckbox.checked,
+        descriptionEdited,
+        prefilledEmail,
+        prefillSnapshot: prefill,
       });
     });
 

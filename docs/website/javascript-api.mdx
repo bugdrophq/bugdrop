@@ -17,6 +17,14 @@ The `window.BugDrop` object is available after the widget initializes. It provid
 | `BugDrop.registerFlow(config)` | Method | Registers a released `FlowConfig` and returns a `FlowHandle` |
 | `BugDrop.registerVariant(config)` | Method | Registers an immutable custom feedback definition and returns a durable handle |
 
+`BugDrop.open()` does not accept prefill options. Extra arguments, including a click event, are
+ignored for compatibility. To suggest built-in form defaults, configure the
+[`data-prefill-provider` callback](/docs/configuration#prefill-the-built-in-form). The floating
+button and `BugDrop.open()` use the same callback after any welcome screen. It runs once per new
+form, synchronously, and is called again on a later opening. Returning from screenshot capture
+keeps the current draft without calling the provider again. Registered variants and custom flows
+use their own answer contracts.
+
 ### Basic Usage
 
 ```html
