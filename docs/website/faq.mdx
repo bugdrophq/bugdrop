@@ -103,6 +103,15 @@ BugDrop reads configuration from the script element that is executing. Use the o
 
 ## Configuration
 
+### Can my app prefill the reporter name or feedback description?
+
+Yes. Set `data-prefill-provider` to the name of a synchronous global callback that returns an
+optional nickname, email, and Bug/Feature/Question description templates. See the
+[configuration example](/docs/configuration#prefill-the-built-in-form). The reporter can edit or
+clear each visible value, and the callback does not make hidden name or email fields visible.
+Prefilled identity is only a suggestion: BugDrop does not verify ownership. If the reporter keeps
+an email, it appears in the GitHub Issue and may be public when the repository is public.
+
 ### Can I customize the feedback button label?
 
 Yes. The `data-label` attribute changes the text displayed next to the button icon:
@@ -152,6 +161,10 @@ Yes. By default, the name and email fields are hidden. Enable them with data att
 ```
 
 When enabled, the submitter's name and email are included in the GitHub Issue body.
+The reporter can edit these fields, including values suggested by the host app. BugDrop does not
+verify that the reporter owns either value. The API rejects malformed or overlong submitter
+values and escapes accepted Markdown-sensitive text before writing the Issue. On a public
+repository, the Issue and any retained email address are public.
 
 ## Rate Limiting and Errors
 

@@ -19,6 +19,7 @@ These attributes control the fundamental behavior of the widget.
 | `data-category-labels` | built-in labels | Self-hosted JSON mapping from built-in categories to GitHub labels |
 | `data-button` | `"true"` | Show the floating button: `"true"` or `"false"` |
 | `data-auth-token-provider` | none | Name of a global function that returns a self-hosted auth token |
+| `data-prefill-provider` | none | Name of a synchronous global function that suggests built-in form defaults |
 | `data-welcome` | `"Report a bug or request a feature"` | Welcome message displayed at the top of the form |
 | `data-show-issue-link` | `"public"` | Show the GitHub issue link after submission: `"public"`, `"always"`, or `"never"` |
 | `data-send-console-logs` | `"false"` | Start the "Send Console Logs" checkbox checked |
@@ -141,6 +142,56 @@ Control whether the feedback form collects the submitter's name and email addres
 ```
 
 When submitter information is collected, it is included in the GitHub Issue body so your team knows who reported the issue.
+
+### Prefill the built-in form
+
+Use `data-prefill-provider` to name a host-owned global function. BugDrop calls it when each new
+built-in details form opens, after the welcome screen. It must return an object synchronously;
+Promises are not supported. Read the current in-memory app session in the function so a later
+opening can reflect an account change:
+
+```html
+<script>
+  window.getBugDropPrefill = () => ({
+    name: window.appSession?.user?.nickname,
+    // Offer email only if your app wants it included in the eventual Issue.
+    email: window.appSession?.user?.email,
+    descriptionTemplates: {
+      bug: 'What happened?\nSteps to reproduce:\nExpected result:',
+      feature: 'What would you like to see?\nWhy would it help?',
+      question: 'What would you like to know?\nWhat have you tried?',
+    },
+  });
+</script>
+<script
+  src="https://bugdrop.neonwatty.workers.dev/widget.js"
+  data-repo="owner/repo"
+  data-show-name="true"
+  data-show-email="true"
+  data-prefill-provider="getBugDropPrefill"
+></script>
+```
+
+The return type is `{ name?: string, email?: string, descriptionTemplates?: { bug?: string,
+feature?: string, question?: string } }`, or `null`/`undefined` for no defaults. Name is limited
+to 100 characters, email to 254, and each template to 4,000. Invalid, overlong, control-character,
+and bidirectional-formatting fields are ignored independently; email must be accepted by the
+form's email input, including a domain without empty labels or slashes. Missing or throwing
+providers leave the form usable. A Promise is unsupported, and a
+rejected Promise is handled without putting its value or error into the form. Diagnostics do not
+include supplied values. The callback name belongs in the script attribute; personal values
+belong only in the callback result, never in a script attribute, URL, or local storage.
+
+The initial category is Bug. Until the reporter edits the description, changing category inserts
+that category's template, or an empty description if none exists. Once edited, even if cleared,
+category changes preserve the reporter's text. Returning from screenshot capture also preserves
+the draft. A new opening calls the provider again. Supplied name and email do not reveal hidden
+fields: `data-show-name` and `data-show-email` still control visibility, and neither becomes
+required through prefilling.
+
+These are editable suggestions, not verified identity. BugDrop does not prove ownership of a
+nickname or email. A visible prefilled email has a reminder that it will be included in the GitHub
+Issue if retained; Issues in a public repository are public.
 
 ## Console Logs
 

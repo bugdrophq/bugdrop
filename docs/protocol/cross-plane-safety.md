@@ -8,10 +8,93 @@ An intentional future public change requires explicit baseline review; do not
 refresh the fingerprint merely to make a failure disappear.
 
 The iOS annotation touch change in PR #414 intentionally updates
-`src/widget/annotator.ts` and `src/widget/ui.ts`. The reviewed public file set
-remains at 145 files; its new fingerprint is pinned to PR head
+`src/widget/annotator.ts` and `src/widget/ui.ts`. Its reviewed public file set
+remains at 145 files; its fingerprint was pinned to PR head
 `ae23125dfc907ae0c5af418cba518a88144ed0ea`. No managed files or other
 public files changed in that PR.
+
+## Issue #300 public widget delta
+
+The Issue #300 built-in form prefill implementation intentionally changes
+`src/widget/index.ts` and adds `src/widget/prefill.ts`. The latter is included in
+`git ls-files` with intent-to-add before calculating the refreshed fingerprint;
+the protected source set grows from 145 to 146 files. The reviewed source-set
+delta contains only those two paths. The previous SHA-256
+`ac7c93c9f6e797fc29e97c37a869640d565e008abee63477e02f646ad318ff10`
+is retained as provenance in the fixture, alongside its original base commit
+in `approvedDelta.previousBaseCommit`.
+The new SHA-256 is
+`7d148ce0efce203fb93fe95853dab571d1cc4568e0ad8bd77a6a856d199657b8`.
+The fingerprint test and its mutation checks remain strict. Before this refresh,
+13 focused unit tests and nine Chromium prefill/legacy tests passed on the
+widget source diff, including both default runtimes and screenshot return after
+clearing prefilled fields and description text.
+
+The subsequent Issue #300 submitter safety exception changes only the additional
+protected path `src/routes/api.ts`. The reviewed 146-file source set retains
+both widget paths and all previous provenance. Its prior SHA-256 was
+`7d148ce0efce203fb93fe95853dab571d1cc4568e0ad8bd77a6a856d199657b8`;
+the new SHA-256 is
+`0c34c80ef9c2ab4d16c7091f9a18fa19db2aceec144213fed517a3903b0adf27`.
+Before this second refresh, focused API/legacy unit tests (123), protocol tests
+(115), frozen legacy checks, and 15 local Chromium API/legacy tests passed.
+The normative v1 exception is documented in the configurable-variants design:
+ordinary valid submitter output stays byte-for-byte, while malformed values are
+rejected before Issue creation and Markdown-sensitive values are escaped inline.
+
+The Issue #300 pre-PR review repair changes eight protected source paths listed
+in the fixture's `reviewRepairDelta`, retaining the same 146-file source set and
+both prior provenance records. Its prior SHA-256 was
+`0c34c80ef9c2ab4d16c7091f9a18fa19db2aceec144213fed517a3903b0adf27`;
+the reviewed SHA-256 is
+`9d359a905ced325771173bd07d766dc02b705dd81ef6c9bdf1a3741a3e3a472c`.
+Focused unit tests (130) and local Chromium prefill/API/legacy tests (26) passed
+before this refresh. GitHub's Markdown renderer showed an untrusted `@bugdrophq`
+name inside a bold code span without an active mention link. The fingerprint
+test still checks exact bytes and rejects public boundary mutations.
+
+The follow-up email-validity repair changes only `src/widget/prefill.ts` and
+`src/routes/api.ts` in the same 146-file protected source set. The previous
+SHA-256 was
+`9d359a905ced325771173bd07d766dc02b705dd81ef6c9bdf1a3741a3e3a472c`;
+the new SHA-256 is
+`748ea26269fbac2658cfe60d4bdbcb00e609949ebba3455dc3fd4d68fd0d9306`.
+All prior provenance remains in the fixture. Before this refresh, focused unit
+tests (135) and local Chromium prefill/API/legacy tests (30) passed, including
+direct `typeMismatch` checks for two malformed host addresses and the actual
+request after clearing a prefilled email. GitHub's Markdown renderer showed a
+name containing both `@` and backticks inside one code span without an active
+mention link. The fingerprint and mutation checks remain unchanged.
+
+The PR #418 CI repair removes two unused type exports from only
+`src/widget/prefill.ts` in the unchanged 146-file protected source set. Its
+previous SHA-256 was
+`748ea26269fbac2658cfe60d4bdbcb00e609949ebba3455dc3fd4d68fd0d9306`;
+the reviewed SHA-256 is
+`dd1bcf77b60ac91561803746bf0e5b6809e012450827434c434e3c2b738c3bf9`.
+The generated widget bundle had the same SHA-256 before and after the edit:
+`6776b41b2929a00d5a10d777f4fc132a016c33e04291a61d2217e93f2369aa36`.
+All earlier provenance stays in the fixture, and the fingerprint mutation tests
+remain strict.
+
+The merge of PR #414's iOS annotation changes with Issue #300 retains all
+reviewed source deltas. The protected set has 146 files. The mainline SHA-256
+before integration was
+`8e25450e69bf292138be25a8aed7241ae47c114693dab824a003c2ee87515a1d`;
+the Issue #300 branch SHA-256 was
+`dd1bcf77b60ac91561803746bf0e5b6809e012450827434c434e3c2b738c3bf9`.
+The combined SHA-256 is
+`4b22c27dcbe354226005068fa19efd5a51ca438db65b5212510a57d935942edf`.
+It was calculated after direct review of the merged source set. The fingerprint
+test and mutation checks remain strict.
+
+The pre-merge review of PR #418 found that reporter-edited built-in and mapped
+custom-flow submitter fields could exceed the Worker's new length limits. The
+form now applies the same name and email caps before advancing. The protected
+set remains at 146 files; its SHA-256 changes from
+`4b22c27dcbe354226005068fa19efd5a51ca438db65b5212510a57d935942edf`
+to `0b1bc59207e1ab085b39193b1b2691376fe93d5bfe34cfd41b80853620720ac3`.
+The fixture retains the previous fingerprint and the three changed source paths.
 
 Managed tests run the implementation's actual `managed/local/adapter.mjs`: real
 Miniflare Workers, SQLite Durable Objects, V1 capability HTTP exchange, and a

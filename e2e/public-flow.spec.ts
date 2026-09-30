@@ -137,6 +137,8 @@ test.describe('public modal FlowConfig V1 representative recipes', () => {
     });
     await expect(host.getByText('trace.png')).toBeVisible();
     await expect(host.getByLabel('Include console logs')).toBeChecked();
+    await expect(host.getByLabel('Your name')).toHaveAttribute('maxlength', '100');
+    await expect(host.getByLabel('Email')).toHaveAttribute('maxlength', '254');
     await host.getByLabel('Your name').fill(' Ada ');
     await host.getByLabel('Email').fill(' ada@example.com ');
     await host.getByRole('button', { name: 'Continue' }).click();
