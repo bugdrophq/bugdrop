@@ -30,6 +30,7 @@ export function createAnnotator(
   let points: Point[] = [];
   let draftBase: ImageData | null = null;
   let hasDrawnStroke = false;
+  let activePointerId: number | null = null;
   const history: ImageData[] = [];
 
   // Load image
@@ -68,7 +69,10 @@ export function createAnnotator(
   }
 
   function resetDraft() {
-    window.removeEventListener('mouseup', handleMouseUp);
+    window.removeEventListener('pointermove', handlePointerMove);
+    window.removeEventListener('pointerup', handlePointerUp);
+    window.removeEventListener('pointercancel', handlePointerCancel);
+    activePointerId = null;
     isDrawing = false;
     points = [];
     draftBase = null;
@@ -80,7 +84,7 @@ export function createAnnotator(
     resetDraft();
   }
 
-  function getCanvasPoint(e: MouseEvent): Point {
+  function getCanvasPoint(e: PointerEvent): Point {
     const rect = canvas.getBoundingClientRect();
     const scaleX = img.width / rect.width;
     const scaleY = img.height / rect.height;
@@ -175,19 +179,27 @@ export function createAnnotator(
     ctx.fillRect(x, y, width, height);
   }
 
-  function handleMouseDown(e: MouseEvent) {
+  function handlePointerDown(e: PointerEvent) {
+    if (activePointerId !== null || !e.isPrimary || (e.pointerType === 'mouse' && e.button !== 0)) {
+      return;
+    }
     const base = getLatestState();
     if (!base) return;
 
+    e.preventDefault();
+    activePointerId = e.pointerId;
     isDrawing = true;
     points = [getCanvasPoint(e)];
     draftBase = base;
     hasDrawnStroke = false;
-    window.addEventListener('mouseup', handleMouseUp);
+    window.addEventListener('pointermove', handlePointerMove);
+    window.addEventListener('pointerup', handlePointerUp);
+    window.addEventListener('pointercancel', handlePointerCancel);
   }
 
-  function handleMouseMove(e: MouseEvent) {
-    if (!isDrawing || !draftBase) return;
+  function handlePointerMove(e: PointerEvent) {
+    if (!isDrawing || !draftBase || e.pointerId !== activePointerId) return;
+    e.preventDefault();
 
     const point = getCanvasPoint(e);
 
@@ -209,7 +221,9 @@ export function createAnnotator(
     }
   }
 
-  function handleMouseUp(e: MouseEvent) {
+  function handlePointerUp(e: PointerEvent) {
+    if (e.pointerId !== activePointerId) return;
+    e.preventDefault();
     if (!isDrawing || !draftBase) {
       resetDraft();
       return;
@@ -245,10 +259,12 @@ export function createAnnotator(
     resetDraft();
   }
 
+  function handlePointerCancel(e: PointerEvent) {
+    if (e.pointerId === activePointerId) cancelDraft();
+  }
+
   // Event handlers
-  canvas.addEventListener('mousedown', handleMouseDown);
-  canvas.addEventListener('mousemove', handleMouseMove);
-  canvas.addEventListener('mouseup', handleMouseUp);
+  canvas.addEventListener('pointerdown', handlePointerDown);
 
   return {
     setTool(tool: Tool) {
@@ -276,9 +292,7 @@ export function createAnnotator(
 
     destroy() {
       resetDraft();
-      canvas.removeEventListener('mousedown', handleMouseDown);
-      canvas.removeEventListener('mousemove', handleMouseMove);
-      canvas.removeEventListener('mouseup', handleMouseUp);
+      canvas.removeEventListener('pointerdown', handlePointerDown);
       canvas.remove();
     },
   };

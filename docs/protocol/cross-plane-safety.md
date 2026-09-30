@@ -1,11 +1,17 @@
 # Local cross-plane safety harness
 
 The current public system remains supported. This harness compares its tracked
-runtime, assets, widget build inputs and Wrangler configuration to the starting
-`main` commit recorded in `test/cross-plane/fixtures/current-public-baseline.v1.json`.
+runtime, assets, widget build inputs and Wrangler configuration to the reviewed
+commit recorded in `test/cross-plane/fixtures/current-public-baseline.v1.json`.
 Public fingerprint mutations and changed/skipped/retried browser evidence must fail.
 An intentional future public change requires explicit baseline review; do not
 refresh the fingerprint merely to make a failure disappear.
+
+The iOS annotation touch change in PR #414 intentionally updates
+`src/widget/annotator.ts` and `src/widget/ui.ts`. The reviewed public file set
+remains at 145 files; its new fingerprint is pinned to PR head
+`ae23125dfc907ae0c5af418cba518a88144ed0ea`. No managed files or other
+public files changed in that PR.
 
 Managed tests run the implementation's actual `managed/local/adapter.mjs`: real
 Miniflare Workers, SQLite Durable Objects, V1 capability HTTP exchange, and a
