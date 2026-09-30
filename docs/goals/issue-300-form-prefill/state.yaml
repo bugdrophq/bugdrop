@@ -69,7 +69,7 @@ visual_board:
     url: "http://goalbuddy.localhost:41737/issue-300-form-prefill/"
     command: "node /Users/neonwatty/.codex/plugins/cache/goalbuddy/goalbuddy/0.4.3/skills/goal-prep/surfaces/local-goal-board/scripts/local-goal-board.mjs --goal docs/goals/issue-300-form-prefill"
 
-active_task: T006
+active_task: T013
 
 tasks:
   - id: T001
@@ -396,7 +396,7 @@ tasks:
   - id: T006
     type: pm
     assignee: PM
-    status: active
+    status: done
     reasoning_hint: default
     objective: "Run the final cross-path proof, repair gaps through bounded Worker follow-ups, complete the repository pre-PR review gate, and create a reviewable PR with docs and evidence."
     inputs:
@@ -411,7 +411,29 @@ tasks:
       - "Adversarial proof of edit preservation and safe Issue formatting"
       - "Pre-PR review findings resolved or explicit blockers"
       - "Reviewable PR with user documentation and verification notes"
-    receipt: null
+    receipt:
+      result: done
+      full_outcome_complete: false
+      summary: "Completed the repository pre-PR parallel review gate, resolved all high/medium findings through T009/T010, and obtained clean targeted re-reviews. Committed, rebased onto current main, reran final gates, pushed the branch, and created mergeable PR #418 with integration docs, safety notes, and verification evidence. CI is running; no merge or deployment occurred."
+      evidence:
+        - "PR https://github.com/bugdrophq/bugdrop/pull/418 targets main from codex/issue-300-prefill-plan and GitHub reports MERGEABLE."
+        - "Required code-reviewer, test-analyzer, and simplifier agents ran in parallel; silent-failure and type-design analyzers also ran. Targeted code and test re-reviews after T010 reported no remaining high/medium findings."
+        - "The final combined Chromium API, legacy, and prefill suite passed 30/30 after the rebase, covering both widget runtimes and both opening paths."
+        - "After rebasing onto origin/main 79a6336c, full unit 2540/2540, cross-plane 51/51, protocol 115/115, legacy fixtures, typecheck, lint, format, widget build, and whitespace checks passed."
+        - "GitHub Markdown renderer confirmed a name with @ and backticks is displayed without an active mention; API tests preserve ordinary legacy body bytes and reject malformed values before Issue creation."
+        - "PR documentation contains a working host callback and states that nickname/email are editable unverified suggestions and retained email may be public."
+      commands:
+        - cmd: "npm run test && npm run test:cross-plane && npm run test:protocol && npm run verify:legacy-compat && npm run typecheck && npm run lint && npm run format:check && npm run build:widget && git diff --check"
+          status: pass
+        - cmd: "LIVE_TARGET=local PLAYWRIGHT_BASE_URL=http://bugdrop.localhost:8787 npx playwright test e2e/widget-prefill.spec.ts e2e/api.spec.ts e2e/legacy-compat.spec.ts --project=chromium --workers=4 --reporter=line"
+          status: pass
+        - cmd: "gh pr view 418 --json number,title,url,baseRefName,headRefName,mergeable,statusCheckRollup,body"
+          status: pass
+      facts:
+        - "CI jobs were in progress at PR creation; they are not merge authorization."
+      contradictions: []
+      ambiguity_requiring_judge: []
+      note_needed: false
   - id: T007
     type: worker
     assignee: Worker
@@ -788,7 +810,7 @@ tasks:
   - id: T999
     type: judge
     assignee: Judge
-    status: queued
+    status: done
     reasoning_hint: default
     objective: "Audit the full Issue #300 implementation, docs, safety boundary, tests, and PR against the owner outcome and goal oracle."
     inputs:
@@ -805,6 +827,132 @@ tasks:
       - "full_outcome_complete: true | false"
       - "missing evidence"
       - "next task if not complete"
+    receipt:
+      result: done
+      decision: not_complete
+      full_outcome_complete: false
+      rationale: "The committed feature and PR #418 map well to the owner outcome: receipts and tests cover both opening paths, both runtimes, category templates, edited drafts, privacy, malformed email, and safe Issue rendering. Completion is blocked by a PR-scoped CI failure. The required “Lint, Typecheck, Knip, Audit” job failed, skipping downstream CI. I reproduced Knip’s two errors locally: `PrefillCategory` and `BugDropPrefillProvider` are exported only for use within `src/widget/prefill.ts`. The repair is bounded, but changing that protected source requires a reviewed fingerprint refresh, a pushed PR update, successful CI, and another final audit."
+      worker_package:
+        objective: "Remove the unnecessary exports from the two locally used types in src/widget/prefill.ts without changing runtime behavior or the public callback contract. After confirming Knip passes, review the protected source set and refresh its strict SHA-256 fixture with an explicit CI-repair provenance entry; update the cross-plane safety document with the new hash. Run the CI-equivalent local checks. Return the diff and proof to the PM for a PR #418 update and fresh CI run."
+        allowed_files:
+          - src/widget/prefill.ts
+          - test/cross-plane/fixtures/current-public-baseline.v1.json
+          - docs/protocol/cross-plane-safety.md
+        verify:
+          - "npx knip"
+          - "make check"
+          - "npm run test && npm run test:cross-plane && npm run test:protocol && npm run verify:legacy-compat"
+          - "npm run build:widget && git diff --check"
+          - "Review git ls-files protected paths and confirm src/widget/prefill.ts is the only changed protected source before refreshing the fingerprint"
+          - "npm run test -- test/cross-plane/current-public.test.ts"
+        stop_if:
+          - "The type changes alter emitted widget behavior or require a broader public API change."
+          - "Knip or make check still fails after two focused repair attempts."
+          - "The fingerprint refresh omits a protected source, weakens mutation checks, or lacks the previous hash and reviewed provenance."
+          - "A fix requires files outside allowed_files."
+      evidence:
+        - "PR #418 is open and mergeable at head 474daf5b208d3886cf85659b590b3eff11b94279, with the implementation and user documentation committed."
+        - "T006 records 30/30 final local Chromium tests, 2540/2540 units, 51/51 cross-plane tests, 115/115 protocol tests, and passing local typecheck, lint, format, build, and legacy checks."
+        - "The committed browser tests assert both runtimes and opening paths, all three submitted category templates, preserved edits, cleared email omission, hidden fields, and no personal values in input attributes."
+        - "API tests cover ordinary legacy output and adversarial submitter values; the documented v1 exception limits changed behavior to submitter safety."
+        - "The PR’s required CI check “Lint, Typecheck, Knip, Audit” failed, and downstream unit, E2E, and preview jobs were skipped."
+        - "Direct local `npx knip` exits 1 with two new unused exported types at src/widget/prefill.ts:1 and :8; its 22 configuration hints are nonfatal."
+      missing_evidence:
+        - "A repaired PR head with passing Knip and required CI checks."
+        - "Final verification and Judge audit on that exact repaired head."
+      required_board_updates:
+        - "Keep the goal active; add and run the bounded CI-repair Worker package."
+        - "Have the PM update PR #418 and wait for the new CI results, then reactivate T999 for final audit."
+        - "Do not merge or deploy as part of this goal."
+  - id: T012
+    type: worker
+    assignee: Worker
+    status: done
+    reasoning_hint: default
+    objective: "Remove the unnecessary exports from the two locally used types in src/widget/prefill.ts without changing runtime behavior or the public callback contract. After confirming Knip passes, review the protected source set and refresh its strict SHA-256 fixture with an explicit CI-repair provenance entry; update the cross-plane safety document with the new hash. Run the CI-equivalent local checks. Return the diff and proof to the PM for a PR #418 update and fresh CI run."
+    inputs:
+      - "T999 not_complete audit and CI job log for PR #418"
+      - "Two unused exported types: PrefillCategory and BugDropPrefillProvider"
+    constraints:
+      - "You are not alone in the codebase; preserve previous edits and do not edit the board or PR."
+      - "Keep runtime and public callback behavior unchanged."
+      - "Preserve strict fingerprint test and prior provenance."
+    expected_output:
+      - "Knip and make check pass locally"
+      - "Reviewed fingerprint refresh for only the changed protected source"
+      - "All final local gates pass"
+    allowed_files:
+      - "src/widget/prefill.ts"
+      - "test/cross-plane/fixtures/current-public-baseline.v1.json"
+      - "docs/protocol/cross-plane-safety.md"
+    verify:
+      - "npx knip"
+      - "make check"
+      - "npm run test && npm run test:cross-plane && npm run test:protocol && npm run verify:legacy-compat"
+      - "npm run build:widget && git diff --check"
+      - "Review git ls-files protected paths and confirm src/widget/prefill.ts is the only changed protected source before refreshing the fingerprint"
+      - "npm run test -- test/cross-plane/current-public.test.ts"
+    stop_if:
+      - "The type changes alter emitted widget behavior or require a broader public API change."
+      - "Knip or make check still fails after two focused repair attempts."
+      - "The fingerprint refresh omits a protected source, weakens mutation checks, or lacks the previous hash and reviewed provenance."
+      - "A fix requires files outside allowed_files."
+    receipt:
+      result: done
+      changed_files:
+        - src/widget/prefill.ts
+        - test/cross-plane/fixtures/current-public-baseline.v1.json
+        - docs/protocol/cross-plane-safety.md
+      commands:
+        - cmd: "npx knip"
+          status: pass
+        - cmd: "make check"
+          status: pass
+        - cmd: "npm run test && npm run test:cross-plane && npm run test:protocol && npm run verify:legacy-compat"
+          status: pass
+        - cmd: "npm run build:widget && git diff --check"
+          status: pass
+        - cmd: "npm run test -- test/cross-plane/current-public.test.ts"
+          status: pass
+      summary: "Removed two unused type exports. Knip and make check pass. The built widget’s SHA-256 remained identical before and after the edit, proving no emitted runtime change. Review of all 146 protected paths found only src/widget/prefill.ts changed. Refreshed the strict fingerprint with its previous hash and PR #418 provenance; mutation checks remain intact. Full unit, cross-plane, protocol, legacy, build, and whitespace gates pass. No commit or push was made."
+      deviations: []
+      remaining_blockers: []
+      verification_attempts: 1
+      stopped_because: null
+  - id: T013
+    type: pm
+    assignee: PM
+    status: active
+    reasoning_hint: default
+    objective: "Commit and push the T012 CI repair to PR #418, verify its new required CI checks and final diff, and route any remaining PR-scoped failures to bounded repair before final audit."
+    inputs:
+      - "T012 receipt and final diff"
+      - "PR #418 CI results on repaired head"
+    constraints:
+      - "Do not merge or deploy."
+      - "Do not treat pending or skipped required checks as success."
+      - "Keep the GoalBuddy board synchronized with the PR update."
+    expected_output:
+      - "Repaired PR head and passing required CI"
+      - "Final local proof against exact pushed head"
+    receipt: null
+  - id: T998
+    type: judge
+    assignee: Judge
+    status: queued
+    reasoning_hint: high
+    objective: "Final audit of Issue #300 owner outcome on repaired PR #418 head after required CI passes."
+    inputs:
+      - "All receipts including T999, T012, and T013"
+      - "Exact PR head, CI results, docs, tests, and goal oracle"
+    constraints:
+      - "Read-only; do not implement."
+      - "Reject completion if required CI is failing, queued, or skipped from a failed upstream job."
+      - "Do not merge or deploy."
+    expected_output:
+      - "complete | not_complete"
+      - "full_outcome_complete: true | false"
+      - "concrete remaining gaps if any"
     receipt: null
 
 checks:

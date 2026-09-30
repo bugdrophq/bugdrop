@@ -59,6 +59,17 @@ request after clearing a prefilled email. GitHub's Markdown renderer showed a
 name containing both `@` and backticks inside one code span without an active
 mention link. The fingerprint and mutation checks remain unchanged.
 
+The PR #418 CI repair removes two unused type exports from only
+`src/widget/prefill.ts` in the unchanged 146-file protected source set. Its
+previous SHA-256 was
+`748ea26269fbac2658cfe60d4bdbcb00e609949ebba3455dc3fd4d68fd0d9306`;
+the reviewed SHA-256 is
+`dd1bcf77b60ac91561803746bf0e5b6809e012450827434c434e3c2b738c3bf9`.
+The generated widget bundle had the same SHA-256 before and after the edit:
+`6776b41b2929a00d5a10d777f4fc132a016c33e04291a61d2217e93f2369aa36`.
+All earlier provenance stays in the fixture, and the fingerprint mutation tests
+remain strict.
+
 Managed tests run the implementation's actual `managed/local/adapter.mjs`: real
 Miniflare Workers, SQLite Durable Objects, V1 capability HTTP exchange, and a
 private fake GitHub adapter. They do not import the first-tranche service double.

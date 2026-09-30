@@ -1,11 +1,11 @@
-export type PrefillCategory = 'bug' | 'feature' | 'question';
+type PrefillCategory = 'bug' | 'feature' | 'question';
 export interface BugDropPrefill {
   name?: string;
   email?: string;
   descriptionTemplates?: Partial<Record<PrefillCategory, string>>;
 }
 
-export type BugDropPrefillProvider = () => BugDropPrefill | null | undefined;
+type BugDropPrefillProvider = () => BugDropPrefill | null | undefined;
 export const PREFILL_NAME_LIMIT = 100;
 export const PREFILL_EMAIL_LIMIT = 254;
 export const PREFILL_TEMPLATE_LIMIT = 4000;
