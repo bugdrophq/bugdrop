@@ -80,7 +80,8 @@ const expected = async (value: ReturnType<typeof update>, raw = JSON.stringify(v
   authorizationVersion: value.projection.authorizationVersion,
   projectionDigest: await projectionDigest(utf8(raw)),
 });
-describe.sequential('durable private control acknowledgements in actual Workerd', () => {
+// prettier-ignore
+describe('durable private control acknowledgements in actual Workerd', { concurrent: false }, () => {
   it('returns one durable signed receipt for concurrent exact retries and restart/status recovery', async () => {
     const value = update();
     const match = await expected(value);

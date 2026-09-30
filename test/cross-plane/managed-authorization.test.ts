@@ -23,7 +23,8 @@ afterEach(async () => {
   await service?.close();
 }, 60_000);
 
-describe.sequential('real managed authorization across plane and application boundaries', () => {
+// prettier-ignore
+describe('real managed authorization across plane and application boundaries', { concurrent: false }, () => {
   it('refuses current-public tokens, root API keys and copied app IDs as capability credentials', async () => {
     const publicToken = await createBugDropAuthTokenForTest(
       {

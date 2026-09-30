@@ -72,11 +72,11 @@
   },
   "overrides": {
     "jsdom": {
-      "undici": "7.29.0"
+      "undici": "7.29.1"
     },
     "miniflare": {
       "sharp": "0.35.4",
-      "undici": "7.29.0",
+      "undici": "7.29.1",
       "ws": "8.21.0"
     },
     "wrangler": {
@@ -91,7 +91,7 @@
     "@playwright/test": "^1.63.0",
     "@types/node": "^26.6.2",
     "@types/pg": "8.23.1",
-    "@vitest/coverage-v8": "^4.1.10",
+    "@vitest/coverage-v8": "^5.0.2",
     "esbuild": "^0.28.1",
     "eslint": "^10.11.0",
     "globals": "^17.12.0",
@@ -103,7 +103,7 @@
     "prettier": "^3.9.9",
     "typescript": "^5.7.2",
     "typescript-eslint": "^8.70.1",
-    "vitest": "^4.1.11",
+    "vitest": "^5.0.2",
     "wrangler": "4.98.0",
     "yaml": "^2.9.0"
   },

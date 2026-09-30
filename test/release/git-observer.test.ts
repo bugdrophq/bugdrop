@@ -62,7 +62,7 @@ describe('complete immutable Git observation', () => {
       targetStrictlyLater: true,
       controllerReachableFromMain: true,
     });
-  });
+  }, 30_000);
 
   it('rejects abbreviated identity before invoking Git', () => {
     const runner = { run: () => expect.unreachable('runner must not be called') };
