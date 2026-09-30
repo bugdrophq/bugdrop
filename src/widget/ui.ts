@@ -1022,6 +1022,7 @@ export function injectStyles(shadow: ShadowRoot, config: WidgetConfig) {
 
     .bd-annotation-stage canvas {
       display: block;
+      touch-action: none;
       max-width: 100%;
       max-height: calc(min(58vh, 620px) - 36px);
       width: auto;

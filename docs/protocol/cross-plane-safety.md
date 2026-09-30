@@ -10,10 +10,16 @@ An intentional future public change requires explicit baseline review; do not
 refresh the fingerprint merely to make a failure disappear. The v1 fixture
 remains as the pre-localization historical baseline.
 
+The iOS annotation touch change in PR #414 intentionally updates
+`src/widget/annotator.ts` and `src/widget/ui.ts`. The reviewed public file set
+remains at 145 files; its fingerprint is pinned to PR head
+`ae23125dfc907ae0c5af418cba518a88144ed0ea`. No managed files or other
+public files changed in that PR. This is the v1 baseline before localization.
+
 ## Reviewed v2 public change
 
-Commit `af4d83191529eb5eb6c042b50f8a6bb0ae4261b8` deliberately changes these
-nine public paths relative to the v1 baseline:
+The Chinese widget change deliberately updates these nine public paths relative
+to the updated v1 baseline:
 
 | Path | Rationale |
 | --- | --- |
