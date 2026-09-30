@@ -3,7 +3,7 @@
   "baseCommit": "ae23125dfc907ae0c5af418cba518a88144ed0ea",
   "description": "Tracked current public src (excluding src/managed), public assets, wrangler.toml, widget build script and widget tsconfig. SHA-256 of sorted path + NUL + exact bytes + NUL.",
   "fileCount": 146,
-  "sha256": "4b22c27dcbe354226005068fa19efd5a51ca438db65b5212510a57d935942edf",
+  "sha256": "0b1bc59207e1ab085b39193b1b2691376fe93d5bfe34cfd41b80853620720ac3",
   "approvedDelta": {
     "issue": "https://github.com/bugdrophq/bugdrop/issues/300",
     "previousBaseCommit": "3bd3dfdda83fe723bf2c767fdae3c89ea961de66",
@@ -53,5 +53,15 @@
     "previousIssue300Sha256": "dd1bcf77b60ac91561803746bf0e5b6809e012450827434c434e3c2b738c3bf9",
     "changedPublicSources": ["src/widget/annotator.ts", "src/widget/ui.ts"],
     "reason": "Combine the reviewed iOS annotation changes from main with the Issue #300 prefill source set, preserving both prior fingerprints and provenance."
+  },
+  "preMergeReviewRepairDelta": {
+    "pullRequest": "https://github.com/bugdrophq/bugdrop/pull/418",
+    "previousSha256": "4b22c27dcbe354226005068fa19efd5a51ca438db65b5212510a57d935942edf",
+    "changedPublicSources": [
+      "src/widget/flows/form-screen.ts",
+      "src/widget/flows/modal.ts",
+      "src/widget/index.ts"
+    ],
+    "reason": "Apply the Worker submitter length limits to reporter-edited built-in inputs and mapped custom-flow fields before form submission."
   }
 }

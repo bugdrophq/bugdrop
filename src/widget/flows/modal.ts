@@ -133,7 +133,12 @@ class FlowModalController {
     if (screen.type === 'message') surface = createMessageScreen(screen);
     else if (screen.type === 'form') {
       const form = this.definition.config.forms.find(candidate => candidate.id === screen.form)!;
-      this.currentForm = createFlowFormScreen(form, this.instanceId, this.runtime.answers);
+      this.currentForm = createFlowFormScreen(
+        form,
+        this.instanceId,
+        this.runtime.answers,
+        this.definition.config.evidence?.submitter
+      );
       surface = this.currentForm.element;
     } else surface = createScreenshotPrompt(screen);
     addNavigation(

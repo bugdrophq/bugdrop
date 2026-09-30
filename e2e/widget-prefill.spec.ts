@@ -34,6 +34,20 @@ async function prepare(page: Page, runtime: 'fixed' | 'private') {
   );
 }
 
+test('built-in reporter edits stop at the Worker identity limits', async ({ page }) => {
+  await prepare(page, 'fixed');
+  await page.goto('/test/?showName=true&showEmail=true&prefillProvider=getPrefill');
+  await widget(page).locator('css=.bd-trigger').click();
+  await widget(page).locator('css=[data-action="continue"]').click();
+  const name = widget(page).locator('css=#name');
+  const email = widget(page).locator('css=#email');
+  await expect(name).toHaveAttribute('maxlength', '100');
+  await expect(email).toHaveAttribute('maxlength', '254');
+  await name.fill('');
+  await name.pressSequentially('n'.repeat(101));
+  await expect(name).toHaveValue('n'.repeat(100));
+});
+
 for (const runtime of ['fixed', 'private'] as const) {
   for (const entry of ['trigger', 'open'] as const) {
     test(`${runtime} ${entry} uses fresh prefills and preserves edits through screenshot return`, async ({

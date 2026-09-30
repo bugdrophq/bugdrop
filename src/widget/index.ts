@@ -39,7 +39,12 @@ import { runDefaultJourney } from './default-flow/runtime';
 import { normalizeDefaultDefinition } from './default-flow/definition';
 import { createFlowManager, type FlowManager } from './flows/manager';
 import { parseAppVersion } from '../app-version';
-import { getPrefill, type BugDropPrefill } from './prefill';
+import {
+  getPrefill,
+  PREFILL_EMAIL_LIMIT,
+  PREFILL_NAME_LIMIT,
+  type BugDropPrefill,
+} from './prefill';
 
 declare const __BUGDROP_ENABLE_TEST_HOOKS__: boolean;
 declare const __BUGDROP_DEFAULT_FLOW_RUNTIME__: 'fixed' | 'private';
@@ -1447,7 +1452,7 @@ function showFeedbackFormWithScreenshotOption(
       ? `
           <div class="bd-form-group">
             <label class="bd-label" for="name">${escapeWidgetText(t().nameLabel)}${config.requireName ? ' *' : ''}</label>
-            <input type="text" id="name" class="bd-input" ${config.requireName ? 'required' : ''} placeholder="${escapeWidgetText(t().namePlaceholder)}" />
+            <input type="text" id="name" class="bd-input" maxlength="${PREFILL_NAME_LIMIT}" ${config.requireName ? 'required' : ''} placeholder="${escapeWidgetText(t().namePlaceholder)}" />
           </div>
         `
       : '';
@@ -1457,7 +1462,7 @@ function showFeedbackFormWithScreenshotOption(
       ? `
           <div class="bd-form-group">
             <label class="bd-label" for="email">${escapeWidgetText(t().emailLabel)}${config.requireEmail ? ' *' : ''}</label>
-            <input type="email" id="email" class="bd-input" ${config.requireEmail ? 'required' : ''} ${prefilledEmail ? 'aria-describedby="bd-prefilled-email-disclosure"' : ''} placeholder="${escapeWidgetText(t().emailPlaceholder)}" />
+            <input type="email" id="email" class="bd-input" maxlength="${PREFILL_EMAIL_LIMIT}" ${config.requireEmail ? 'required' : ''} ${prefilledEmail ? 'aria-describedby="bd-prefilled-email-disclosure"' : ''} placeholder="${escapeWidgetText(t().emailPlaceholder)}" />
             ${prefilledEmail ? `<p id="bd-prefilled-email-disclosure" class="bd-field-hint">${escapeWidgetText(t().prefilledEmailDisclosure)}</p>` : ''}
           </div>
         `

@@ -88,6 +88,14 @@ The combined SHA-256 is
 It was calculated after direct review of the merged source set. The fingerprint
 test and mutation checks remain strict.
 
+The pre-merge review of PR #418 found that reporter-edited built-in and mapped
+custom-flow submitter fields could exceed the Worker's new length limits. The
+form now applies the same name and email caps before advancing. The protected
+set remains at 146 files; its SHA-256 changes from
+`4b22c27dcbe354226005068fa19efd5a51ca438db65b5212510a57d935942edf`
+to `0b1bc59207e1ab085b39193b1b2691376fe93d5bfe34cfd41b80853620720ac3`.
+The fixture retains the previous fingerprint and the three changed source paths.
+
 Managed tests run the implementation's actual `managed/local/adapter.mjs`: real
 Miniflare Workers, SQLite Durable Objects, V1 capability HTTP exchange, and a
 private fake GitHub adapter. They do not import the first-tranche service double.

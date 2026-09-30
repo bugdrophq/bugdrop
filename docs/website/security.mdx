@@ -50,7 +50,8 @@ The Worker applies the same submitter checks to widget and direct API requests. 
 up to 100 characters and email strings up to 254 characters, and rejects non-string values,
 line breaks, control and bidirectional formatting characters, and malformed addresses (including
 slashes or empty labels in the domain) before
-creating an Issue. Accepted
+creating an Issue. Built-in form inputs and custom Flow fields mapped to submitter name or email
+also cap typed values at those lengths before submission. Accepted
 submitter text is escaped in its inline GitHub Markdown position so it cannot add a heading,
 link, or false attribution. Names containing an `@` are shown as code text because GitHub
 otherwise turns them into active mentions. These checks protect Issue formatting; they do not establish who
