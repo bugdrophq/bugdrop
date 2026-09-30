@@ -1217,6 +1217,11 @@ export function injectStyles(shadow: ShadowRoot, config: WidgetConfig) {
         gap: 4px !important;
         padding: 8px !important;
         min-width: 0;
+        flex: 1 1 135px !important;
+      }
+
+      .bd-category-selector {
+        flex-wrap: wrap;
       }
 
       .bd-category-option span {

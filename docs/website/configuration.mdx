@@ -64,7 +64,7 @@ The `data-locale` attribute controls BugDrop's built-in widget UI text -- the
 feedback form, screenshot flow, annotation tools, and most success/error messages.
 Brand attribution, custom labels, and server-provided error text may remain as
 provided. Supported locales: **`de`** (German), **`en`** (English), **`nl`** (Dutch),
-**`pl`** (Polish).
+**`pl`** (Polish), and **`zh-CN`** (Simplified Chinese).
 
 Resolution order:
 
@@ -73,13 +73,19 @@ Resolution order:
 3. English
 
 Matching is case-insensitive and region subtags are accepted in both BCP 47 and
-underscore formats (`nl-NL`, `nl_NL`, and `NL` all resolve to Dutch). An unsupported
-value falls back to English and logs a console warning.
+underscore formats (`nl-NL`, `nl_NL`, and `NL` all resolve to Dutch). Simplified Chinese
+requires `zh-CN` or an explicit `zh-Hans` tag; valid extensions such as `zh-Hans-TW`
+also select Simplified Chinese. Bare `zh`, `zh-TW`, `zh-HK`, and explicit `zh-Hant`
+tags fall back to English. An unsupported value logs a console warning.
 
 ```html
 <!-- Dutch UI -->
 <script src="https://bugdrop.neonwatty.workers.dev/widget.js"
   data-repo="owner/repo" data-locale="nl"></script>
+
+<!-- Simplified Chinese UI -->
+<script src="https://bugdrop.neonwatty.workers.dev/widget.js"
+  data-repo="owner/repo" data-locale="zh-CN"></script>
 ```
 
 To contribute a new language, add `src/widget/locales/<code>.ts` implementing the

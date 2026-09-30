@@ -74,6 +74,26 @@ export const pl: WidgetStrings = {
   submitFailedFallback: 'Nie udało się wysłać',
   networkError: 'Błąd sieci. Sprawdź połączenie z internetem.',
   submissionFailedTitle: 'Wysyłanie nie powiodło się',
+  submissionErrors: {
+    INVALID_JSON: 'Nieprawidłowe żądanie. Spróbuj ponownie.',
+    MISSING_REQUIRED_FIELDS: 'Repozytorium i tytuł są wymagane.',
+    INVALID_APP_VERSION:
+      'Wersja aplikacji jest nieprawidłowa. Skontaktuj się z administratorem witryny.',
+    INVALID_SCREENSHOT: 'Zrzut ekranu jest nieprawidłowy. Wykonaj go ponownie.',
+    SCREENSHOT_TOO_LARGE: 'Zrzut ekranu jest za duży. Wybierz mniejszy obszar.',
+    INVALID_ATTACHMENT: 'Załącznik jest nieprawidłowy. Usuń go i spróbuj ponownie.',
+    TOO_MANY_ATTACHMENTS: 'Zbyt wiele załączników. Usuń część plików.',
+    UNSUPPORTED_ATTACHMENT_TYPE: 'Ten typ pliku nie jest obsługiwany. Usuń plik.',
+    ATTACHMENT_TOO_LARGE: 'Załącznik jest za duży. Usuń go.',
+    INVALID_REPOSITORY:
+      'Repozytorium jest nieprawidłowe. Skontaktuj się z administratorem witryny.',
+    REPOSITORY_NOT_ALLOWED:
+      'To repozytorium nie może przyjmować opinii. Skontaktuj się z administratorem witryny.',
+    AUTH_REQUIRED:
+      'Autoryzacja nie powiodła się. Odśwież stronę lub skontaktuj się z administratorem witryny.',
+    APP_NOT_INSTALLED: 'Aplikacja GitHub nie jest zainstalowana dla tego repozytorium.',
+    ISSUE_CREATION_FAILED: 'Nie udało się utworzyć zgłoszenia. Spróbuj ponownie później.',
+  },
   tryAgain: 'Spróbuj ponownie',
   // Success modal
   successTitle: 'Opinia wysłana!',

@@ -70,13 +70,15 @@ You can add data attributes to customize the widget's appearance and behavior:
   data-theme="dark"
   data-position="bottom-left"
   data-color="#6366f1"
-  data-locale="nl"
+  data-locale="zh-CN"
   data-welcome="We'd love your feedback!"
 ></script>
 ```
 
 Set `data-locale` to choose the widget language explicitly, or omit it to let
 BugDrop infer the language from your page's `<html lang>` attribute.
+For Simplified Chinese, use `zh-CN` or an explicit `zh-Hans` tag. Bare `zh`
+and Traditional Chinese tags fall back to English.
 
 See the [Configuration](/docs/configuration) and [Styling](/docs/styling) docs for all available attributes.
 
