@@ -12,7 +12,7 @@ remains as the pre-localization historical baseline.
 
 ## Reviewed v2 public change
 
-Commit `6b9ec9a4100a4351b143451b4a211b7067f3fb9e` deliberately changes these
+Commit `b30a34bfcdbc83ec58e9d9c0a8dab893064a5d19` deliberately changes these
 nine public paths relative to the v1 baseline:
 
 | Path | Rationale |
@@ -29,7 +29,11 @@ nine public paths relative to the v1 baseline:
 
 The v2 scope still includes every tracked public file. The mutation checks cover
 the new Chinese dictionary as well as the existing runtime, configuration and
-widget build boundaries.
+widget build boundaries. This commit follows the original Chinese feature commit
+`6b9ec9a4100a4351b143451b4a211b7067f3fb9e` with one public-line change:
+`FeedbackErrorCode` in `src/widget/i18n.ts` became a module-local type after
+Knip identified its export as unused. No public file was excluded from the
+fingerprint for this follow-up.
 
 Managed tests run the implementation's actual `managed/local/adapter.mjs`: real
 Miniflare Workers, SQLite Durable Objects, V1 capability HTTP exchange, and a

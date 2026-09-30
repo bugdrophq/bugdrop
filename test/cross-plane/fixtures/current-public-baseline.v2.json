@@ -1,7 +1,7 @@
 {
   "schemaVersion": 2,
-  "baseCommit": "6b9ec9a4100a4351b143451b4a211b7067f3fb9e",
+  "baseCommit": "b30a34bfcdbc83ec58e9d9c0a8dab893064a5d19",
   "description": "Reviewed Simplified Chinese default-widget and legacy feedback error-code change. Tracked public src (excluding src/managed), public assets, wrangler.toml, widget build script and widget tsconfig. SHA-256 of sorted path + NUL + exact bytes + NUL at baseCommit.",
   "fileCount": 146,
-  "sha256": "84c64ccfd497d4edc106dfb924073cf4edb24ec3c2fbe287e59f4c2e852e6b70"
+  "sha256": "52cf3f6da87eedf91590112b72e4e56819ffb5d70035ee4762312fbb5dd0919a"
 }
