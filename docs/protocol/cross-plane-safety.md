@@ -7,11 +7,15 @@ Public fingerprint mutations and changed/skipped/retried browser evidence must f
 An intentional future public change requires explicit baseline review; do not
 refresh the fingerprint merely to make a failure disappear.
 
-The iOS annotation touch change in PR #414 intentionally updates
-`src/widget/annotator.ts` and `src/widget/ui.ts`. The reviewed public file set
-remains at 145 files; its new fingerprint is pinned to PR head
-`ae23125dfc907ae0c5af418cba518a88144ed0ea`. No managed files or other
-public files changed in that PR.
+The iOS annotation touch change in PR #414 intentionally updated
+`src/widget/annotator.ts` and `src/widget/ui.ts`. PR #421 then intentionally
+added zoom and pan controls, extracted drawing primitives to
+`src/widget/annotation-marks.ts`, updated widget translations and mobile styles,
+and allowed local QA on Bonjour `.local` hosts in three `public/test` files.
+The reviewed public file set now contains 146 files; its fingerprint is pinned
+to `cdc33cf81d89690b7eef8f578717cf12dba304a2`. No managed files,
+Wrangler configuration, widget build script, or widget TypeScript configuration
+changed in PR #421.
 
 Managed tests run the implementation's actual `managed/local/adapter.mjs`: real
 Miniflare Workers, SQLite Durable Objects, V1 capability HTTP exchange, and a
