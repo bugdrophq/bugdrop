@@ -12,7 +12,7 @@ remains as the pre-localization historical baseline.
 
 ## Reviewed v2 public change
 
-Commit `b30a34bfcdbc83ec58e9d9c0a8dab893064a5d19` deliberately changes these
+Commit `af4d83191529eb5eb6c042b50f8a6bb0ae4261b8` deliberately changes these
 nine public paths relative to the v1 baseline:
 
 | Path | Rationale |
@@ -29,11 +29,15 @@ nine public paths relative to the v1 baseline:
 
 The v2 scope still includes every tracked public file. The mutation checks cover
 the new Chinese dictionary as well as the existing runtime, configuration and
-widget build boundaries. This commit follows the original Chinese feature commit
+widget build boundaries. Its predecessor `b30a34bfcdbc83ec58e9d9c0a8dab893064a5d19`
+follows the original Chinese feature commit
 `6b9ec9a4100a4351b143451b4a211b7067f3fb9e` with one public-line change:
 `FeedbackErrorCode` in `src/widget/i18n.ts` became a module-local type after
 Knip identified its export as unused. No public file was excluded from the
-fingerprint for this follow-up.
+fingerprint for this follow-up. The reviewed `af4d831` commit then changes only
+two declarations in `src/widget/ui.ts`: category options use their content width
+as a minimum and an automatic flex basis. This keeps the choices on one row at
+390 px while allowing the Chinese labels to wrap without overlap at 320 px.
 
 Managed tests run the implementation's actual `managed/local/adapter.mjs`: real
 Miniflare Workers, SQLite Durable Objects, V1 capability HTTP exchange, and a
