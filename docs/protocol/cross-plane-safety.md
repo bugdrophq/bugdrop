@@ -18,6 +18,10 @@ public files changed in that PR. This is the v1 baseline before localization.
 
 ## Reviewed v2 public change
 
+Merge commit `795a496f8d10714b2617a959956fa65d9ba059aa` combines PR #414's
+annotation touch fix with the Chinese widget feature. The v2 fixture pins all
+146 public files in that commit to SHA-256
+`2c72735e3d144a98f8ed83ca6a3ce179c121c9a51083a82a28b1bf70f029853c`.
 The Chinese widget change deliberately updates these nine public paths relative
 to the updated v1 baseline:
 
