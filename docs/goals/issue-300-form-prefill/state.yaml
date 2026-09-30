@@ -936,6 +936,48 @@ tasks:
       - "Repaired PR head and passing required CI"
       - "Final local proof against exact pushed head"
     receipt: null
+  - id: T014
+    type: worker
+    assignee: Worker
+    status: done
+    reasoning_hint: default
+    objective: "Repair PR #418 E2E shard-1 initialization race in the hidden-fields prefill test by waiting for window.BugDrop readiness before calling BugDrop.open(); preserve the actual hidden-field and broken-provider assertions. Verify the exact failed test repeatedly and rerun the full relevant browser suite against bugdrop.localhost."
+    inputs:
+      - "CI run 36737692654 E2E shard 1 failed only e2e/widget-prefill.spec.ts hidden fields case with #description element not found on all retries."
+      - "Other prefill E2E cases wait for window.BugDrop readiness before opening."
+    constraints:
+      - "You are not alone in the codebase; change only the allowed test file and preserve prior assertions."
+      - "No product source change or protected fingerprint refresh."
+      - "Use bugdrop.localhost for local browser tests."
+    expected_output:
+      - "Deterministic hidden-fields test after widget initialization"
+      - "Relevant browser suite passes and diff is whitespace clean"
+    allowed_files:
+      - "e2e/widget-prefill.spec.ts"
+    verify:
+      - "LIVE_TARGET=local PLAYWRIGHT_BASE_URL=http://bugdrop.localhost:8787 npx playwright test e2e/widget-prefill.spec.ts --project=chromium --grep 'hidden fields' --repeat-each=10 --workers=4"
+      - "LIVE_TARGET=local PLAYWRIGHT_BASE_URL=http://bugdrop.localhost:8787 npx playwright test e2e/widget-prefill.spec.ts e2e/api.spec.ts e2e/legacy-compat.spec.ts --project=chromium --workers=4"
+      - "npm run lint && npm run format:check && git diff --check"
+    stop_if:
+      - "Readiness wait does not resolve the failure or the same failure repeats locally."
+      - "The test requires weakening hidden-field or broken-provider assertions."
+      - "A fix needs files outside allowed_files."
+    receipt:
+      result: done
+      changed_files:
+        - e2e/widget-prefill.spec.ts
+      commands:
+        - cmd: "LIVE_TARGET=local PLAYWRIGHT_BASE_URL=http://bugdrop.localhost:8787 npx playwright test e2e/widget-prefill.spec.ts --project=chromium --grep 'hidden fields' --repeat-each=10 --workers=4"
+          status: pass
+        - cmd: "LIVE_TARGET=local PLAYWRIGHT_BASE_URL=http://bugdrop.localhost:8787 npx playwright test e2e/widget-prefill.spec.ts e2e/api.spec.ts e2e/legacy-compat.spec.ts --project=chromium --workers=4"
+          status: pass
+        - cmd: "npm run lint && npm run format:check && git diff --check"
+          status: pass
+      summary: "Waited for widget initialization before the hidden-fields test calls open(). Its hidden-field and broken-provider assertions remain intact. The formerly failing test passed 10/10 repeats with four workers; the combined Chromium suite passed 30/30. Lint, formatting, and whitespace checks pass. No commit or push was made."
+      deviations: []
+      remaining_blockers: []
+      verification_attempts: 1
+      stopped_because: null
   - id: T998
     type: judge
     assignee: Judge

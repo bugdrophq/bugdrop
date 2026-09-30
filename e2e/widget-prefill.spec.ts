@@ -238,6 +238,7 @@ for (const [locale, disclosure] of [
 test('hidden fields stay hidden and a broken provider opens an empty form', async ({ page }) => {
   await prepare(page, 'fixed');
   await page.goto('/test/?prefillProvider=getPrefill');
+  await page.waitForFunction(() => Boolean(window.BugDrop));
   await page.evaluate(() => window.BugDrop?.open());
   await expect(widget(page).locator('css=#description')).toHaveValue('<bug & literal>');
   await expect(widget(page).locator('css=#name')).toHaveCount(0);
