@@ -72,11 +72,11 @@
   },
   "overrides": {
     "jsdom": {
-      "undici": "7.29.0"
+      "undici": "7.29.1"
     },
     "miniflare": {
       "sharp": "0.35.4",
-      "undici": "7.29.0",
+      "undici": "7.29.1",
       "ws": "8.21.0"
     },
     "wrangler": {
