@@ -1292,8 +1292,10 @@ export function injectStyles(shadow: ShadowRoot, config: WidgetConfig) {
 
       .bd-view-controls .bd-tool {
         flex: 0 1 auto;
-        min-width: 0;
-        padding: 8px;
+        min-width: 44px;
+        min-height: 44px;
+        padding: 10px;
+        touch-action: manipulation;
       }
 
       .bd-toast {

@@ -1,4 +1,46 @@
-import { expect, test } from '@playwright/test';
+import { devices, expect, test } from '@playwright/test';
+
+test('mobile zoom controls have usable touch targets and respond to repeated taps', async ({
+  browser,
+}) => {
+  const context = await browser.newContext({ ...devices['iPhone 11'] });
+  try {
+    const page = await context.newPage();
+    await page.addInitScript(() => {
+      (
+        window as typeof window & { __bugdropMockToPng?: () => Promise<string> }
+      ).__bugdropMockToPng = async () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = 800;
+        canvas.height = 1600;
+        return canvas.toDataURL('image/png');
+      };
+    });
+    await page.goto('/test/?localQa=1');
+    const host = page.locator('#bugdrop-host');
+    await host.locator('.bd-trigger').tap();
+    await host.locator('[data-action="continue"]').tap();
+    await host.locator('#title').fill('Mobile touch controls');
+    await host.locator('#include-screenshot').check();
+    await host.locator('#submit-btn').tap();
+    await host.locator('[data-action="capture"]').tap();
+    await expect(host.locator('#annotation-canvas canvas')).toBeVisible();
+
+    const zoomIn = host.locator('[data-view="in"]');
+    const bounds = await zoomIn.boundingBox();
+    expect(bounds).not.toBeNull();
+    expect(bounds!.width).toBeGreaterThanOrEqual(44);
+    expect(bounds!.height).toBeGreaterThanOrEqual(44);
+    await zoomIn.tap();
+    await zoomIn.tap();
+    await expect(host.locator('.bd-zoom-level')).toHaveText('200%');
+
+    await host.locator('[data-tool="pan"]').tap();
+    await expect(host.locator('[data-tool="pan"]')).toHaveClass(/active/);
+  } finally {
+    await context.close();
+  }
+});
 
 test('long mobile screenshot remains readable and annotations map through zoom and pan', async ({
   page,
