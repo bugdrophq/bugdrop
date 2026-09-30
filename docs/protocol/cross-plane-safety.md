@@ -1,11 +1,35 @@
 # Local cross-plane safety harness
 
 The current public system remains supported. This harness compares its tracked
-runtime, assets, widget build inputs and Wrangler configuration to the starting
-`main` commit recorded in `test/cross-plane/fixtures/current-public-baseline.v1.json`.
-Public fingerprint mutations and changed/skipped/retried browser evidence must fail.
+runtime, assets, widget build inputs and Wrangler configuration to the reviewed
+feature commit recorded in `test/cross-plane/fixtures/current-public-baseline.v2.json`.
+The test verifies that the fixture's commit produces its exact file count and
+fingerprint, then compares the working tree against that fingerprint. Public
+fingerprint mutations and changed/skipped/retried browser evidence must fail.
 An intentional future public change requires explicit baseline review; do not
-refresh the fingerprint merely to make a failure disappear.
+refresh the fingerprint merely to make a failure disappear. The v1 fixture
+remains as the pre-localization historical baseline.
+
+## Reviewed v2 public change
+
+Commit `6b9ec9a4100a4351b143451b4a211b7067f3fb9e` deliberately changes these
+nine public paths relative to the v1 baseline:
+
+| Path | Rationale |
+| --- | --- |
+| `src/routes/api.ts` | Add stable machine codes beside existing English errors for legacy feedback failures, while retaining structured-feedback and check response shapes. |
+| `src/widget/i18n.ts` | Resolve explicit Simplified Chinese tags and provide localized submission-error mapping. |
+| `src/widget/index.ts` | Display localized default-widget error copy based on machine codes. |
+| `src/widget/ui.ts` | Wrap category choices at narrow widths so translated labels do not collide. |
+| `src/widget/locales/de.ts` | Add German copy for the new submission-error codes. |
+| `src/widget/locales/en.ts` | Add English copy for the new submission-error codes. |
+| `src/widget/locales/nl.ts` | Add Dutch copy for the new submission-error codes. |
+| `src/widget/locales/pl.ts` | Add Polish copy for the new submission-error codes. |
+| `src/widget/locales/zh-CN.ts` | Add complete Simplified Chinese widget copy and submission-error messages. |
+
+The v2 scope still includes every tracked public file. The mutation checks cover
+the new Chinese dictionary as well as the existing runtime, configuration and
+widget build boundaries.
 
 Managed tests run the implementation's actual `managed/local/adapter.mjs`: real
 Miniflare Workers, SQLite Durable Objects, V1 capability HTTP exchange, and a
