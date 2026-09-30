@@ -1014,21 +1014,40 @@ export function injectStyles(shadow: ShadowRoot, config: WidgetConfig) {
       background-position: 0 0, 0 8px, 8px -8px, -8px 0;
       background-size: 16px 16px;
       box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--bd-border) 60%, transparent);
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      display: block;
       overflow: auto;
+      overscroll-behavior: contain;
     }
 
     .bd-annotation-stage canvas {
       display: block;
       touch-action: none;
-      max-width: 100%;
-      max-height: calc(min(58vh, 620px) - 36px);
-      width: auto;
+      max-width: none;
+      max-height: none;
+      width: 100%;
       height: auto;
+      margin-inline: auto;
       background: #ffffff;
       box-shadow: var(--bd-shadow-md);
+    }
+
+    .bd-view-controls {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 6px;
+      margin: 8px 0;
+    }
+
+    .bd-view-controls .bd-tool {
+      min-width: 0;
+    }
+
+    .bd-zoom-level {
+      min-width: 42px;
+      text-align: center;
+      font-size: 12px;
+      color: var(--bd-text-secondary);
     }
 
     /* Preview */
@@ -1263,16 +1282,18 @@ export function injectStyles(shadow: ShadowRoot, config: WidgetConfig) {
         padding: 12px;
       }
 
-      .bd-annotation-stage canvas {
-        max-height: calc(46vh - 24px);
-      }
-
       .bd-tool {
         flex: 1;
         min-width: calc(50% - 4px);
         justify-content: center;
         padding: 12px;
         text-align: center;
+      }
+
+      .bd-view-controls .bd-tool {
+        flex: 0 1 auto;
+        min-width: 0;
+        padding: 8px;
       }
 
       .bd-toast {

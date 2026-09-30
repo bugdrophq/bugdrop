@@ -1,29 +1,29 @@
-export type Tool = 'draw' | 'arrow' | 'rect' | 'redact';
+import { createAnnotationMarks, type Point } from './annotation-marks';
 
-interface Point {
-  x: number;
-  y: number;
-}
+export type Tool = 'draw' | 'arrow' | 'rect' | 'redact' | 'pan';
 
-const ANNOTATION_COLOR = '#ff0000';
-const REDACTION_COLOR = '#000000';
 const VISIBLE_ANNOTATION_LINE_WIDTH = 5.5;
-const ARROW_HEAD_ANGLE = Math.PI / 7;
 const MIN_ANNOTATION_DISTANCE = 2;
-const MIN_REDACTION_SIZE = 4;
-const REDACTION_PADDING = 1;
+const ZOOM_LEVELS = [0.75, 1, 1.5, 2, 3, 4];
 
 export function createAnnotator(
   container: HTMLElement,
   imageData: string
 ): {
   setTool: (tool: Tool) => void;
+  fitWidth: () => void;
+  zoomIn: () => void;
+  zoomOut: () => void;
+  resetView: () => void;
+  getZoom: () => number;
   undo: () => void;
   getImageData: () => string;
   destroy: () => void;
 } {
   const canvas = document.createElement('canvas');
   const ctx = canvas.getContext('2d')!;
+  const { drawLine, drawArrow, drawRect, drawRedaction, isMeaningfulRedaction } =
+    createAnnotationMarks(ctx, canvas, getLineWidth);
 
   let currentTool: Tool = 'draw';
   let isDrawing = false;
@@ -31,6 +31,8 @@ export function createAnnotator(
   let draftBase: ImageData | null = null;
   let hasDrawnStroke = false;
   let activePointerId: number | null = null;
+  let panOrigin: { x: number; y: number; left: number; top: number } | null = null;
+  let zoom = 1;
   const history: ImageData[] = [];
 
   // Load image
@@ -39,10 +41,7 @@ export function createAnnotator(
     // Keep full resolution in canvas, scale display via CSS
     canvas.width = img.width;
     canvas.height = img.height;
-    canvas.style.maxWidth = '100%';
-    canvas.style.height = 'auto';
-    canvas.style.cursor = 'crosshair';
-
+    canvas.style.width = `min(${zoom * 100}%, ${img.width * zoom}px)`;
     ctx.drawImage(img, 0, 0);
 
     // Commit the unannotated screenshot as the undo floor.
@@ -73,6 +72,7 @@ export function createAnnotator(
     window.removeEventListener('pointerup', handlePointerUp);
     window.removeEventListener('pointercancel', handlePointerCancel);
     activePointerId = null;
+    panOrigin = null;
     isDrawing = false;
     points = [];
     draftBase = null;
@@ -82,6 +82,7 @@ export function createAnnotator(
   function cancelDraft() {
     if (draftBase) restoreState(draftBase);
     resetDraft();
+    canvas.style.cursor = currentTool === 'pan' ? 'grab' : 'crosshair';
   }
 
   function getCanvasPoint(e: PointerEvent): Point {
@@ -102,83 +103,6 @@ export function createAnnotator(
     return Math.round(VISIBLE_ANNOTATION_LINE_WIDTH * scale);
   }
 
-  function drawLine(from: Point, to: Point) {
-    const lineWidth = getLineWidth();
-
-    ctx.beginPath();
-    ctx.moveTo(from.x, from.y);
-    ctx.lineTo(to.x, to.y);
-    ctx.strokeStyle = ANNOTATION_COLOR;
-    ctx.lineWidth = lineWidth;
-    ctx.lineCap = 'round';
-    ctx.lineJoin = 'round';
-    ctx.stroke();
-  }
-
-  function drawArrow(from: Point, to: Point) {
-    // Line
-    drawLine(from, to);
-
-    // Arrowhead
-    const angle = Math.atan2(to.y - from.y, to.x - from.x);
-    const headLength = getLineWidth() * 5;
-
-    ctx.beginPath();
-    ctx.moveTo(to.x, to.y);
-    ctx.lineTo(
-      to.x - headLength * Math.cos(angle - ARROW_HEAD_ANGLE),
-      to.y - headLength * Math.sin(angle - ARROW_HEAD_ANGLE)
-    );
-    ctx.lineTo(
-      to.x - headLength * Math.cos(angle + ARROW_HEAD_ANGLE),
-      to.y - headLength * Math.sin(angle + ARROW_HEAD_ANGLE)
-    );
-    ctx.closePath();
-    ctx.fillStyle = ANNOTATION_COLOR;
-    ctx.fill();
-  }
-
-  function drawRect(from: Point, to: Point) {
-    ctx.strokeStyle = ANNOTATION_COLOR;
-    ctx.lineWidth = getLineWidth();
-    ctx.lineCap = 'round';
-    ctx.lineJoin = 'round';
-    ctx.strokeRect(from.x, from.y, to.x - from.x, to.y - from.y);
-  }
-
-  function getRectBounds(from: Point, to: Point) {
-    const x = Math.min(from.x, to.x);
-    const y = Math.min(from.y, to.y);
-    const width = Math.abs(to.x - from.x);
-    const height = Math.abs(to.y - from.y);
-    return { x, y, width, height };
-  }
-
-  function getRedactionBounds(from: Point, to: Point) {
-    const { x, y, width, height } = getRectBounds(from, to);
-    const left = Math.max(0, Math.floor(x) - REDACTION_PADDING);
-    const top = Math.max(0, Math.floor(y) - REDACTION_PADDING);
-    const right = Math.min(canvas.width, Math.ceil(x + width) + REDACTION_PADDING);
-    const bottom = Math.min(canvas.height, Math.ceil(y + height) + REDACTION_PADDING);
-    return {
-      x: left,
-      y: top,
-      width: Math.max(0, right - left),
-      height: Math.max(0, bottom - top),
-    };
-  }
-
-  function isMeaningfulRedaction(from: Point, to: Point) {
-    const { width, height } = getRedactionBounds(from, to);
-    return width >= MIN_REDACTION_SIZE && height >= MIN_REDACTION_SIZE;
-  }
-
-  function drawRedaction(from: Point, to: Point) {
-    const { x, y, width, height } = getRedactionBounds(from, to);
-    ctx.fillStyle = REDACTION_COLOR;
-    ctx.fillRect(x, y, width, height);
-  }
-
   function handlePointerDown(e: PointerEvent) {
     if (activePointerId !== null || !e.isPrimary || (e.pointerType === 'mouse' && e.button !== 0)) {
       return;
@@ -188,6 +112,19 @@ export function createAnnotator(
 
     e.preventDefault();
     activePointerId = e.pointerId;
+    if (currentTool === 'pan') {
+      panOrigin = {
+        x: e.clientX,
+        y: e.clientY,
+        left: container.scrollLeft,
+        top: container.scrollTop,
+      };
+      canvas.style.cursor = 'grabbing';
+      window.addEventListener('pointermove', handlePointerMove);
+      window.addEventListener('pointerup', handlePointerUp);
+      window.addEventListener('pointercancel', handlePointerCancel);
+      return;
+    }
     isDrawing = true;
     points = [getCanvasPoint(e)];
     draftBase = base;
@@ -198,6 +135,12 @@ export function createAnnotator(
   }
 
   function handlePointerMove(e: PointerEvent) {
+    if (panOrigin && e.pointerId === activePointerId) {
+      e.preventDefault();
+      container.scrollLeft = panOrigin.left + panOrigin.x - e.clientX;
+      container.scrollTop = panOrigin.top + panOrigin.y - e.clientY;
+      return;
+    }
     if (!isDrawing || !draftBase || e.pointerId !== activePointerId) return;
     e.preventDefault();
 
@@ -224,6 +167,11 @@ export function createAnnotator(
   function handlePointerUp(e: PointerEvent) {
     if (e.pointerId !== activePointerId) return;
     e.preventDefault();
+    if (panOrigin) {
+      resetDraft();
+      canvas.style.cursor = 'grab';
+      return;
+    }
     if (!isDrawing || !draftBase) {
       resetDraft();
       return;
@@ -260,7 +208,26 @@ export function createAnnotator(
   }
 
   function handlePointerCancel(e: PointerEvent) {
-    if (e.pointerId === activePointerId) cancelDraft();
+    if (e.pointerId !== activePointerId) return;
+    if (panOrigin) {
+      container.scrollLeft = panOrigin.left;
+      container.scrollTop = panOrigin.top;
+      resetDraft();
+      canvas.style.cursor = 'grab';
+    } else {
+      cancelDraft();
+    }
+  }
+
+  function setZoom(nextZoom: number) {
+    cancelDraft();
+    const centerX = container.scrollLeft + container.clientWidth / 2;
+    const centerY = container.scrollTop + container.clientHeight / 2;
+    const ratio = nextZoom / zoom;
+    zoom = nextZoom;
+    canvas.style.width = `min(${zoom * 100}%, ${img.width * zoom}px)`;
+    container.scrollLeft = centerX * ratio - container.clientWidth / 2;
+    container.scrollTop = centerY * ratio - container.clientHeight / 2;
   }
 
   // Event handlers
@@ -270,6 +237,29 @@ export function createAnnotator(
     setTool(tool: Tool) {
       cancelDraft();
       currentTool = tool;
+      canvas.style.cursor = tool === 'pan' ? 'grab' : 'crosshair';
+    },
+
+    fitWidth() {
+      setZoom(1);
+    },
+
+    zoomIn() {
+      setZoom(ZOOM_LEVELS.find(level => level > zoom) ?? zoom);
+    },
+
+    zoomOut() {
+      setZoom([...ZOOM_LEVELS].reverse().find(level => level < zoom) ?? zoom);
+    },
+
+    resetView() {
+      setZoom(1);
+      container.scrollLeft = 0;
+      container.scrollTop = 0;
+    },
+
+    getZoom() {
+      return zoom;
     },
 
     undo() {
@@ -291,7 +281,7 @@ export function createAnnotator(
     },
 
     destroy() {
-      resetDraft();
+      cancelDraft();
       canvas.removeEventListener('pointerdown', handlePointerDown);
       canvas.remove();
     },

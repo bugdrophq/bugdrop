@@ -4,6 +4,11 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 const annotatorMocks = vi.hoisted(() => ({
   createAnnotator: vi.fn(),
   setTool: vi.fn(),
+  fitWidth: vi.fn(),
+  zoomIn: vi.fn(),
+  zoomOut: vi.fn(),
+  resetView: vi.fn(),
+  getZoom: vi.fn(() => 1),
   undo: vi.fn(),
   getImageData: vi.fn(),
   destroy: vi.fn(),
@@ -16,6 +21,11 @@ vi.mock('../src/widget/annotator', () => ({
 beforeEach(() => {
   annotatorMocks.createAnnotator.mockReturnValue({
     setTool: annotatorMocks.setTool,
+    fitWidth: annotatorMocks.fitWidth,
+    zoomIn: annotatorMocks.zoomIn,
+    zoomOut: annotatorMocks.zoomOut,
+    resetView: annotatorMocks.resetView,
+    getZoom: annotatorMocks.getZoom,
     undo: annotatorMocks.undo,
     getImageData: annotatorMocks.getImageData,
     destroy: annotatorMocks.destroy,
@@ -59,6 +69,27 @@ describe('annotation flow', () => {
     expect(annotatorMocks.undo).toHaveBeenCalledTimes(1);
     root.querySelector<HTMLElement>('.bd-close')?.click();
     await expect(result).resolves.toBe('cancel');
+  });
+
+  it('switches to pan and wires each view control without changing annotation history', async () => {
+    const { root, result } = await openAnnotation();
+    root.querySelector<HTMLElement>('[data-tool="pan"]')?.click();
+    expect(annotatorMocks.setTool).toHaveBeenCalledWith('pan');
+
+    annotatorMocks.getZoom.mockReturnValue(1.5);
+    root.querySelector<HTMLElement>('[data-view="in"]')?.click();
+    expect(annotatorMocks.zoomIn).toHaveBeenCalledTimes(1);
+    expect(root.querySelector('output')?.value).toBe('150%');
+
+    root.querySelector<HTMLElement>('[data-view="out"]')?.click();
+    root.querySelector<HTMLElement>('[data-view="fit"]')?.click();
+    root.querySelector<HTMLElement>('[data-view="reset"]')?.click();
+    expect(annotatorMocks.zoomOut).toHaveBeenCalledTimes(1);
+    expect(annotatorMocks.fitWidth).toHaveBeenCalledTimes(1);
+    expect(annotatorMocks.resetView).toHaveBeenCalledTimes(1);
+    expect(annotatorMocks.undo).not.toHaveBeenCalled();
+    root.querySelector<HTMLElement>('.bd-close')?.click();
+    await result;
   });
 
   it.each([
