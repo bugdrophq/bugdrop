@@ -37,6 +37,8 @@ export const pl: WidgetStrings = {
   namePlaceholder: 'Twoje imię i nazwisko',
   emailLabel: 'E-mail',
   emailPlaceholder: 'twoj@email.com',
+  prefilledEmailDisclosure:
+    'Ten adres e-mail zostanie dołączony do zgłoszenia GitHub, jeśli go pozostawisz. Możesz go edytować lub usunąć.',
   titleLabel: 'Tytuł',
   titlePlaceholder: 'Krótki opis problemu lub sugestii',
   descriptionLabel: 'Opis',

@@ -31,6 +31,8 @@ export const nl: WidgetStrings = {
   namePlaceholder: 'Uw naam',
   emailLabel: 'E-mail',
   emailPlaceholder: 'uw@email.nl',
+  prefilledEmailDisclosure:
+    'Dit e-mailadres komt in de GitHub-issue als u het laat staan. U kunt het wijzigen of wissen.',
   titleLabel: 'Titel',
   titlePlaceholder: 'Korte omschrijving van het probleem of de suggestie',
   descriptionLabel: 'Omschrijving',

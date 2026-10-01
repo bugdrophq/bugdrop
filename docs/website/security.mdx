@@ -36,6 +36,27 @@ Feedback submissions are created as GitHub Issues in your repository. Each issue
 - Submitter name and email (if configured and provided)
 - Link to the screenshot (if attached)
 
+Name and email may be suggested by a host app through `data-prefill-provider`, but the reporter
+can edit or clear them. They are untrusted, unverified form values. BugDrop does not check that
+the reporter owns the nickname or email. A self-hosted auth-token gate can restrict submission
+access; it does not bind these fields to the token identity. Verified attribution would require
+a separate server-derived identity design.
+
+If an email field is shown and the reporter retains an address, that address is written to the
+GitHub Issue. Anyone with access to the repository's Issues may read it; Issues in a public
+repository are public. Keep email collection off unless it serves a clear purpose.
+
+The Worker applies the same submitter checks to widget and direct API requests. It permits names
+up to 100 characters and email strings up to 254 characters, and rejects non-string values,
+line breaks, control and bidirectional formatting characters, and malformed addresses (including
+slashes or empty labels in the domain) before
+creating an Issue. Built-in form inputs and custom Flow fields mapped to submitter name or email
+also cap typed values at those lengths before submission. Accepted
+submitter text is escaped in its inline GitHub Markdown position so it cannot add a heading,
+link, or false attribution. Names containing an `@` are shown as code text because GitHub
+otherwise turns them into active mentions. These checks protect Issue formatting; they do not establish who
+submitted the feedback. Ordinary valid name and email strings retain their existing Issue output.
+
 ### Screenshots
 
 Screenshots are stored as image files in a `.bugdrop/` directory on a dedicated `bugdrop-screenshots` branch in your repository. This design has several benefits:
