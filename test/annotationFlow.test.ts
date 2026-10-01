@@ -10,6 +10,7 @@ const annotatorMocks = vi.hoisted(() => ({
   resetView: vi.fn(),
   getZoom: vi.fn(() => 1),
   undo: vi.fn(),
+  hasEdits: vi.fn(() => false),
   getImageData: vi.fn(),
   destroy: vi.fn(),
 }));
@@ -27,11 +28,14 @@ beforeEach(() => {
     resetView: annotatorMocks.resetView,
     getZoom: annotatorMocks.getZoom,
     undo: annotatorMocks.undo,
+    hasEdits: annotatorMocks.hasEdits,
     getImageData: annotatorMocks.getImageData,
     destroy: annotatorMocks.destroy,
   });
   annotatorMocks.getImageData.mockReturnValue('annotated-image');
-  window.matchMedia = vi.fn().mockReturnValue({ matches: true }) as unknown as typeof matchMedia;
+  window.matchMedia = vi.fn().mockImplementation((query: string) => ({
+    matches: !query.startsWith('(max-width: 640px),'),
+  })) as unknown as typeof matchMedia;
 });
 
 afterEach(() => {
@@ -155,5 +159,54 @@ describe('annotation flow', () => {
     expect(root.textContent).not.toContain('does not inspect pixels inside embedded');
     root.querySelector<HTMLElement>('[data-action="retake"]')?.click();
     await result;
+  });
+
+  it('requires mobile review before sending and preserves the edit state when returning', async () => {
+    window.matchMedia = vi.fn().mockReturnValue({ matches: true }) as unknown as typeof matchMedia;
+    const { root, result } = await openAnnotation();
+    expect(annotatorMocks.setTool).toHaveBeenCalledWith('pan');
+    expect(root.querySelector('[data-tool="pan"]')?.classList).toContain('active');
+    root.querySelector<HTMLElement>('[data-tool="arrow"]')?.click();
+
+    root.querySelector<HTMLElement>('[data-action="send-reviewed"]')?.click();
+    expect(annotatorMocks.getImageData).not.toHaveBeenCalled();
+    root.querySelector<HTMLElement>('[data-action="review"]')?.click();
+    expect(root.querySelector('.bd-modal--annotator')?.classList).toContain(
+      'bd-annotation--review'
+    );
+    expect(annotatorMocks.fitWidth).toHaveBeenCalledTimes(1);
+    root.querySelector<HTMLElement>('[data-action="back-to-edit"]')?.click();
+    expect(root.querySelector('.bd-modal--annotator')?.classList).not.toContain(
+      'bd-annotation--review'
+    );
+    expect(root.querySelector('[data-tool="arrow"]')?.classList).toContain('active');
+    expect(annotatorMocks.setTool).toHaveBeenLastCalledWith('arrow');
+    root.querySelector<HTMLElement>('[data-action="review"]')?.click();
+    root.querySelector<HTMLElement>('[data-action="send-reviewed"]')?.click();
+    await expect(result).resolves.toBe('annotated-image');
+  });
+
+  it('confirms retake only when committed edits would be discarded', async () => {
+    annotatorMocks.hasEdits.mockReturnValue(true);
+    const { root, result } = await openAnnotation();
+    root.querySelector<HTMLElement>('[data-action="retake"]')?.click();
+    expect(root.querySelector<HTMLElement>('.bd-retake-confirm')?.hidden).toBe(false);
+    expect(annotatorMocks.destroy).not.toHaveBeenCalled();
+
+    const keepEditing = root.querySelector<HTMLElement>('[data-action="keep-editing"]')!;
+    const confirmRetake = root.querySelector<HTMLElement>('[data-action="confirm-retake"]')!;
+    keepEditing.dispatchEvent(
+      new KeyboardEvent('keydown', { key: 'Tab', shiftKey: true, bubbles: true })
+    );
+    expect(document.activeElement).toBe(confirmRetake);
+    confirmRetake.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+    expect(root.querySelector<HTMLElement>('.bd-retake-confirm')?.hidden).toBe(true);
+
+    root.querySelector<HTMLElement>('[data-action="retake"]')?.click();
+    keepEditing.click();
+    expect(root.querySelector<HTMLElement>('.bd-retake-confirm')?.hidden).toBe(true);
+    root.querySelector<HTMLElement>('[data-action="retake"]')?.click();
+    root.querySelector<HTMLElement>('[data-action="confirm-retake"]')?.click();
+    await expect(result).resolves.toBe('retake');
   });
 });

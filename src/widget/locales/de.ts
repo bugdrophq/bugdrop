@@ -138,6 +138,14 @@ export const de: WidgetStrings = {
   continueWithoutScreenshot: 'Ohne Screenshot fortfahren',
   // Annotation step
   reviewScreenshotTitle: 'Screenshot überprüfen',
+  editScreenshotTitle: 'Screenshot bearbeiten',
+  reviewButton: 'Prüfen',
+  backToEdit: 'Bearbeiten',
+  reviewInstruction: 'Prüfen Sie den Screenshot vor dem Senden. Sie können ihn noch bearbeiten.',
+  retakeConfirmTitle: 'Screenshot neu aufnehmen?',
+  retakeConfirmMessage: 'Ihre Änderungen an diesem Screenshot gehen verloren.',
+  keepEditing: 'Weiter bearbeiten',
+  discardAndRetake: 'Verwerfen und neu aufnehmen',
   viewportRedactionUnavailableNote:
     'Bei diesem über den Browser erfassten sichtbaren Bereich konnten private Felder nicht automatisch maskiert werden. Überprüfen und verdecken Sie sensible Bereiche vor dem Senden.',
   redactionCountNote: (count: number) =>

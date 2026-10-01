@@ -131,6 +131,15 @@ export const nl: WidgetStrings = {
   continueWithoutScreenshot: 'Doorgaan zonder schermafbeelding',
   // Annotation step
   reviewScreenshotTitle: 'Schermafbeelding controleren',
+  editScreenshotTitle: 'Schermafbeelding bewerken',
+  reviewButton: 'Controleren',
+  backToEdit: 'Bewerken',
+  reviewInstruction:
+    'Controleer de schermafbeelding voordat u verzendt. U kunt nog wijzigingen maken.',
+  retakeConfirmTitle: 'Schermafbeelding opnieuw maken?',
+  retakeConfirmMessage: 'Uw bewerkingen aan deze schermafbeelding gaan verloren.',
+  keepEditing: 'Verder bewerken',
+  discardAndRetake: 'Weggooien en opnieuw maken',
   viewportRedactionUnavailableNote:
     'Bij deze via de browser vastgelegde schermafbeelding konden privévelden niet automatisch worden gemaskeerd. Controleer en dek gevoelige gebieden af voordat u verstuurt.',
   redactionCountNote: (count: number) =>

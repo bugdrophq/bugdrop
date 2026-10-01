@@ -37,6 +37,177 @@ test('mobile zoom controls have usable touch targets and respond to repeated tap
 
     await host.locator('[data-tool="pan"]').tap();
     await expect(host.locator('[data-tool="pan"]')).toHaveClass(/active/);
+
+    await host.locator('[data-tool="rect"]').tap();
+    await host.locator('#annotation-canvas canvas').evaluate(canvas => {
+      const bounds = canvas.getBoundingClientRect();
+      const point = { x: bounds.left + 30, y: bounds.top + 30 };
+      const options = { bubbles: true, pointerId: 7, pointerType: 'touch', isPrimary: true };
+      canvas.dispatchEvent(
+        new PointerEvent('pointerdown', { ...options, clientX: point.x, clientY: point.y })
+      );
+      window.dispatchEvent(
+        new PointerEvent('pointerup', { ...options, clientX: point.x + 40, clientY: point.y + 40 })
+      );
+    });
+    await host.locator('[data-action="mobile-retake"]').tap();
+    await expect(host.locator('.bd-retake-confirm')).toBeVisible();
+    await host.locator('[data-action="keep-editing"]').tap();
+    await host.locator('[data-action="undo"]').tap();
+    await host.locator('[data-action="mobile-retake"]').tap();
+    await expect(host.locator('.bd-modal--annotator')).toBeHidden();
+  } finally {
+    await context.close();
+  }
+});
+
+test('mobile dock keeps navigation separate from tools across phone sizes', async ({ browser }) => {
+  for (const viewport of [
+    { width: 320, height: 568 },
+    { width: 375, height: 667 },
+    { width: 430, height: 932 },
+    { width: 667, height: 375 },
+    { width: 896, height: 414 },
+    { width: 932, height: 430 },
+  ]) {
+    const context = await browser.newContext({ ...devices['iPhone 11'], viewport });
+    try {
+      const page = await context.newPage();
+      await page.addInitScript(() => {
+        (
+          window as typeof window & { __bugdropMockToPng?: () => Promise<string> }
+        ).__bugdropMockToPng = async () => {
+          const canvas = document.createElement('canvas');
+          canvas.width = 800;
+          canvas.height = 1600;
+          return canvas.toDataURL('image/png');
+        };
+      });
+      await page.goto('/test/?localQa=1');
+      const host = page.locator('#bugdrop-host');
+      await host.locator('.bd-trigger').tap();
+      await host.locator('[data-action="continue"]').tap();
+      await host.locator('#title').fill('Mobile layout');
+      await host.locator('#include-screenshot').check();
+      await host.locator('#submit-btn').tap();
+      await host.locator('[data-action="capture"]').tap();
+      await expect(host.locator('#annotation-canvas canvas')).toBeVisible();
+      await expect
+        .poll(() =>
+          host
+            .locator('.bd-modal--annotator')
+            .evaluate(element => element.getBoundingClientRect().top)
+        )
+        .toBeLessThanOrEqual(1);
+
+      const retake = (await host.locator('[data-action="mobile-retake"]').boundingBox())!;
+      const review = (await host.locator('[data-action="review"]').boundingBox())!;
+      const stage = (await host.locator('#annotation-canvas').boundingBox())!;
+      const dock = (await host.locator('.bd-tools').boundingBox())!;
+      const close = (await host.locator('.bd-close').boundingBox())!;
+      expect(retake.height).toBeGreaterThanOrEqual(44);
+      expect(review.height).toBeGreaterThanOrEqual(44);
+      expect(close.width).toBeGreaterThanOrEqual(44);
+      expect(close.height).toBeGreaterThanOrEqual(44);
+      expect(stage.height).toBeGreaterThanOrEqual(60);
+      expect(retake.y + retake.height).toBeLessThan(stage.y);
+      expect(review.y + review.height).toBeLessThan(stage.y);
+      expect(dock.y).toBeGreaterThanOrEqual(stage.y + stage.height - 1);
+      await expect(host.locator('[data-tool="pan"]')).toHaveAttribute('aria-pressed', 'true');
+      for (const tool of await host.locator('.bd-tools .bd-tool').all()) {
+        const bounds = (await tool.boundingBox())!;
+        expect(bounds.width).toBeGreaterThanOrEqual(44);
+        expect(bounds.height).toBeGreaterThanOrEqual(44);
+      }
+      await expect(host.locator('[data-action="send-reviewed"]')).toBeHidden();
+
+      await host.locator('[data-action="review"]').tap();
+      await expect(host.locator('[data-action="send-reviewed"]')).toBeVisible();
+      await expect(host.locator('.bd-tools')).toBeHidden();
+      await host.locator('[data-action="back-to-edit"]').tap();
+      await expect(host.locator('.bd-tools')).toBeVisible();
+    } finally {
+      await context.close();
+    }
+  }
+});
+
+test('mobile review sends the annotated image only after the final action', async ({ browser }) => {
+  const context = await browser.newContext({ ...devices['iPhone 11'] });
+  try {
+    const page = await context.newPage();
+    await page.addInitScript(() => {
+      (
+        window as typeof window & { __bugdropMockToPng?: () => Promise<string> }
+      ).__bugdropMockToPng = async () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = 400;
+        canvas.height = 600;
+        const context = canvas.getContext('2d')!;
+        context.fillStyle = '#ffffff';
+        context.fillRect(0, 0, canvas.width, canvas.height);
+        return canvas.toDataURL('image/png');
+      };
+    });
+    await page.goto('/test/?localQa=1');
+    const host = page.locator('#bugdrop-host');
+    await host.locator('.bd-trigger').tap();
+    await host.locator('[data-action="continue"]').tap();
+    await host.locator('#title').fill('Annotated mobile submission');
+    await host.locator('#include-screenshot').check();
+    await host.locator('#submit-btn').tap();
+    await host.locator('[data-action="capture"]').tap();
+    const canvas = host.locator('#annotation-canvas canvas');
+    await expect(canvas).toBeVisible();
+    await host.locator('[data-tool="redact"]').tap();
+    const sample = await canvas.evaluate(element => {
+      const rect = element.getBoundingClientRect();
+      const from = { x: rect.left + 30, y: rect.top + 30 };
+      const to = { x: from.x + 40, y: from.y + 40 };
+      const options = { bubbles: true, pointerId: 8, pointerType: 'touch', isPrimary: true };
+      element.dispatchEvent(
+        new PointerEvent('pointerdown', { ...options, clientX: from.x, clientY: from.y })
+      );
+      window.dispatchEvent(
+        new PointerEvent('pointerup', { ...options, clientX: to.x, clientY: to.y })
+      );
+      return {
+        x: Math.floor(((from.x + to.x) / 2 - rect.left) * (element.width / rect.width)),
+        y: Math.floor(((from.y + to.y) / 2 - rect.top) * (element.height / rect.height)),
+      };
+    });
+    const localSubmissions = () =>
+      page.evaluate(() =>
+        (
+          window as typeof window & {
+            BugDropLocalSubmissions: {
+              list: () => Promise<Array<{ payload: { screenshot: string } }>>;
+            };
+          }
+        ).BugDropLocalSubmissions.list()
+      );
+    expect(await localSubmissions()).toHaveLength(0);
+    await host.locator('[data-action="review"]').tap();
+    expect(await localSubmissions()).toHaveLength(0);
+    await host.locator('[data-action="send-reviewed"]').tap();
+    await expect(host.locator('.bd-success-icon')).toBeVisible();
+    const [submission] = await localSubmissions();
+    expect(submission.payload.screenshot).toMatch(/^data:image\/png;base64,/);
+    const color = await page.evaluate(
+      async ({ screenshot, x, y }) => {
+        const image = new Image();
+        image.src = screenshot;
+        await image.decode();
+        const canvas = document.createElement('canvas');
+        canvas.width = image.width;
+        canvas.height = image.height;
+        const context = canvas.getContext('2d')!;
+        context.drawImage(image, 0, 0);
+        return Array.from(context.getImageData(x, y, 1, 1).data);
+      },
+      { screenshot: submission.payload.screenshot, ...sample }
+    );
+    expect(color).toEqual([0, 0, 0, 255]);
   } finally {
     await context.close();
   }
@@ -82,7 +253,7 @@ test('long mobile screenshot remains readable and annotations map through zoom a
   });
   expect(initial.bitmap).toEqual([800, 3200]);
   expect(initial.display).toBeGreaterThan(initial.stage * 0.8);
-  expect(initial.scrollHeight).toBeGreaterThan(initial.clientHeight * 3);
+  expect(initial.scrollHeight).toBeGreaterThan(initial.clientHeight * 2);
 
   await host.locator('[data-view="in"]').click();
   await expect(host.locator('output.bd-zoom-level')).toHaveText('150%');

@@ -437,7 +437,39 @@ export function injectStyles(shadow: ShadowRoot, config: WidgetConfig) {
     .bd-modal--annotator {
       width: min(96vw, 1100px);
       max-width: 1100px;
+      position: relative;
     }
+
+    .bd-annotation-nav, .bd-annotation-send, .bd-annotation-review-instruction {
+      display: none;
+    }
+
+    .bd-annotation-instruction {
+      margin: 0 0 12px;
+      color: var(--bd-text-secondary);
+      font-size: 13px;
+    }
+
+    .bd-retake-confirm[hidden] { display: none; }
+    .bd-retake-confirm {
+      position: absolute;
+      inset: 0;
+      z-index: 5;
+      display: grid;
+      place-items: center;
+      padding: 20px;
+      background: var(--bd-overlay-bg);
+    }
+    .bd-retake-confirm-card {
+      width: min(100%, 400px);
+      padding: 20px;
+      border-radius: var(--bd-radius-lg);
+      background: var(--bd-bg-primary);
+      box-shadow: var(--bd-shadow-lg);
+    }
+    .bd-retake-confirm-card h3 { margin: 0 0 8px; color: var(--bd-text-primary); }
+    .bd-retake-confirm-card p { margin: 0 0 20px; color: var(--bd-text-secondary); }
+    .bd-retake-confirm-card .bd-btn { min-height: 44px; margin: 4px 4px 4px 0; }
 
     /* Modal Header */
     .bd-header {
@@ -999,6 +1031,8 @@ export function injectStyles(shadow: ShadowRoot, config: WidgetConfig) {
       box-shadow: var(--bd-shadow-sm);
     }
 
+    .bd-tool-icon { margin-right: 4px; }
+
     .bd-annotation-stage {
       min-height: 240px;
       max-height: min(58vh, 620px);
@@ -1314,6 +1348,156 @@ export function injectStyles(shadow: ShadowRoot, config: WidgetConfig) {
     @keyframes bd-slideUpMobile {
       from { opacity: 0; transform: translateY(100%); }
       to { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 640px), (max-width: 1024px) and (max-height: 500px) {
+      .bd-modal--annotator {
+        width: 100%;
+        max-width: 100%;
+        height: 100dvh;
+        max-height: 100dvh;
+        border-radius: 0;
+        padding-left: env(safe-area-inset-left, 0px);
+        padding-right: env(safe-area-inset-right, 0px);
+      }
+      .bd-modal--annotator .bd-header {
+        flex: none;
+        padding: 6px 12px;
+        cursor: default;
+        touch-action: auto;
+      }
+      .bd-modal--annotator .bd-title { font-size: 15px; }
+      .bd-modal--annotator .bd-close {
+        width: 44px;
+        height: 44px;
+        flex: none;
+        font-size: 28px;
+      }
+      .bd-modal--annotator .bd-body {
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
+        overflow: hidden;
+        padding: 0;
+      }
+      .bd-annotation-nav {
+        order: 0;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        align-items: center;
+        gap: 6px;
+        padding: 8px 10px;
+        border-bottom: var(--bd-border-style);
+      }
+      .bd-annotation-nav .bd-btn {
+        width: 100%;
+        min-height: 48px;
+        padding: 8px;
+        font-size: 14px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .bd-annotation-retake, .bd-annotation-back { grid-column: 1; grid-row: 1; }
+      .bd-annotation-next { grid-column: 2; grid-row: 1; }
+      .bd-annotation-back { display: none; }
+      .bd-annotation-notes {
+        order: 1;
+        flex: none;
+        max-height: min(20vh, 110px);
+        overflow-y: auto;
+        padding: 8px 14px 0;
+      }
+      .bd-annotation-notes .bd-redaction-note { margin-bottom: 6px !important; }
+      .bd-annotation-instruction { margin-bottom: 8px; font-size: 12px; }
+      .bd-canvas-area {
+        order: 2;
+        display: flex;
+        flex: 1 1 auto;
+        flex-direction: column;
+        min-height: 0;
+      }
+      .bd-modal--annotator .bd-view-controls {
+        flex: none;
+        flex-wrap: nowrap;
+        justify-content: center;
+        gap: 4px;
+        margin: 0;
+        padding: 4px 8px;
+      }
+      .bd-modal--annotator .bd-view-controls .bd-tool {
+        flex: 0 1 auto;
+        min-width: 44px;
+        min-height: 44px;
+        padding: 8px;
+      }
+      .bd-modal--annotator .bd-annotation-stage {
+        flex: 1 1 auto;
+        min-height: 0;
+        max-height: none;
+        margin: 0 10px;
+        padding: 10px;
+      }
+      .bd-modal--annotator .bd-tools {
+        order: 3;
+        display: grid;
+        grid-template-columns: repeat(6, minmax(0, 1fr));
+        flex: none;
+        gap: 4px;
+        margin: 0;
+        padding: 8px 10px;
+        border-radius: 0;
+      }
+      .bd-modal--annotator .bd-tools .bd-tool {
+        min-width: 0;
+        width: 100%;
+        min-height: 60px;
+        padding: 6px 2px;
+        overflow: hidden;
+        touch-action: manipulation;
+      }
+      .bd-modal--annotator .bd-tool-icon {
+        display: block;
+        margin: 0 auto 2px;
+        font-size: 20px;
+        line-height: 22px;
+      }
+      .bd-modal--annotator .bd-tool-label {
+        display: block;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        font-size: 10px;
+      }
+      .bd-modal--annotator .bd-actions { display: none; }
+      .bd-annotation-send {
+        order: 4;
+        padding: 10px 14px;
+        border-top: var(--bd-border-style);
+      }
+      .bd-annotation-send .bd-btn { width: 100%; min-height: 48px; }
+      .bd-annotation--review .bd-annotation-retake,
+      .bd-annotation--review .bd-annotation-next,
+      .bd-annotation--review .bd-tools,
+      .bd-annotation--review .bd-view-controls,
+      .bd-annotation--review .bd-annotation-instruction { display: none; }
+      .bd-annotation--review .bd-annotation-back,
+      .bd-annotation--review .bd-annotation-review-instruction,
+      .bd-annotation--review .bd-annotation-send { display: block; }
+      .bd-annotation--review .bd-annotation-stage canvas { pointer-events: none; }
+      .bd-annotation--review .bd-annotation-stage { touch-action: pan-x pan-y; }
+    }
+
+    @media (max-width: 360px) {
+      .bd-annotation-nav .bd-btn { font-size: 12px; }
+      .bd-modal--annotator .bd-tool-label { display: none; }
+      .bd-modal--annotator .bd-tools .bd-tool { min-height: 52px; }
+      .bd-modal--annotator .bd-tool-icon { margin-bottom: 0; font-size: 24px; }
+    }
+
+    @media (max-height: 500px) and (max-width: 1024px) {
+      .bd-modal--annotator .bd-annotation-notes { max-height: 46px; }
+      .bd-modal--annotator .bd-tools .bd-tool { min-height: 48px; }
     }
 
     /* Touch-friendly hover states */

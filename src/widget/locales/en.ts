@@ -126,6 +126,14 @@ export const en: WidgetStrings = {
   continueWithoutScreenshot: 'Continue without screenshot',
   // Annotation step
   reviewScreenshotTitle: 'Review Screenshot',
+  editScreenshotTitle: 'Edit screenshot',
+  reviewButton: 'Review',
+  backToEdit: 'Edit',
+  reviewInstruction: 'Check the screenshot before sending. You can go back to make changes.',
+  retakeConfirmTitle: 'Retake screenshot?',
+  retakeConfirmMessage: 'Your edits to this screenshot will be lost.',
+  keepEditing: 'Keep editing',
+  discardAndRetake: 'Discard and retake',
   viewportRedactionUnavailableNote:
     'This browser viewport capture could not apply automatic private-field masks. Review and cover any sensitive areas before sending.',
   redactionCountNote: (count: number) =>
