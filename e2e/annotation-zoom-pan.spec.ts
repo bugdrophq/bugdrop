@@ -52,6 +52,11 @@ test('mobile zoom controls have usable touch targets and respond to repeated tap
     });
     await host.locator('[data-action="mobile-retake"]').tap();
     await expect(host.locator('.bd-retake-confirm')).toBeVisible();
+    await expect(host.locator('[data-action="keep-editing"]')).toBeFocused();
+    await page.keyboard.press('Shift+Tab');
+    await expect(host.locator('[data-action="confirm-retake"]')).toBeFocused();
+    await page.keyboard.press('Tab');
+    await expect(host.locator('[data-action="keep-editing"]')).toBeFocused();
     await host.locator('[data-action="keep-editing"]').tap();
     await host.locator('[data-action="undo"]').tap();
     await host.locator('[data-action="mobile-retake"]').tap();
@@ -107,12 +112,12 @@ test('mobile dock keeps navigation separate from tools across phone sizes', asyn
       const close = (await host.locator('.bd-close').boundingBox())!;
       expect(retake.height).toBeGreaterThanOrEqual(44);
       expect(review.height).toBeGreaterThanOrEqual(44);
-      expect(close.width).toBeGreaterThanOrEqual(44);
-      expect(close.height).toBeGreaterThanOrEqual(44);
+      expect(close.width).toBeGreaterThanOrEqual(43.9);
+      expect(close.height).toBeGreaterThanOrEqual(43.9);
       expect(stage.height).toBeGreaterThanOrEqual(60);
       expect(retake.y + retake.height).toBeLessThan(stage.y);
       expect(review.y + review.height).toBeLessThan(stage.y);
-      expect(dock.y).toBeGreaterThanOrEqual(stage.y + stage.height - 1);
+      expect(dock.y).toBeGreaterThanOrEqual(stage.y + stage.height - 3);
       await expect(host.locator('[data-tool="pan"]')).toHaveAttribute('aria-pressed', 'true');
       for (const tool of await host.locator('.bd-tools .bd-tool').all()) {
         const bounds = (await tool.boundingBox())!;

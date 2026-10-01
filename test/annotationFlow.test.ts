@@ -189,6 +189,10 @@ describe('annotation flow', () => {
   it('confirms retake only when committed edits would be discarded', async () => {
     annotatorMocks.hasEdits.mockReturnValue(true);
     const { root, result } = await openAnnotation();
+    const host = document.createElement('div');
+    document.body.append(host);
+    const shadowRoot = host.attachShadow({ mode: 'open' });
+    shadowRoot.append(root);
     root.querySelector<HTMLElement>('[data-action="retake"]')?.click();
     expect(root.querySelector<HTMLElement>('.bd-retake-confirm')?.hidden).toBe(false);
     expect(annotatorMocks.destroy).not.toHaveBeenCalled();
@@ -198,7 +202,10 @@ describe('annotation flow', () => {
     keepEditing.dispatchEvent(
       new KeyboardEvent('keydown', { key: 'Tab', shiftKey: true, bubbles: true })
     );
-    expect(document.activeElement).toBe(confirmRetake);
+    expect(document.activeElement).toBe(host);
+    expect(shadowRoot.activeElement).toBe(confirmRetake);
+    confirmRetake.dispatchEvent(new KeyboardEvent('keydown', { key: 'Tab', bubbles: true }));
+    expect(shadowRoot.activeElement).toBe(keepEditing);
     confirmRetake.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
     expect(root.querySelector<HTMLElement>('.bd-retake-confirm')?.hidden).toBe(true);
 

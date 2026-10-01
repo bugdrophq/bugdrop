@@ -126,10 +126,10 @@ export function showAnnotationStep(
         event.preventDefault();
         dismissRetake();
       } else if (event.key === 'Tab') {
-        if (event.shiftKey && document.activeElement === keepEditing) {
+        if (event.shiftKey && event.target === keepEditing) {
           event.preventDefault();
           confirmRetake.focus();
-        } else if (!event.shiftKey && document.activeElement === confirmRetake) {
+        } else if (!event.shiftKey && event.target === confirmRetake) {
           event.preventDefault();
           keepEditing.focus();
         }

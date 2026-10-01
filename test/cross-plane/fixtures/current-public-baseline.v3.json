@@ -2,7 +2,7 @@
   "schemaVersion": 3,
   "description": "Reviewed mobile screenshot annotation dock on top of the v2 Simplified Chinese widget baseline. Tracked public src (excluding src/managed), public assets, wrangler.toml, widget build script and widget tsconfig. SHA-256 of sorted path + NUL + exact bytes + NUL.",
   "fileCount": 148,
-  "sha256": "06824a9c5fec35d85d2c7becd14c5d04fce84e2b2109bafe009ce47dcddd091a",
+  "sha256": "0f82135e668042a07f2e90cdf38c3e2abe4a86c0ce88c9cbdd9a34e97db576b1",
   "approvedDelta": {
     "previousBaseline": "current-public-baseline.v2.json",
     "previousSha256": "2bee4a7248c57e66e67b51a33706791c8217b22976df11fe5f4a017ff0ea1a00",
