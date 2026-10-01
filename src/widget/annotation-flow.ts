@@ -50,7 +50,15 @@ export function showAnnotationStep(
           <button class="bd-tool" data-tool="arrow">➡️ ${escapeWidgetText(t().toolArrow)}</button>
           <button class="bd-tool" data-tool="rect">▢ ${escapeWidgetText(t().toolRectangle)}</button>
           <button class="bd-tool" data-tool="redact">${escapeWidgetText(t().toolRedact)}</button>
+          <button class="bd-tool" data-tool="pan">✋ ${escapeWidgetText(t().toolPan)}</button>
           <button class="bd-tool" data-action="undo">↶ ${escapeWidgetText(t().undo)}</button>
+        </div>
+        <div class="bd-view-controls">
+          <button class="bd-tool" data-view="fit">${escapeWidgetText(t().fitWidth)}</button>
+          <button class="bd-tool" data-view="out" aria-label="${escapeWidgetText(t().zoomOut)}">−</button>
+          <output class="bd-zoom-level" aria-live="polite">100%</output>
+          <button class="bd-tool" data-view="in" aria-label="${escapeWidgetText(t().zoomIn)}">+</button>
+          <button class="bd-tool" data-view="reset">${escapeWidgetText(t().resetView)}</button>
         </div>
         <div id="annotation-canvas" class="bd-annotation-stage"></div>
         <div class="bd-actions">
@@ -64,6 +72,27 @@ export function showAnnotationStep(
 
     const canvasContainer = modal.querySelector('#annotation-canvas') as HTMLElement;
     const annotator = createAnnotator(canvasContainer, screenshot);
+
+    const zoomLevel = modal.querySelector('.bd-zoom-level') as HTMLOutputElement;
+    modal.querySelectorAll<HTMLElement>('[data-view]').forEach(button => {
+      button.addEventListener('click', () => {
+        switch (button.dataset.view) {
+          case 'fit':
+            annotator.fitWidth();
+            break;
+          case 'in':
+            annotator.zoomIn();
+            break;
+          case 'out':
+            annotator.zoomOut();
+            break;
+          case 'reset':
+            annotator.resetView();
+            break;
+        }
+        zoomLevel.value = `${Math.round(annotator.getZoom() * 100)}%`;
+      });
+    });
 
     const toolButtons = modal.querySelectorAll('[data-tool]');
     toolButtons.forEach(btn => {

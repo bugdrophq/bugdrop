@@ -167,7 +167,7 @@
     </aside>
 
     <main>
-      <div id="local-only" class="notice" hidden>This page is available only on localhost subdomains.</div>
+      <div id="local-only" class="notice" hidden>This page is available only on local development hosts.</div>
       <div id="empty" class="empty">Select a submission or create one from the widget.</div>
       <section id="detail" hidden>
         <h2 id="detail-heading">Submission</h2>
@@ -226,7 +226,7 @@
       var selectedRecord = null;
 
       function isLocalHost() {
-        return location.hostname === 'localhost' || location.hostname === '127.0.0.1' || location.hostname.endsWith('.localhost');
+        return location.hostname === 'localhost' || location.hostname === '127.0.0.1' || location.hostname.endsWith('.localhost') || location.hostname.endsWith('.local');
       }
 
       function formatDate(value) {

@@ -213,4 +213,65 @@ describe('createAnnotator', () => {
     window.dispatchEvent(pointer('pointerup', 90, 80, 'touch', 2));
     expect(context.getImageData).toHaveBeenCalledTimes(2);
   });
+
+  it('keeps full resolution and maps coordinates through zoomed canvas bounds', async () => {
+    const { annotator, canvas } = await setup();
+    annotator.zoomIn();
+    expect(annotator.getZoom()).toBe(1.5);
+    expect(canvas.style.width).toBe('min(150%, 600px)');
+    expect([canvas.width, canvas.height]).toEqual([400, 200]);
+    vi.spyOn(canvas, 'getBoundingClientRect').mockReturnValue({
+      left: 20,
+      top: 40,
+      width: 300,
+      height: 150,
+      right: 320,
+      bottom: 190,
+      x: 20,
+      y: 40,
+      toJSON: () => ({}),
+    });
+    drag(canvas, [95, 77.5], [170, 115]);
+    expect(context.moveTo).toHaveBeenCalledWith(100, 50);
+    expect(context.lineTo).toHaveBeenCalledWith(200, 100);
+    expect(context.getImageData).toHaveBeenCalledTimes(2);
+    annotator.fitWidth();
+    expect(annotator.getZoom()).toBe(1);
+  });
+
+  it('keeps a zoom selection made before the screenshot finishes loading', async () => {
+    const container = document.querySelector<HTMLElement>('#container')!;
+    const annotator = createAnnotator(container, 'data:image/png;base64,source');
+    annotator.zoomIn();
+    await Promise.resolve();
+    const canvas = container.querySelector('canvas')!;
+    expect([canvas.width, canvas.height]).toEqual([400, 200]);
+    expect(canvas.style.width).toBe('min(150%, 600px)');
+    expect(annotator.getZoom()).toBe(1.5);
+  });
+
+  it('pans without drawing, rolls back a canceled pan, and resets the view', async () => {
+    const { annotator, canvas } = await setup();
+    const stage = canvas.parentElement!;
+    Object.defineProperties(stage, {
+      clientWidth: { value: 200 },
+      clientHeight: { value: 100 },
+    });
+    stage.scrollLeft = 50;
+    stage.scrollTop = 80;
+    annotator.setTool('pan');
+    canvas.dispatchEvent(pointer('pointerdown', 100, 100, 'touch'));
+    window.dispatchEvent(pointer('pointermove', 70, 60, 'touch'));
+    expect([stage.scrollLeft, stage.scrollTop]).toEqual([80, 120]);
+    window.dispatchEvent(pointer('pointercancel', 70, 60, 'touch'));
+    expect([stage.scrollLeft, stage.scrollTop]).toEqual([50, 80]);
+    canvas.dispatchEvent(pointer('pointerdown', 100, 100, 'touch', 2));
+    window.dispatchEvent(pointer('pointermove', 70, 60, 'touch', 2));
+    window.dispatchEvent(pointer('pointerup', 70, 60, 'touch', 2));
+    expect([stage.scrollLeft, stage.scrollTop]).toEqual([80, 120]);
+    expect(context.getImageData).toHaveBeenCalledTimes(1);
+    expect(context.stroke).not.toHaveBeenCalled();
+    annotator.resetView();
+    expect([stage.scrollLeft, stage.scrollTop, annotator.getZoom()]).toEqual([0, 0, 1]);
+  });
 });

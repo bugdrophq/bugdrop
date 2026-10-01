@@ -111,6 +111,11 @@ export interface WidgetStrings {
   toolArrow: string;
   toolRectangle: string;
   toolRedact: string;
+  toolPan: string;
+  fitWidth: string;
+  zoomIn: string;
+  zoomOut: string;
+  resetView: string;
   undo: string;
   retake: string;
   submitFeedback: string;

@@ -96,6 +96,19 @@ set remains at 146 files; its SHA-256 changes from
 to `0b1bc59207e1ab085b39193b1b2691376fe93d5bfe34cfd41b80853620720ac3`.
 The fixture retains the previous fingerprint and the three changed source paths.
 
+PR #421 then adds screenshot annotation zoom and pan, extracts drawing primitives
+to `src/widget/annotation-marks.ts`, updates widget translations and mobile
+styles, and allows local QA on Bonjour `.local` hosts in three `public/test`
+files. Integrating these changes with PR #418 increases the protected public
+file set from 146 to 147. The previous mainline fingerprint was
+`0b1bc59207e1ab085b39193b1b2691376fe93d5bfe34cfd41b80853620720ac3`;
+the reviewed PR #421 fingerprint before integration was
+`1e9800cddc885db4d307e0352d8be97d093d77e78d6f9aa67364f70369b4429f`.
+The combined fingerprint is
+`bf1456cf33fd5f2a574f6f1908a7ab6548f040a969fd6e823f993f01de64ca6f`.
+No managed files, Wrangler configuration, widget build script, or widget
+TypeScript configuration changed in PR #421.
+
 Managed tests run the implementation's actual `managed/local/adapter.mjs`: real
 Miniflare Workers, SQLite Durable Objects, V1 capability HTTP exchange, and a
 private fake GitHub adapter. They do not import the first-tranche service double.
