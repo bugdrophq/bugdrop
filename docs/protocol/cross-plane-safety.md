@@ -19,6 +19,13 @@ prefill and PR #421 annotation zoom changes described below.
 
 ## Reviewed v2 public change
 
+Merge commit `73bb9db0a9ad69a508007bb39c5f23f174c338ef` combines the
+reviewed mainline form-prefill and annotation-zoom changes with the Chinese
+widget feature. The v2 fixture pins all 148 public files in that commit to
+SHA-256 `2bee4a7248c57e66e67b51a33706791c8217b22976df11fe5f4a017ff0ea1a00`.
+This merge supplies Chinese copy for the six new prefill and zoom strings and
+adds `INVALID_SUBMITTER` to the legacy feedback error-code map.
+
 The Chinese widget change deliberately updates these nine public paths relative
 to the updated v1 baseline:
 

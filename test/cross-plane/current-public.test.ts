@@ -34,7 +34,7 @@ function fingerprint(paths: string[], read: (path: string) => Uint8Array): strin
 
 describe('current public plane remains unchanged through managed integration', () => {
   it('pins the reviewed v2 baseline to the exact merged public tree', () => {
-    expect(baseline.baseCommit).toBe('795a496f8d10714b2617a959956fa65d9ba059aa');
+    expect(baseline.baseCommit).toBe('73bb9db0a9ad69a508007bb39c5f23f174c338ef');
     const paths = publicFilesAt(baseline.baseCommit);
     expect(paths).toContain('src/widget/locales/zh-CN.ts');
     expect(paths.length).toBe(baseline.fileCount);
