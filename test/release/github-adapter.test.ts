@@ -1876,6 +1876,71 @@ describe('independent cumulative retention authority', () => {
 });
 
 describe('authenticated transport', () => {
+  it('retries a transient GitHub API read without accepting an incomplete response', async () => {
+    const fetchImpl = vi
+      .fn()
+      .mockResolvedValueOnce(new Response('temporary failure', { status: 500 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ id: 42 }), { status: 200 }));
+    const transport = createGithubTransport({ token: 'repository-token', fetchImpl });
+
+    await expect(transport.request('/repos/owner/repo/releases/42')).resolves.toMatchObject({
+      data: { id: 42 },
+    });
+    expect(fetchImpl).toHaveBeenCalledTimes(2);
+    expect(fetchImpl.mock.calls[1][1]?.headers).toMatchObject({
+      authorization: 'Bearer repository-token',
+    });
+  });
+
+  it('retries a transient asset storage failure through a fresh trusted redirect', async () => {
+    const calls: Array<[URL | RequestInfo, RequestInit | undefined]> = [];
+    const fetchImpl = vi.fn(async (url: URL | RequestInfo, options?: RequestInit) => {
+      calls.push([url, options]);
+      if (calls.length === 1 || calls.length === 3) {
+        return new Response(null, {
+          status: 302,
+          headers: { location: 'https://objects.githubusercontent.com/release-asset' },
+        });
+      }
+      return new Response(calls.length === 2 ? 'temporary failure' : 'asset bytes', {
+        status: calls.length === 2 ? 500 : 200,
+      });
+    });
+    const transport = createGithubTransport({ token: 'repository-token', fetchImpl });
+
+    await expect(
+      transport.requestBytes('/repos/owner/repo/releases/assets/1', {
+        repository: 'owner/repo',
+        assetId: '1',
+        expectedSize: 11,
+      })
+    ).resolves.toEqual(Buffer.from('asset bytes'));
+    expect(calls).toHaveLength(4);
+    for (const index of [1, 3]) {
+      expect(calls[index][1]?.headers).not.toHaveProperty('authorization');
+    }
+  });
+
+  it('does not retry a missing GitHub asset', async () => {
+    const fetchImpl = vi.fn(async () => new Response('missing', { status: 404 }));
+    const transport = createGithubTransport({ token: 'repository-token', fetchImpl });
+
+    await expect(transport.requestBytes('/repos/owner/repo/releases/assets/1')).rejects.toThrow(
+      /returned 404/
+    );
+    expect(fetchImpl).toHaveBeenCalledTimes(1);
+  });
+
+  it('fails after a bounded number of transient asset failures', async () => {
+    const fetchImpl = vi.fn(async () => new Response('temporary failure', { status: 503 }));
+    const transport = createGithubTransport({ token: 'repository-token', fetchImpl });
+
+    await expect(transport.requestBytes('/repos/owner/repo/releases/assets/1')).rejects.toThrow(
+      /returned 503/
+    );
+    expect(fetchImpl).toHaveBeenCalledTimes(3);
+  });
+
   it('keeps tokens out of errors while requiring complete JSON responses', async () => {
     const token = 'top-secret-token';
     const fetchImpl = vi.fn(
@@ -1890,6 +1955,7 @@ describe('authenticated transport', () => {
     }
     expect(message).toContain('502');
     expect(message).not.toContain(token);
+    expect(fetchImpl).toHaveBeenCalledTimes(3);
   });
 
   it('does not forward the GitHub token to redirected asset storage', async () => {
@@ -1913,9 +1979,10 @@ describe('authenticated transport', () => {
   });
 
   it('rejects repository substitution and truncated streamed assets', async () => {
+    const fetchImpl = vi.fn(async () => new Response('short', { status: 200 }));
     const transport = createGithubTransport({
       token: 'repository-token',
-      fetchImpl: async () => new Response('short', { status: 200 }),
+      fetchImpl,
     });
     await expect(
       transport.requestBytes('/repos/owner/other/releases/assets/1', {
@@ -1931,6 +1998,7 @@ describe('authenticated transport', () => {
         expectedSize: 6,
       })
     ).rejects.toThrow(/truncated|Content-Length/);
+    expect(fetchImpl).toHaveBeenCalledTimes(1);
   });
 
   it('keeps the abort timeout active until the redirected response stream completes', async () => {
