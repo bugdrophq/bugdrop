@@ -3,6 +3,7 @@
 import { createHash } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
+import { setTimeout as sleep } from 'node:timers/promises';
 import { fileURLToPath } from 'node:url';
 
 import { canonicalize, compareUtf8 } from './canonical-json.mjs';
@@ -34,6 +35,8 @@ const MARKERLESS_HISTORY_MAX_TAG = 'v1.55.0';
 const UNATTESTED_V2_HISTORY_MAX_TAG = 'v1.55.2';
 const PRE_TRANSFER_MAX_TAG = 'v1.56.9';
 const ASSET_TIMEOUT_MS = 30_000;
+const READ_RETRY_DELAYS_MS = [200, 600];
+const RETRYABLE_READ_STATUSES = new Set([500, 502, 503, 504]);
 const sha256Bytes = bytes => createHash('sha256').update(bytes).digest('hex');
 
 export class GithubAdapterError extends Error {
@@ -123,6 +126,19 @@ export function createGithubTransport({
     'https://release-assets.githubusercontent.com',
     'https://github-releases.githubusercontent.com',
   ]);
+  async function retryTransientRead(read, signal) {
+    for (let attempt = 0; ; attempt += 1) {
+      const response = await read();
+      if (
+        !RETRYABLE_READ_STATUSES.has(response.status) ||
+        attempt === READ_RETRY_DELAYS_MS.length
+      ) {
+        return response;
+      }
+      await response.body?.cancel().catch(() => {});
+      await sleep(READ_RETRY_DELAYS_MS[attempt], undefined, { signal });
+    }
+  }
   async function boundedBytes(response, { expectedSize, maxBytes }) {
     const declared = response.headers.get('content-length');
     if (declared !== null) {
@@ -152,14 +168,16 @@ export function createGithubTransport({
   }
   return {
     async request(path) {
-      const response = await fetchImpl(new URL(path, `${apiUrl.replace(/\/$/, '')}/`), {
-        headers: {
-          accept: 'application/vnd.github+json',
-          authorization: `Bearer ${token}`,
-          'x-github-api-version': API_VERSION,
-        },
-        redirect: 'error',
-      });
+      const response = await retryTransientRead(() =>
+        fetchImpl(new URL(path, `${apiUrl.replace(/\/$/, '')}/`), {
+          headers: {
+            accept: 'application/vnd.github+json',
+            authorization: `Bearer ${token}`,
+            'x-github-api-version': API_VERSION,
+          },
+          redirect: 'error',
+        })
+      );
       if (!response.ok) {
         fail('GITHUB_API_FAILED', `GitHub API returned ${response.status}`, {
           path: new URL(path, apiUrl).pathname,
@@ -190,37 +208,40 @@ export function createGithubTransport({
       const controller = new AbortController();
       const timer = setTimeout(() => controller.abort(), ASSET_TIMEOUT_MS);
       try {
-        let response = await fetchImpl(assetUrl, {
-          headers: {
-            accept: 'application/octet-stream',
-            authorization: `Bearer ${token}`,
-            'x-github-api-version': API_VERSION,
-          },
-          redirect: 'manual',
-          signal: controller.signal,
-        });
-        if ([301, 302, 303, 307, 308].includes(response.status)) {
-          const location = response.headers.get('location');
-          let redirect;
-          try {
-            redirect = new URL(location);
-          } catch {
-            fail('GITHUB_ASSET_FAILED', 'GitHub asset redirect is malformed');
-          }
-          if (
-            redirect.protocol !== 'https:' ||
-            redirect.username ||
-            redirect.password ||
-            !storageOrigins.has(redirect.origin)
-          ) {
-            fail('GITHUB_ASSET_FAILED', 'GitHub asset redirect is not trusted HTTPS');
-          }
-          response = await fetchImpl(redirect, {
-            headers: { accept: 'application/octet-stream' },
-            redirect: 'error',
+        const response = await retryTransientRead(async () => {
+          let result = await fetchImpl(assetUrl, {
+            headers: {
+              accept: 'application/octet-stream',
+              authorization: `Bearer ${token}`,
+              'x-github-api-version': API_VERSION,
+            },
+            redirect: 'manual',
             signal: controller.signal,
           });
-        }
+          if ([301, 302, 303, 307, 308].includes(result.status)) {
+            const location = result.headers.get('location');
+            let redirect;
+            try {
+              redirect = new URL(location);
+            } catch {
+              fail('GITHUB_ASSET_FAILED', 'GitHub asset redirect is malformed');
+            }
+            if (
+              redirect.protocol !== 'https:' ||
+              redirect.username ||
+              redirect.password ||
+              !storageOrigins.has(redirect.origin)
+            ) {
+              fail('GITHUB_ASSET_FAILED', 'GitHub asset redirect is not trusted HTTPS');
+            }
+            result = await fetchImpl(redirect, {
+              headers: { accept: 'application/octet-stream' },
+              redirect: 'error',
+              signal: controller.signal,
+            });
+          }
+          return result;
+        }, controller.signal);
         if (!response.ok) {
           fail('GITHUB_ASSET_FAILED', `GitHub asset returned ${response.status}`, {
             status: response.status,
