@@ -1435,7 +1435,7 @@ export function injectStyles(shadow: ShadowRoot, config: WidgetConfig) {
         flex: 1 1 auto;
         min-height: 0;
         max-height: none;
-        margin: 0 10px;
+        margin: 0 10px 8px;
         padding: 10px;
       }
       .bd-modal--annotator .bd-tools {

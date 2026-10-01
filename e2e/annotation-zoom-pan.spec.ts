@@ -97,6 +97,9 @@ test('mobile dock keeps navigation separate from tools across phone sizes', asyn
       await host.locator('#submit-btn').tap();
       await host.locator('[data-action="capture"]').tap();
       await expect(host.locator('#annotation-canvas canvas')).toBeVisible();
+      await host.locator('.bd-modal--annotator').evaluate(async element => {
+        await Promise.all(element.getAnimations().map(animation => animation.finished));
+      });
       await expect
         .poll(() =>
           host
@@ -105,11 +108,23 @@ test('mobile dock keeps navigation separate from tools across phone sizes', asyn
         )
         .toBeLessThanOrEqual(1);
 
-      const retake = (await host.locator('[data-action="mobile-retake"]').boundingBox())!;
-      const review = (await host.locator('[data-action="review"]').boundingBox())!;
-      const stage = (await host.locator('#annotation-canvas').boundingBox())!;
-      const dock = (await host.locator('.bd-tools').boundingBox())!;
-      const close = (await host.locator('.bd-close').boundingBox())!;
+      const { retake, review, stage, dock, close, tools } = await host
+        .locator('.bd-modal--annotator')
+        .evaluate(modal => {
+          const box = (element: Element) => {
+            const { x, y, width, height } = element.getBoundingClientRect();
+            return { x, y, width, height };
+          };
+          const select = (selector: string) => box(modal.querySelector(selector)!);
+          return {
+            retake: select('[data-action="mobile-retake"]'),
+            review: select('[data-action="review"]'),
+            stage: select('#annotation-canvas'),
+            dock: select('.bd-tools'),
+            close: select('.bd-close'),
+            tools: Array.from(modal.querySelectorAll('.bd-tools .bd-tool'), box),
+          };
+        });
       expect(retake.height).toBeGreaterThanOrEqual(44);
       expect(review.height).toBeGreaterThanOrEqual(44);
       expect(close.width).toBeGreaterThanOrEqual(43.9);
@@ -117,10 +132,10 @@ test('mobile dock keeps navigation separate from tools across phone sizes', asyn
       expect(stage.height).toBeGreaterThanOrEqual(60);
       expect(retake.y + retake.height).toBeLessThan(stage.y);
       expect(review.y + review.height).toBeLessThan(stage.y);
-      expect(dock.y).toBeGreaterThanOrEqual(stage.y + stage.height - 3);
+      expect(dock.y).toBeGreaterThanOrEqual(stage.y + stage.height);
       await expect(host.locator('[data-tool="pan"]')).toHaveAttribute('aria-pressed', 'true');
-      for (const tool of await host.locator('.bd-tools .bd-tool').all()) {
-        const bounds = (await tool.boundingBox())!;
+      expect(tools).toHaveLength(6);
+      for (const bounds of tools) {
         expect(bounds.width).toBeGreaterThanOrEqual(44);
         expect(bounds.height).toBeGreaterThanOrEqual(44);
       }
