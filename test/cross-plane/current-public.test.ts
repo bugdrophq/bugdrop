@@ -2,17 +2,27 @@ import { createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import baseline from './fixtures/current-public-baseline.v1.json';
+import baseline from './fixtures/current-public-baseline.v2.json';
+
+function isPublicPath(path: string): boolean {
+  return (
+    (path.startsWith('src/') && !path.startsWith('src/managed/')) ||
+    path.startsWith('public/') ||
+    ['wrangler.toml', 'scripts/build-widget.js', 'tsconfig.widget.json'].includes(path)
+  );
+}
 
 function publicFiles(): string[] {
   return execFileSync('git', ['ls-files', '-z'], { encoding: 'utf8' })
     .split('\0')
-    .filter(
-      path =>
-        (path.startsWith('src/') && !path.startsWith('src/managed/')) ||
-        path.startsWith('public/') ||
-        ['wrangler.toml', 'scripts/build-widget.js', 'tsconfig.widget.json'].includes(path)
-    )
+    .filter(isPublicPath)
+    .sort();
+}
+
+function publicFilesAt(commit: string): string[] {
+  return execFileSync('git', ['ls-tree', '-r', '-z', '--name-only', commit], { encoding: 'utf8' })
+    .split('\0')
+    .filter(isPublicPath)
     .sort();
 }
 
@@ -23,20 +33,33 @@ function fingerprint(paths: string[], read: (path: string) => Uint8Array): strin
 }
 
 describe('current public plane remains unchanged through managed integration', () => {
-  it('matches the pre-tranche tracked runtime, assets and configuration byte for byte', () => {
+  it('pins the reviewed v2 baseline to the exact merged public tree', () => {
+    expect(baseline.baseCommit).toBe('73bb9db0a9ad69a508007bb39c5f23f174c338ef');
+    const paths = publicFilesAt(baseline.baseCommit);
+    expect(paths).toContain('src/widget/locales/zh-CN.ts');
+    expect(paths.length).toBe(baseline.fileCount);
+    expect(
+      fingerprint(paths, path => execFileSync('git', ['show', `${baseline.baseCommit}:${path}`]))
+    ).toBe(baseline.sha256);
+  });
+
+  it('matches the reviewed tracked runtime, assets and configuration byte for byte', () => {
     const paths = publicFiles();
+    expect(paths).toContain('src/widget/locales/zh-CN.ts');
     expect(paths.length).toBe(baseline.fileCount);
     expect(fingerprint(paths, readFileSync)).toBe(baseline.sha256);
   });
 
-  it.each(['src/index.ts', 'wrangler.toml', 'scripts/build-widget.js'])(
-    'detects a public boundary mutation in %s',
-    target => {
-      const hash = fingerprint(publicFiles(), path => {
-        const bytes = readFileSync(path);
-        return path === target ? Buffer.concat([bytes, Buffer.from('\nMANAGED_MUTATION')]) : bytes;
-      });
-      expect(hash).not.toBe(baseline.sha256);
-    }
-  );
+  it.each([
+    'src/index.ts',
+    'wrangler.toml',
+    'scripts/build-widget.js',
+    'src/widget/locales/zh-CN.ts',
+  ])('detects a public boundary mutation in %s', target => {
+    const hash = fingerprint(publicFiles(), path => {
+      const bytes = readFileSync(path);
+      return path === target ? Buffer.concat([bytes, Buffer.from('\nMANAGED_MUTATION')]) : bytes;
+    });
+    expect(hash).not.toBe(baseline.sha256);
+  });
 });

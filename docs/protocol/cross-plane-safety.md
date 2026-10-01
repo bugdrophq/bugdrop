@@ -2,16 +2,56 @@
 
 The current public system remains supported. This harness compares its tracked
 runtime, assets, widget build inputs and Wrangler configuration to the reviewed
-commit recorded in `test/cross-plane/fixtures/current-public-baseline.v1.json`.
-Public fingerprint mutations and changed/skipped/retried browser evidence must fail.
+feature commit recorded in `test/cross-plane/fixtures/current-public-baseline.v2.json`.
+The test verifies that the fixture's commit produces its exact file count and
+fingerprint, then compares the working tree against that fingerprint. Public
+fingerprint mutations and changed/skipped/retried browser evidence must fail.
 An intentional future public change requires explicit baseline review; do not
-refresh the fingerprint merely to make a failure disappear.
+refresh the fingerprint merely to make a failure disappear. The v1 fixture
+remains as the pre-localization historical baseline.
 
 The iOS annotation touch change in PR #414 intentionally updates
 `src/widget/annotator.ts` and `src/widget/ui.ts`. Its reviewed public file set
 remains at 145 files; its fingerprint was pinned to PR head
 `ae23125dfc907ae0c5af418cba518a88144ed0ea`. No managed files or other
-public files changed in that PR.
+public files changed in that PR. Later mainline baselines include the Issue #300
+prefill and PR #421 annotation zoom changes described below.
+
+## Reviewed v2 public change
+
+Merge commit `73bb9db0a9ad69a508007bb39c5f23f174c338ef` combines the
+reviewed mainline form-prefill and annotation-zoom changes with the Chinese
+widget feature. The v2 fixture pins all 148 public files in that commit to
+SHA-256 `2bee4a7248c57e66e67b51a33706791c8217b22976df11fe5f4a017ff0ea1a00`.
+This merge supplies Chinese copy for the six new prefill and zoom strings and
+adds `INVALID_SUBMITTER` to the legacy feedback error-code map.
+
+The Chinese widget change deliberately updates these nine public paths relative
+to the updated v1 baseline:
+
+| Path | Rationale |
+| --- | --- |
+| `src/routes/api.ts` | Add stable machine codes beside existing English errors for legacy feedback failures, while retaining structured-feedback and check response shapes. |
+| `src/widget/i18n.ts` | Resolve explicit Simplified Chinese tags and provide localized submission-error mapping. |
+| `src/widget/index.ts` | Display localized default-widget error copy based on machine codes. |
+| `src/widget/ui.ts` | Wrap category choices at narrow widths so translated labels do not collide. |
+| `src/widget/locales/de.ts` | Add German copy for the new submission-error codes. |
+| `src/widget/locales/en.ts` | Add English copy for the new submission-error codes. |
+| `src/widget/locales/nl.ts` | Add Dutch copy for the new submission-error codes. |
+| `src/widget/locales/pl.ts` | Add Polish copy for the new submission-error codes. |
+| `src/widget/locales/zh-CN.ts` | Add complete Simplified Chinese widget copy and submission-error messages. |
+
+The v2 scope still includes every tracked public file. The mutation checks cover
+the new Chinese dictionary as well as the existing runtime, configuration and
+widget build boundaries. Its predecessor `b30a34bfcdbc83ec58e9d9c0a8dab893064a5d19`
+follows the original Chinese feature commit
+`6b9ec9a4100a4351b143451b4a211b7067f3fb9e` with one public-line change:
+`FeedbackErrorCode` in `src/widget/i18n.ts` became a module-local type after
+Knip identified its export as unused. No public file was excluded from the
+fingerprint for this follow-up. The reviewed `af4d831` commit then changes only
+two declarations in `src/widget/ui.ts`: category options use their content width
+as a minimum and an automatic flex basis. This keeps the choices on one row at
+390 px while allowing the Chinese labels to wrap without overlap at 320 px.
 
 ## Issue #300 public widget delta
 

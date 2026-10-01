@@ -1,0 +1,7 @@
+{
+  "schemaVersion": 2,
+  "baseCommit": "73bb9db0a9ad69a508007bb39c5f23f174c338ef",
+  "description": "Reviewed Simplified Chinese default-widget and legacy feedback error-code change merged with main's form-prefill and annotation-zoom changes. Tracked public src (excluding src/managed), public assets, wrangler.toml, widget build script and widget tsconfig. SHA-256 of sorted path + NUL + exact bytes + NUL at baseCommit.",
+  "fileCount": 148,
+  "sha256": "2bee4a7248c57e66e67b51a33706791c8217b22976df11fe5f4a017ff0ea1a00"
+}
