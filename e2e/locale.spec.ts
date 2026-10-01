@@ -246,12 +246,46 @@ test.describe('Widget localization', () => {
     await expect(modalTitle(page)).toHaveText('检查截图', { timeout: 15000 });
     await expect(widget.locator('css=#annotation-canvas canvas')).toBeVisible();
     await expect(widget.locator('css=[data-tool="redact"]')).toHaveText('遮盖');
+    await expect(widget.locator('css=[data-tool="pan"]')).toContainText('平移');
+    await expect(widget.locator('css=[data-view="fit"]')).toHaveText('适应宽度');
+    await expect(widget.locator('css=[data-view="in"]')).toHaveAttribute('aria-label', '放大');
+    await expect(widget.locator('css=[data-view="out"]')).toHaveAttribute('aria-label', '缩小');
+    await expect(widget.locator('css=[data-view="reset"]')).toHaveText('重置视图');
     await expect(widget.locator('css=[data-action="retake"]')).toHaveText('重新截图');
     await expect(widget.locator('css=[data-action="done"]')).toHaveText('提交反馈');
     await expect(widget.locator('css=.bd-modal')).toContainText('遮盖效果会永久保留在上传的图片中');
   });
 
+  test('shows the prefilled-email privacy reminder in Chinese', async ({ page }) => {
+    await page.addInitScript(() => {
+      (
+        window as typeof window & { getChinesePrefill?: () => { email: string } }
+      ).getChinesePrefill = () => ({ email: 'reporter@example.com' });
+    });
+    await page.route('**/test/**', async route => {
+      if (new URL(route.request().url()).pathname !== '/test/') return route.continue();
+      const response = await route.fetch();
+      const body = (await response.text()).replace(
+        "showEmail: 'showEmail',",
+        "showEmail: 'showEmail', prefillProvider: 'prefillProvider',"
+      );
+      await route.fulfill({ response, body });
+    });
+    await openWidget(page, {
+      locale: 'zh-CN',
+      showEmail: 'true',
+      prefillProvider: 'getChinesePrefill',
+    });
+    const widget = host(page);
+    await widget.locator('css=[data-action="continue"]').click();
+    await expect(widget.locator('css=#email')).toHaveValue('reporter@example.com');
+    await expect(widget.locator('css=#bd-prefilled-email-disclosure')).toHaveText(
+      '如果保留此邮箱，提交的 GitHub 问题中会包含它。您可以修改或清空。'
+    );
+  });
+
   for (const failure of [
+    { status: 400, code: 'INVALID_SUBMITTER', expected: '姓名或电子邮箱无效。请检查后重试。' },
     { status: 400, code: 'INVALID_SCREENSHOT', expected: '截图无效。请重新截图。' },
     {
       status: 401,

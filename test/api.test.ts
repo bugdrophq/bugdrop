@@ -2273,6 +2273,142 @@ describe('API Routes', () => {
       expect(issueBody).toContain('(john@example.com)');
     });
 
+    it('preserves ordinary legacy submitter text exactly, including common punctuation', async () => {
+      const submitter = {
+        name: "Élodie O'Neil-Smith",
+        email: 'first_last+tag@example.co.uk',
+      };
+      const res = await app.fetch(
+        new Request('http://localhost/feedback', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ...validPayload, submitter }),
+        }),
+        mockEnv
+      );
+      expect(res.status).toBe(200);
+      expect(mockCreateIssue).toHaveBeenCalledTimes(1);
+      expect(mockCreateIssue.mock.calls[0][4]).toContain(
+        "## Submitted by\n**Élodie O'Neil-Smith** (first_last+tag@example.co.uk)\n"
+      );
+    });
+
+    it('accepts the widget-sized name and email limits', async () => {
+      const submitter = { name: 'N'.repeat(100), email: `${'a'.repeat(247)}@x.test` };
+      const res = await app.fetch(
+        new Request('http://localhost/feedback', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ...validPayload, submitter }),
+        }),
+        mockEnv
+      );
+      expect(res.status).toBe(200);
+      expect(mockCreateIssue).toHaveBeenCalledTimes(1);
+    });
+
+    it('escapes Markdown links, emphasis, and HTML-like submitter text without creating structure', async () => {
+      const submitter = {
+        name: '[admin](https://evil.test) www.evil.test <script> **Trusted** &lt;x&gt; &#60;y&#62;',
+        email: 'a*mark@example.com',
+      };
+      const res = await app.fetch(
+        new Request('http://localhost/feedback', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ...validPayload, submitter }),
+        }),
+        mockEnv
+      );
+      expect(res.status).toBe(200);
+      expect(mockCreateIssue).toHaveBeenCalledTimes(1);
+      const body = mockCreateIssue.mock.calls[0][4] as string;
+      const submittedBy = body.split('## Submitted by\n')[1].split('\n\n')[0];
+      expect(submittedBy).toContain('\\[admin\\]\\(https\\://evil.test\\)');
+      expect(submittedBy).toContain('www\\.evil.test');
+      expect(submittedBy).toContain('&lt;script&gt;');
+      expect(submittedBy).toContain('&amp;lt;x&amp;gt;');
+      expect(submittedBy).toContain('&amp;#60;y&amp;#62;');
+      expect(submittedBy).toContain('\\*\\*Trusted\\*\\*');
+      expect(submittedBy).toContain('a\\*mark@example.com');
+      expect(submittedBy).not.toContain('[admin](https://evil.test)');
+      expect(submittedBy).not.toContain('https://evil.test');
+      expect(submittedBy).not.toContain('www.evil.test');
+      expect(submittedBy).not.toContain('<script>');
+      expect(body.match(/^## Submitted by$/gm)).toHaveLength(1);
+      expect(body).not.toMatch(/^# heading$/m);
+    });
+
+    it('puts mention-bearing names in a code span while keeping ordinary names unchanged', async () => {
+      const res = await app.fetch(
+        new Request('http://localhost/feedback', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            ...validPayload,
+            submitter: { name: '@bugdrophq', email: 'ordinary@example.com' },
+          }),
+        }),
+        mockEnv
+      );
+      expect(res.status).toBe(200);
+      expect(mockCreateIssue.mock.calls[0][4]).toContain(
+        '## Submitted by\n**`@bugdrophq`** (ordinary@example.com)\n'
+      );
+    });
+
+    it('uses a longer code delimiter when an untrusted mention also contains backticks', async () => {
+      const res = await app.fetch(
+        new Request('http://localhost/feedback', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            ...validPayload,
+            submitter: { name: '@bugdrophq `tag`', email: 'ordinary@example.com' },
+          }),
+        }),
+        mockEnv
+      );
+      expect(res.status).toBe(200);
+      expect(mockCreateIssue.mock.calls[0][4]).toContain(
+        '## Submitted by\n**`` @bugdrophq `tag` ``** (ordinary@example.com)\n'
+      );
+    });
+
+    it.each([
+      [{ name: 42 }, 'non-string name'],
+      [{ email: ['a@example.com'] }, 'non-string email'],
+      [{ name: 'a'.repeat(101) }, 'overlong name'],
+      [{ email: 'a'.repeat(255) }, 'overlong email'],
+      [{ email: 'invalid-address' }, 'email without at sign'],
+      [{ email: 'a@@example.com' }, 'email with two at signs'],
+      [{ email: 'a@bad/domain' }, 'email with slash in domain'],
+      [{ email: 'a@a..b' }, 'email with empty domain label'],
+      [{ name: 'a\n## Forged heading' }, 'name with line break'],
+      [{ name: 'a\u0001b' }, 'name with control character'],
+      [{ name: 'a\u2028b' }, 'name with Unicode line separator'],
+      [{ name: 'a\u202eb' }, 'name with bidirectional override'],
+      [{ email: 'a\u2066@example.com' }, 'email with bidirectional isolate'],
+      [{ email: 'a@example.com\r# Forged' }, 'email with line break'],
+      [['name'], 'non-object submitter'],
+    ])('rejects %s (%s) before Issue creation', async (submitter, _caseName) => {
+      const res = await app.fetch(
+        new Request('http://localhost/feedback', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ...validPayload, submitter }),
+        }),
+        mockEnv
+      );
+      expect(res.status).toBe(400);
+      expect(await res.json()).toEqual({
+        error: 'Invalid submitter name or email',
+        code: 'INVALID_SUBMITTER',
+      });
+      expect(mockGetInstallationToken).not.toHaveBeenCalled();
+      expect(mockCreateIssue).not.toHaveBeenCalled();
+    });
+
     it('should handle submitter with only name', async () => {
       mockGetInstallationToken.mockResolvedValue('test-token');
       mockCreateIssue.mockResolvedValue({

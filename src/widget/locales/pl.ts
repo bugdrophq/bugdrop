@@ -37,6 +37,8 @@ export const pl: WidgetStrings = {
   namePlaceholder: 'Twoje imię i nazwisko',
   emailLabel: 'E-mail',
   emailPlaceholder: 'twoj@email.com',
+  prefilledEmailDisclosure:
+    'Ten adres e-mail zostanie dołączony do zgłoszenia GitHub, jeśli go pozostawisz. Możesz go edytować lub usunąć.',
   titleLabel: 'Tytuł',
   titlePlaceholder: 'Krótki opis problemu lub sugestii',
   descriptionLabel: 'Opis',
@@ -76,6 +78,7 @@ export const pl: WidgetStrings = {
   submissionFailedTitle: 'Wysyłanie nie powiodło się',
   submissionErrors: {
     INVALID_JSON: 'Nieprawidłowe żądanie. Spróbuj ponownie.',
+    INVALID_SUBMITTER: 'Imię lub adres e-mail są nieprawidłowe. Sprawdź dane i spróbuj ponownie.',
     MISSING_REQUIRED_FIELDS: 'Repozytorium i tytuł są wymagane.',
     INVALID_APP_VERSION:
       'Wersja aplikacji jest nieprawidłowa. Skontaktuj się z administratorem witryny.',
@@ -158,6 +161,11 @@ export const pl: WidgetStrings = {
   toolArrow: 'Strzałka',
   toolRectangle: 'Prostokąt',
   toolRedact: 'Zamaż',
+  toolPan: 'Przesuń',
+  fitWidth: 'Dopasuj szerokość',
+  zoomIn: 'Powiększ',
+  zoomOut: 'Pomniejsz',
+  resetView: 'Resetuj widok',
   undo: 'Cofnij',
   retake: 'Ponów zrzut',
   submitFeedback: 'Wyślij opinię',

@@ -30,6 +30,8 @@ export const en: WidgetStrings = {
   namePlaceholder: 'Your name',
   emailLabel: 'Email',
   emailPlaceholder: 'your@email.com',
+  prefilledEmailDisclosure:
+    'This email will be included in the GitHub Issue if you leave it here. You can edit or clear it.',
   titleLabel: 'Title',
   titlePlaceholder: 'Brief description of the issue or suggestion',
   descriptionLabel: 'Description',
@@ -64,6 +66,7 @@ export const en: WidgetStrings = {
   submissionFailedTitle: 'Submission Failed',
   submissionErrors: {
     INVALID_JSON: 'Invalid request. Please try again.',
+    INVALID_SUBMITTER: 'Check the name or email address and try again.',
     MISSING_REQUIRED_FIELDS: 'A repository and title are required.',
     INVALID_APP_VERSION: 'This app version is invalid. Please contact the site owner.',
     INVALID_SCREENSHOT: 'The screenshot is invalid. Please capture it again.',
@@ -137,6 +140,11 @@ export const en: WidgetStrings = {
   toolArrow: 'Arrow',
   toolRectangle: 'Rectangle',
   toolRedact: 'Redact',
+  toolPan: 'Pan',
+  fitWidth: 'Fit width',
+  zoomIn: 'Zoom in',
+  zoomOut: 'Zoom out',
+  resetView: 'Reset view',
   undo: 'Undo',
   retake: 'Retake',
   submitFeedback: 'Submit Feedback',

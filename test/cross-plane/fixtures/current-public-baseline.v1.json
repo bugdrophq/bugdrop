@@ -1,7 +1,88 @@
 {
   "schemaVersion": 1,
-  "baseCommit": "ae23125dfc907ae0c5af418cba518a88144ed0ea",
+  "baseCommit": "cdb3f769be550be78f5b190ac0291e4ccf64ad20",
   "description": "Tracked current public src (excluding src/managed), public assets, wrangler.toml, widget build script and widget tsconfig. SHA-256 of sorted path + NUL + exact bytes + NUL.",
-  "fileCount": 145,
-  "sha256": "8e25450e69bf292138be25a8aed7241ae47c114693dab824a003c2ee87515a1d"
+  "fileCount": 147,
+  "sha256": "bf1456cf33fd5f2a574f6f1908a7ab6548f040a969fd6e823f993f01de64ca6f",
+  "approvedDelta": {
+    "issue": "https://github.com/bugdrophq/bugdrop/issues/300",
+    "previousBaseCommit": "3bd3dfdda83fe723bf2c767fdae3c89ea961de66",
+    "previousFileCount": 145,
+    "previousSha256": "ac7c93c9f6e797fc29e97c37a869640d565e008abee63477e02f646ad318ff10",
+    "changedPublicSources": ["src/widget/index.ts", "src/widget/prefill.ts"],
+    "reason": "Opt-in built-in form prefills; source review and focused unit/browser proof precede this baseline refresh."
+  },
+  "submitterSafetyDelta": {
+    "issue": "https://github.com/bugdrophq/bugdrop/issues/300",
+    "previousSha256": "7d148ce0efce203fb93fe95853dab571d1cc4568e0ad8bd77a6a856d199657b8",
+    "changedPublicSources": ["src/routes/api.ts"],
+    "reason": "Narrow v1 submitter validation and inline Markdown safety exception, after API and legacy proof."
+  },
+  "reviewRepairDelta": {
+    "issue": "https://github.com/bugdrophq/bugdrop/issues/300",
+    "previousSha256": "0c34c80ef9c2ab4d16c7091f9a18fa19db2aceec144213fed517a3903b0adf27",
+    "changedPublicSources": [
+      "src/routes/api.ts",
+      "src/widget/i18n.ts",
+      "src/widget/index.ts",
+      "src/widget/locales/de.ts",
+      "src/widget/locales/en.ts",
+      "src/widget/locales/nl.ts",
+      "src/widget/locales/pl.ts",
+      "src/widget/prefill.ts"
+    ],
+    "reason": "Pre-PR review repairs for DOM identity privacy, prefill validation, localized disclosure and mention-safe Markdown, after focused unit, browser and GitHub rendering proof."
+  },
+  "emailValidityDelta": {
+    "issue": "https://github.com/bugdrophq/bugdrop/issues/300",
+    "previousSha256": "9d359a905ced325771173bd07d766dc02b705dd81ef6c9bdf1a3741a3e3a472c",
+    "changedPublicSources": ["src/routes/api.ts", "src/widget/prefill.ts"],
+    "reason": "Align host prefill and direct API email syntax with Chromium's form acceptance, after focused unit and 30 local browser tests; preserve ordinary valid legacy Issue-body bytes."
+  },
+  "ciRepairDelta": {
+    "issue": "https://github.com/bugdrophq/bugdrop/issues/300",
+    "pullRequest": "https://github.com/bugdrophq/bugdrop/pull/418",
+    "previousSha256": "748ea26269fbac2658cfe60d4bdbcb00e609949ebba3455dc3fd4d68fd0d9306",
+    "changedPublicSources": ["src/widget/prefill.ts"],
+    "reason": "Remove two unused type exports flagged by Knip in PR CI; the generated widget bundle is byte-for-byte identical before and after this type-only change."
+  },
+  "mainIntegrationDelta": {
+    "mergedPullRequest": "https://github.com/bugdrophq/bugdrop/pull/414",
+    "previousMainFileCount": 145,
+    "previousMainSha256": "8e25450e69bf292138be25a8aed7241ae47c114693dab824a003c2ee87515a1d",
+    "previousIssue300Sha256": "dd1bcf77b60ac91561803746bf0e5b6809e012450827434c434e3c2b738c3bf9",
+    "changedPublicSources": ["src/widget/annotator.ts", "src/widget/ui.ts"],
+    "reason": "Combine the reviewed iOS annotation changes from main with the Issue #300 prefill source set, preserving both prior fingerprints and provenance."
+  },
+  "preMergeReviewRepairDelta": {
+    "pullRequest": "https://github.com/bugdrophq/bugdrop/pull/418",
+    "previousSha256": "4b22c27dcbe354226005068fa19efd5a51ca438db65b5212510a57d935942edf",
+    "changedPublicSources": [
+      "src/widget/flows/form-screen.ts",
+      "src/widget/flows/modal.ts",
+      "src/widget/index.ts"
+    ],
+    "reason": "Apply the Worker submitter length limits to reporter-edited built-in inputs and mapped custom-flow fields before form submission."
+  },
+  "annotationZoomIntegrationDelta": {
+    "pullRequest": "https://github.com/bugdrophq/bugdrop/pull/421",
+    "previousMainFileCount": 146,
+    "previousMainSha256": "0b1bc59207e1ab085b39193b1b2691376fe93d5bfe34cfd41b80853620720ac3",
+    "previousAnnotationSha256": "1e9800cddc885db4d307e0352d8be97d093d77e78d6f9aa67364f70369b4429f",
+    "changedPublicSources": [
+      "public/test/load-widget.js",
+      "public/test/local-submissions.js",
+      "public/test/submissions.html",
+      "src/widget/annotation-flow.ts",
+      "src/widget/annotation-marks.ts",
+      "src/widget/annotator.ts",
+      "src/widget/i18n.ts",
+      "src/widget/locales/de.ts",
+      "src/widget/locales/en.ts",
+      "src/widget/locales/nl.ts",
+      "src/widget/locales/pl.ts",
+      "src/widget/ui.ts"
+    ],
+    "reason": "Combine reviewed screenshot annotation zoom and pan with the Issue #300 form prefill changes on main."
+  }
 }

@@ -21,6 +21,44 @@ const form: FlowForm = {
 };
 
 describe('flow form screen', () => {
+  it('caps mapped submitter fields to the Worker limits before a flow advances', async () => {
+    const identityForm: FlowForm = {
+      id: 'identity',
+      title: 'Identity',
+      fields: [
+        { id: 'name', type: 'shortText', label: 'Name' },
+        { id: 'email', type: 'longText', label: 'Email' },
+        { id: 'notes', type: 'shortText', label: 'Notes' },
+      ],
+    };
+    const controller = createFlowFormScreen(
+      identityForm,
+      'mapped',
+      {},
+      {
+        name: 'identity.name',
+        email: 'identity.email',
+      }
+    );
+    document.body.appendChild(controller.element);
+    const name = controller.element.querySelector<HTMLInputElement>('#mapped-name')!;
+    const email = controller.element.querySelector<HTMLTextAreaElement>('#mapped-email')!;
+    const notes = controller.element.querySelector<HTMLInputElement>('#mapped-notes')!;
+    expect(name.maxLength).toBe(100);
+    expect(email.maxLength).toBe(254);
+    expect(notes.maxLength).toBe(500);
+
+    name.value = 'n'.repeat(101);
+    await expect(controller.collect()).resolves.toBeNull();
+    expect(name.getAttribute('aria-invalid')).toBe('true');
+    name.value = 'n'.repeat(100);
+    email.value = 'e'.repeat(255);
+    await expect(controller.collect()).resolves.toBeNull();
+    expect(email.getAttribute('aria-invalid')).toBe('true');
+    controller.dispose();
+    controller.element.remove();
+  });
+
   it('applies every inherited field control through the thin FlowForm adapter', async () => {
     const inherited: FlowForm = {
       id: 'inherited',

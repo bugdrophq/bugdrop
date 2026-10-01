@@ -85,7 +85,8 @@
     var isLocalHost =
       window.location.hostname === 'localhost' ||
       window.location.hostname === '127.0.0.1' ||
-      window.location.hostname.endsWith('.localhost');
+      window.location.hostname.endsWith('.localhost') ||
+      window.location.hostname.endsWith('.local');
 
     if (params.get('localQa') !== '1' || !isLocalHost) {
       return Promise.resolve();

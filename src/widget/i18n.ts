@@ -7,6 +7,7 @@ import { escapeHtml } from './sanitize';
 
 type FeedbackErrorCode =
   | 'INVALID_JSON'
+  | 'INVALID_SUBMITTER'
   | 'MISSING_REQUIRED_FIELDS'
   | 'INVALID_APP_VERSION'
   | 'INVALID_SCREENSHOT'
@@ -50,6 +51,7 @@ export interface WidgetStrings {
   namePlaceholder: string;
   emailLabel: string;
   emailPlaceholder: string;
+  prefilledEmailDisclosure: string;
   titleLabel: string;
   titlePlaceholder: string;
   descriptionLabel: string;
@@ -128,6 +130,11 @@ export interface WidgetStrings {
   toolArrow: string;
   toolRectangle: string;
   toolRedact: string;
+  toolPan: string;
+  fitWidth: string;
+  zoomIn: string;
+  zoomOut: string;
+  resetView: string;
   undo: string;
   retake: string;
   submitFeedback: string;

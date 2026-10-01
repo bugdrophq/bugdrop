@@ -31,6 +31,8 @@ export const nl: WidgetStrings = {
   namePlaceholder: 'Uw naam',
   emailLabel: 'E-mail',
   emailPlaceholder: 'uw@email.nl',
+  prefilledEmailDisclosure:
+    'Dit e-mailadres komt in de GitHub-issue als u het laat staan. U kunt het wijzigen of wissen.',
   titleLabel: 'Titel',
   titlePlaceholder: 'Korte omschrijving van het probleem of de suggestie',
   descriptionLabel: 'Omschrijving',
@@ -67,6 +69,7 @@ export const nl: WidgetStrings = {
   submissionFailedTitle: 'Versturen mislukt',
   submissionErrors: {
     INVALID_JSON: 'Ongeldig verzoek. Probeer het opnieuw.',
+    INVALID_SUBMITTER: 'De naam of het e-mailadres is ongeldig. Controleer uw gegevens.',
     MISSING_REQUIRED_FIELDS: 'Een repository en titel zijn vereist.',
     INVALID_APP_VERSION: 'De appversie is ongeldig. Neem contact op met de sitebeheerder.',
     INVALID_SCREENSHOT: 'De schermafbeelding is ongeldig. Maak een nieuwe.',
@@ -144,6 +147,11 @@ export const nl: WidgetStrings = {
   toolArrow: 'Pijl',
   toolRectangle: 'Rechthoek',
   toolRedact: 'Redigeren',
+  toolPan: 'Verschuiven',
+  fitWidth: 'Breedte passend',
+  zoomIn: 'Inzoomen',
+  zoomOut: 'Uitzoomen',
+  resetView: 'Weergave herstellen',
   undo: 'Ongedaan maken',
   retake: 'Opnieuw maken',
   submitFeedback: 'Feedback versturen',

@@ -176,6 +176,16 @@ The following behavior is normative:
 12. Variant-only capabilities are feature-detected lazily. A browser that can run the current
     widget must not fail legacy startup because a variant-only global is unavailable.
 
+**Issue #300 narrow submitter safety exception to item 8.** The existing feedback request shape,
+`BugDrop.open()` argument behavior, successful response, and exact Issue-body bytes for ordinary
+valid legacy name/email strings remain unchanged. The Worker now rejects malformed `submitter`
+name/email types, overlong values, line breaks/control or bidirectional formatting characters, and malformed email addresses
+before Issue creation. Accepted name/email strings that contain Markdown or HTML control text are
+escaped only in the inline `Submitted by` position, so they cannot forge Issue structure. These
+two changes are limited to submitter validation and safe rendering for both direct API and widget
+requests. Such input was previously accepted or interpolated verbatim; the changed rejection or
+rendering is an explicit security exception to item 8 and is not a new widget API.
+
 Record the v1.53.1 minified and gzip bundle sizes before implementation. The first release may not
 increase compressed `widget.js` by more than 25% without a separately reviewed exception. A
 legacy-only bootstrap test removes variant-only globals, asserts no variant DOM/listeners/UUID work,

@@ -399,6 +399,22 @@ async function dragOnCanvas(
   await page.mouse.up();
 }
 
+async function visibleCanvasDragRange(canvas: Locator) {
+  return canvas.evaluate(el => {
+    const canvasBox = el.getBoundingClientRect();
+    const stageBox = el.parentElement!.getBoundingClientRect();
+    const top = Math.max(canvasBox.top, stageBox.top, 0) + 24;
+    const bottom = Math.min(canvasBox.bottom, stageBox.bottom, window.innerHeight) - 24;
+    if (bottom - top < 80) {
+      throw new Error('Not enough visible canvas height for a drag');
+    }
+    return {
+      fromY: (top + (bottom - top) * 0.2 - canvasBox.top) / canvasBox.height,
+      toY: (top + (bottom - top) * 0.7 - canvasBox.top) / canvasBox.height,
+    };
+  });
+}
+
 async function expectUsableCanvas(canvas: Locator) {
   await expect
     .poll(() => canvas.evaluate(el => (el as HTMLCanvasElement).width))
@@ -900,13 +916,14 @@ test.describe('Screenshot Capture (Live)', () => {
     await expect(canvas).toBeVisible({ timeout: 10_000 });
     await expectUsableCanvas(canvas);
 
-    const firstRegion = { left: 0.1, top: 0.18, right: 0.48, bottom: 0.78 };
-    const latestRegion = { left: 0.52, top: 0.18, right: 0.9, bottom: 0.78 };
+    const { fromY, toY } = await visibleCanvasDragRange(canvas);
+    const firstRegion = { left: 0.1, top: fromY, right: 0.48, bottom: toY };
+    const latestRegion = { left: 0.52, top: fromY, right: 0.9, bottom: toY };
     const firstBaseline = await countRedPixelsInRegion(canvas, firstRegion);
     const latestBaseline = await countRedPixelsInRegion(canvas, latestRegion);
 
-    await dragOnCanvas(page, canvas, { x: 0.18, y: 0.28 }, { x: 0.42, y: 0.68 });
-    await dragOnCanvas(page, canvas, { x: 0.58, y: 0.28 }, { x: 0.82, y: 0.68 });
+    await dragOnCanvas(page, canvas, { x: 0.18, y: fromY }, { x: 0.42, y: toY });
+    await dragOnCanvas(page, canvas, { x: 0.58, y: fromY }, { x: 0.82, y: toY });
 
     expect(await countRedPixelsInRegion(canvas, firstRegion)).toBeGreaterThan(firstBaseline + 20);
     expect(await countRedPixelsInRegion(canvas, latestRegion)).toBeGreaterThan(latestBaseline + 20);
@@ -933,11 +950,12 @@ test.describe('Screenshot Capture (Live)', () => {
     await expectUsableCanvas(canvas);
 
     await host.locator('css=[data-tool="redact"]').click();
-    await dragOnCanvas(page, canvas, { x: 0.18, y: 0.28 }, { x: 0.42, y: 0.68 });
-    await dragOnCanvas(page, canvas, { x: 0.58, y: 0.28 }, { x: 0.82, y: 0.68 });
+    const { fromY, toY } = await visibleCanvasDragRange(canvas);
+    await dragOnCanvas(page, canvas, { x: 0.18, y: fromY }, { x: 0.42, y: toY });
+    await dragOnCanvas(page, canvas, { x: 0.58, y: fromY }, { x: 0.82, y: toY });
 
-    const firstRegion = { left: 0.1, top: 0.18, right: 0.48, bottom: 0.78 };
-    const latestRegion = { left: 0.52, top: 0.18, right: 0.9, bottom: 0.78 };
+    const firstRegion = { left: 0.1, top: fromY, right: 0.48, bottom: toY };
+    const latestRegion = { left: 0.52, top: fromY, right: 0.9, bottom: toY };
 
     expect(await countBlackPixelsInRegion(canvas, firstRegion)).toBeGreaterThan(1000);
     expect(await countBlackPixelsInRegion(canvas, latestRegion)).toBeGreaterThan(1000);

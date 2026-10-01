@@ -2,6 +2,7 @@ import { normalizeVariantAnswers, VariantAnswerError } from '../variants/answer-
 import { createFieldController } from '../variants/fields';
 import type { FieldController } from '../variants/fields/types';
 import type { VariantField } from '../variants/public-types';
+import { PREFILL_EMAIL_LIMIT, PREFILL_NAME_LIMIT } from '../prefill';
 import {
   createAttachmentsController,
   createCheckboxController,
@@ -19,13 +20,27 @@ export interface FlowFormController {
 export function createFlowFormScreen(
   formConfig: Readonly<FlowForm>,
   instanceId: string,
-  answers: Readonly<Record<string, unknown>>
+  answers: Readonly<Record<string, unknown>>,
+  submitterPaths?: Readonly<{ name?: string; email?: string }>
 ): FlowFormController {
+  const formFields = formConfig.fields.map(field => {
+    if (field.type !== 'shortText' && field.type !== 'longText') return field;
+    const path = `${formConfig.id}.${field.id}`;
+    const limit = Math.min(
+      path === submitterPaths?.name ? PREFILL_NAME_LIMIT : Infinity,
+      path === submitterPaths?.email ? PREFILL_EMAIL_LIMIT : Infinity
+    );
+    if (!Number.isFinite(limit)) return field;
+    return {
+      ...field,
+      maxLength: Math.min(field.maxLength ?? (field.type === 'shortText' ? 500 : 5_000), limit),
+    };
+  });
   const section = createSurface(formConfig);
   const fields = document.createElement('div');
   fields.className = 'bdv-fields';
   section.appendChild(fields);
-  const controllers = formConfig.fields.map(field =>
+  const controllers = formFields.map(field =>
     createController(field, formConfig.id, instanceId, answers)
   );
   for (const controller of controllers) fields.appendChild(controller.element);
@@ -38,7 +53,7 @@ export function createFlowFormScreen(
     );
     if (validate) {
       try {
-        values = normalizeVariantAnswers(formConfig.fields.filter(isStandardField), values);
+        values = normalizeVariantAnswers(formFields.filter(isStandardField), values);
       } catch (error) {
         showStandardError(error, standard);
         return null;

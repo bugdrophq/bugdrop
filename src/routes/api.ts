@@ -258,6 +258,10 @@ api.post('/feedback', async c => {
 
   const payload = requestPayload as FeedbackPayload;
 
+  if (!isValidSubmitter(payload?.submitter)) {
+    return c.json({ error: 'Invalid submitter name or email', code: 'INVALID_SUBMITTER' }, 400);
+  }
+
   // Validate required fields (description is optional — many reports are title + screenshot)
   if (!payload.repo || !payload.title) {
     return c.json(
@@ -917,9 +921,75 @@ function hasPngSignature(bytes: Uint8Array): boolean {
   return PNG_SIGNATURE.every((byte, index) => bytes[index] === byte);
 }
 
-/**
- * Format the issue body with markdown
- */
+const SUBMITTER_NAME_LIMIT = 100;
+const SUBMITTER_EMAIL_LIMIT = 254;
+const SUBMITTER_CONTROL_CHARACTERS =
+  /[\p{Cc}\u2028\u2029\u061c\u200e\u200f\u202a-\u202e\u2066-\u206f]/u;
+const SUBMITTER_EMAIL_ADDRESS =
+  /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/u;
+
+function isValidSubmitter(value: unknown): boolean {
+  if (value === undefined || value === null) return true;
+  if (typeof value !== 'object' || Array.isArray(value)) return false;
+  const submitter = value as Record<string, unknown>;
+  const name = submitter.name;
+  const email = submitter.email;
+  if (
+    name !== undefined &&
+    (typeof name !== 'string' ||
+      name.length > SUBMITTER_NAME_LIMIT ||
+      SUBMITTER_CONTROL_CHARACTERS.test(name))
+  ) {
+    return false;
+  }
+  if (
+    email !== undefined &&
+    (typeof email !== 'string' ||
+      email.length > SUBMITTER_EMAIL_LIMIT ||
+      SUBMITTER_CONTROL_CHARACTERS.test(email) ||
+      (email !== '' && !SUBMITTER_EMAIL_ADDRESS.test(email)))
+  ) {
+    return false;
+  }
+  return true;
+}
+
+function escapeSubmitterMarkdown(value: string): string {
+  const htmlSafe = value
+    .replace(
+      /&(?=(?:#(?:x[0-9a-f]+|\d+)|[a-z][a-z0-9]+);|(?:lt|gt|amp|quot|apos)(?![a-z0-9]))/giu,
+      '&amp;'
+    )
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+  const characters = [...htmlSafe];
+  return characters
+    .map((character, index) => {
+      if (character === '_') {
+        const adjacentWords =
+          index > 0 &&
+          index < characters.length - 1 &&
+          /[\p{L}\p{N}]/u.test(characters[index - 1]) &&
+          /[\p{L}\p{N}]/u.test(characters[index + 1]);
+        return adjacentWords ? character : '\\_';
+      }
+      return '\\`*[]()!~|'.includes(character) ? `\\${character}` : character;
+    })
+    .join('')
+    .replace(/\b(https?):\/\//giu, '$1\\://')
+    .replace(/\bwww\./giu, 'www\\.');
+}
+
+function formatSubmitterName(name: string): string {
+  if (!name.includes('@')) return `**${escapeSubmitterMarkdown(name)}**`;
+  // GitHub creates active mentions even for escaped or entity-encoded @ signs.
+  const longestBacktickRun = Math.max(0, ...(name.match(/`+/g) ?? []).map(run => run.length));
+  const delimiter = '`'.repeat(longestBacktickRun + 1);
+  const content = longestBacktickRun > 0 ? ` ${name} ` : name;
+  return `**${delimiter}${content}${delimiter}**`;
+}
+
+/** Format the issue body with Markdown. */
 function formatIssueBody(
   payload: FeedbackPayload,
   screenshotDataUrl?: string,
@@ -933,10 +1003,10 @@ function formatIssueBody(
     sections.push('## Submitted by');
     const parts: string[] = [];
     if (payload.submitter.name) {
-      parts.push(`**${payload.submitter.name}**`);
+      parts.push(formatSubmitterName(payload.submitter.name));
     }
     if (payload.submitter.email) {
-      parts.push(`(${payload.submitter.email})`);
+      parts.push(`(${escapeSubmitterMarkdown(payload.submitter.email)})`);
     }
     sections.push(parts.join(' '));
     sections.push('');
