@@ -32,6 +32,7 @@ const TAG_PATTERN = /^v(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)$/;
 const IDENTITY_PATTERN = /^sha256:[0-9a-f]{64}$/;
 const MARKERLESS_HISTORY_MAX_TAG = 'v1.55.0';
 const UNATTESTED_V2_HISTORY_MAX_TAG = 'v1.55.2';
+const PRE_TRANSFER_MAX_TAG = 'v1.56.9';
 const ASSET_TIMEOUT_MS = 30_000;
 const sha256Bytes = bytes => createHash('sha256').update(bytes).digest('hex');
 
@@ -69,6 +70,18 @@ function compareReleaseTags(left, right) {
     if (a[index] !== b[index]) return a[index] < b[index] ? -1 : 1;
   }
   return 0;
+}
+
+function publishedSourceRepository(release, selectedRepository, sourceRepository) {
+  if (sourceRepository === selectedRepository) return sourceRepository;
+  if (
+    selectedRepository === 'bugdrophq/bugdrop' &&
+    sourceRepository === 'mean-weasel/bugdrop' &&
+    compareReleaseTags(release, { tag: PRE_TRANSFER_MAX_TAG }) <= 0
+  ) {
+    return sourceRepository;
+  }
+  fail('PUBLISHED_RELEASE_CONFLICT', `${release.tag} has an unexpected source repository`);
 }
 
 export function requiresReleaseAttestation(tag) {
@@ -574,6 +587,11 @@ export async function loadPublishedReleaseAssets({
     release: { ...release, marker: buildPublicationMarker(coreFinalPlan) },
     assets: coreAssets,
   });
+  const sourceRepository = publishedSourceRepository(
+    release,
+    repository,
+    core.requestPlan.request.repository
+  );
   let attestation;
   try {
     attestation = await verifyAttestation({
@@ -585,7 +603,7 @@ export async function loadPublishedReleaseAssets({
       },
       attestationBytes,
       policy: attestationPolicy({
-        repository,
+        repository: sourceRepository,
         controllerSha: core.requestPlan.source.controllerSha,
       }),
     });
@@ -883,6 +901,15 @@ export async function createRequestPlanFromGithub({
       fail('PUBLISHED_ASSET_INVALID', `${release.tag} lacks stable Release asset identity`);
     }
     const sha256 = hydrated.releaseContent.publicationAssetHashes?.[exact.name];
+    const sourceRepository = publishedSourceRepository(
+      release,
+      dispatch.repository,
+      hydrated.requestPlan.request.repository
+    );
+    const sourceExact = {
+      ...exact,
+      downloadUrl: `https://github.com/${sourceRepository}/releases/download/${release.tag}/${exact.name}`,
+    };
     let sourceManifest;
     try {
       sourceManifest = JSON.parse(hydrated.publishedAssets['versions.json'].toString('utf8'));
@@ -911,7 +938,7 @@ export async function createRequestPlanFromGithub({
         release,
         requestPlan: hydrated.requestPlan,
         releaseContent: hydrated.releaseContent,
-        exact,
+        exact: sourceExact,
         sha256,
       });
       retentionReleases.push({
@@ -939,7 +966,7 @@ export async function createRequestPlanFromGithub({
       release,
       requestPlan: hydrated.requestPlan,
       releaseContent: hydrated.releaseContent,
-      exact,
+      exact: sourceExact,
       exactSha256: sha256,
     });
     const exactBytes = hydrated.publishedAssets[exact.name];
@@ -964,8 +991,8 @@ export async function createRequestPlanFromGithub({
         asset: {
           assetId: exact.id,
           name: exact.name,
-          apiPath: `/repos/${dispatch.repository}/releases/assets/${exact.id}`,
-          downloadUrl: exact.downloadUrl,
+          apiPath: `/repos/${sourceRepository}/releases/assets/${exact.id}`,
+          downloadUrl: sourceExact.downloadUrl,
           sha256,
         },
       },

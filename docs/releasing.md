@@ -282,6 +282,12 @@ supported Release and exact asset, the credential-free build consumes a request-
 and State 2 plus preapproval verification hash the complete static tree. Missing or conflicting
 history stops the release. Historical bytes before the boundary are never reconstructed.
 
+Releases through v1.56.9 were published under `mean-weasel/bugdrop` before the repository transfer.
+Their authenticated plans, manifests, retention records, and attestations keep that original
+repository identity. The planner reads their assets through the current `bugdrophq/bugdrop` GitHub
+API and accepts the old identity only for those historical tags. Do not rewrite published assets to
+change their URLs.
+
 No production boundary has been established by landing this code. Production cutover and live N/N+1
 durability remain blocked until a separately authorized operator goal selects a bootstrap candidate
 and later proves the retained exact bytes and digest in production.

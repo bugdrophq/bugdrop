@@ -33,6 +33,7 @@ const SHA = {
   release: 'c'.repeat(40),
 };
 const REPOSITORY = 'mean-weasel/bugdrop';
+const TRANSFERRED_REPOSITORY = 'bugdrophq/bugdrop';
 
 function releaseBody(marker: unknown) {
   return `<!-- bugdrop-publication ${Buffer.from(canonicalize(marker)).toString('base64url')} -->`;
@@ -108,7 +109,8 @@ function publishedBundleRecord(
   index: number,
   immutableMarker = true,
   tagMarkerMode: 'valid' | 'missing' | 'malformed' = 'valid',
-  markerTransform: (marker: unknown) => unknown = marker => marker
+  markerTransform: (marker: unknown) => unknown = marker => marker,
+  selectedRepository = REPOSITORY
 ) {
   const attested = bundle as ReturnType<typeof disabledV2WorkflowBundle> & {
     attestation?: Record<string, unknown>;
@@ -137,8 +139,8 @@ function publishedBundleRecord(
       assets: Object.keys(bundle.assets).map((name, assetIndex) => ({
         id: authorityIndex * 100 + assetIndex + 1,
         name,
-        url: `https://api.github.test/repos/${REPOSITORY}/releases/assets/${authorityIndex * 100 + assetIndex + 1}`,
-        browser_download_url: `https://github.com/${REPOSITORY}/releases/download/${bundle.finalPlan.tag}/${name}`,
+        url: `https://api.github.test/repos/${selectedRepository}/releases/assets/${authorityIndex * 100 + assetIndex + 1}`,
+        browser_download_url: `https://github.com/${selectedRepository}/releases/download/${bundle.finalPlan.tag}/${name}`,
         size: bundle.assets[name].length,
       })),
     },
@@ -150,7 +152,7 @@ function publishedBundleRecord(
     },
     tagObject: immutableMarker
       ? {
-          path: `/repos/${REPOSITORY}/git/tags/${tagObjectSha}`,
+          path: `/repos/${selectedRepository}/git/tags/${tagObjectSha}`,
           response: {
             data: {
               object: { type: 'commit', sha: bundle.finalPlan.targetSha },
@@ -177,6 +179,7 @@ async function planFromPublishedBundles({
   markerTransform = (marker: unknown) => marker,
   requestBytes,
   verifyAttestation,
+  selectedRepository = REPOSITORY,
 }: {
   bundles: ReturnType<typeof disabledV2WorkflowBundle>[];
   candidateSha?: string;
@@ -190,9 +193,17 @@ async function planFromPublishedBundles({
   markerTransform?: (marker: unknown) => unknown;
   requestBytes?: (_url: string, options: { assetId: string }) => Promise<Buffer>;
   verifyAttestation?: (input: unknown) => Promise<unknown>;
+  selectedRepository?: string;
 }) {
   const records = bundles.map((bundle, index) =>
-    publishedBundleRecord(bundle, index + 1, immutableTagMarkers, tagMarkerMode, markerTransform)
+    publishedBundleRecord(
+      bundle,
+      index + 1,
+      immutableTagMarkers,
+      tagMarkerMode,
+      markerTransform,
+      selectedRepository
+    )
   );
   const bundledAttestation = bundles
     .map(
@@ -234,8 +245,11 @@ async function planFromPublishedBundles({
     })),
   ];
   const transport = transportFor({
-    [`/repos/${REPOSITORY}/releases?per_page=100&page=1`]: { data: releases, hasNext: false },
-    [`/repos/${REPOSITORY}/git/matching-refs/tags/v?per_page=100&page=1`]: {
+    [`/repos/${selectedRepository}/releases?per_page=100&page=1`]: {
+      data: releases,
+      hasNext: false,
+    },
+    [`/repos/${selectedRepository}/git/matching-refs/tags/v?per_page=100&page=1`]: {
       data: refs,
       hasNext: false,
     },
@@ -249,12 +263,12 @@ async function planFromPublishedBundles({
         ...records.map(record => record.bundle.finalPlan.targetSha),
         ...legacy.map(x => x.targetSha),
       ].map(sha => [
-        `/repos/${REPOSITORY}/compare/${sha}...${candidateSha}`,
+        `/repos/${selectedRepository}/compare/${sha}...${candidateSha}`,
         { data: { status: 'ahead' }, hasNext: false },
       ])
     ),
-    [`/repos/${REPOSITORY}/commits/main`]: { data: { sha: candidateSha }, hasNext: false },
-    [`/repos/${REPOSITORY}/actions/runs?head_sha=${candidateSha}&event=merge_group&per_page=100&page=1`]:
+    [`/repos/${selectedRepository}/commits/main`]: { data: { sha: candidateSha }, hasNext: false },
+    [`/repos/${selectedRepository}/actions/runs?head_sha=${candidateSha}&event=merge_group&per_page=100&page=1`]:
       {
         data: {
           workflow_runs: [
@@ -268,7 +282,7 @@ async function planFromPublishedBundles({
         },
         hasNext: false,
       },
-    [`/repos/${REPOSITORY}/commits/${candidateSha}/pulls?per_page=100&page=1`]: {
+    [`/repos/${selectedRepository}/commits/${candidateSha}/pulls?per_page=100&page=1`]: {
       data: [],
       hasNext: false,
     },
@@ -290,6 +304,7 @@ async function planFromPublishedBundles({
       retentionBootstrap,
       dispatch: {
         ...workflowContext(false).dispatch,
+        repository: selectedRepository,
         targetSha: candidateSha,
         bump: 'patch',
       },
@@ -1609,6 +1624,49 @@ describe('complete active v2 manifest authority', () => {
         expectedRetainedVersions: ['1.55.0', '1.56.0'],
       },
     });
+  });
+
+  it('authenticates pre-transfer retention through the transferred repository', async () => {
+    const bundles = activeHistoryBundles();
+    const verifyAttestation = vi.fn(
+      async () => (bundles[1] as (typeof bundles)[1] & { attestation: unknown }).attestation
+    );
+    const plan = await planFromPublishedBundles({
+      bundles,
+      selectedRepository: TRANSFERRED_REPOSITORY,
+      verifyAttestation,
+    });
+
+    expect(plan.retention).toMatchObject({
+      mode: 'continue',
+      expectedRetainedVersions: ['1.55.0', '1.56.0'],
+    });
+    expect(plan.retention.releases[0].asset).toMatchObject({
+      apiPath: `/repos/${REPOSITORY}/releases/assets/101`,
+      downloadUrl: `https://github.com/${REPOSITORY}/releases/download/v1.55.0/widget.v1.55.0.js`,
+    });
+    expect(verifyAttestation).toHaveBeenCalledWith(
+      expect.objectContaining({
+        policy: expect.objectContaining({ repository: REPOSITORY }),
+      })
+    );
+  });
+
+  it('does not accept a new Release published under the old repository', async () => {
+    const bundle = withAttestation(
+      disabledV2WorkflowBundle({
+        previousTag: 'v1.56.9',
+        nextTag: 'v1.57.0',
+        bump: 'minor',
+        targetSha: '3'.repeat(40),
+      })
+    );
+    await expect(
+      planFromPublishedBundles({
+        bundles: [bundle],
+        selectedRepository: TRANSFERRED_REPOSITORY,
+      })
+    ).rejects.toMatchObject({ code: 'PUBLISHED_RELEASE_CONFLICT' });
   });
 
   it.each([
