@@ -1084,6 +1084,8 @@ export function injectStyles(shadow: ShadowRoot, config: WidgetConfig) {
       color: var(--bd-text-secondary);
     }
 
+    .bd-reset-icon, .bd-view-toggle { display: none; }
+
     /* Preview */
     .bd-preview {
       border: var(--bd-border-style);
@@ -1416,21 +1418,54 @@ export function injectStyles(shadow: ShadowRoot, config: WidgetConfig) {
         flex: 1 1 auto;
         flex-direction: column;
         min-height: 0;
+        position: relative;
+      }
+      .bd-modal--annotator .bd-view-toggle {
+        position: absolute;
+        z-index: 2;
+        top: 8px;
+        right: 18px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        min-width: 88px;
+        min-height: 44px;
+        padding: 0 10px;
+        border: var(--bd-border-style);
+        border-radius: 999px;
+        background: var(--bd-bg-primary);
+        box-shadow: var(--bd-shadow-md);
+        color: var(--bd-text-primary);
       }
       .bd-modal--annotator .bd-view-controls {
-        flex: none;
+        display: none;
+        position: absolute;
+        z-index: 1;
+        top: 58px;
+        right: 18px;
         flex-wrap: nowrap;
         justify-content: center;
-        gap: 4px;
+        gap: 0;
         margin: 0;
-        padding: 4px 8px;
+        padding: 2px;
+        border: var(--bd-border-style);
+        border-radius: 999px;
+        background: var(--bd-bg-primary);
+        box-shadow: var(--bd-shadow-md);
       }
+      .bd-modal--annotator .bd-canvas-area--view-open .bd-view-controls { display: flex; }
       .bd-modal--annotator .bd-view-controls .bd-tool {
-        flex: 0 1 auto;
-        min-width: 44px;
-        min-height: 44px;
-        padding: 8px;
+        flex: none;
+        width: 44px;
+        height: 44px;
+        padding: 0;
+        color: var(--bd-text-primary);
       }
+      .bd-modal--annotator .bd-zoom-level { color: var(--bd-text-primary); }
+      .bd-modal--annotator .bd-view-controls [data-view="fit"] { display: none; }
+      .bd-modal--annotator .bd-view-controls .bd-reset-label { display: none; }
+      .bd-modal--annotator .bd-view-controls .bd-reset-icon { display: inline; font-size: 24px; }
       .bd-modal--annotator .bd-annotation-stage {
         flex: 1 1 auto;
         min-height: 0;
@@ -1479,6 +1514,7 @@ export function injectStyles(shadow: ShadowRoot, config: WidgetConfig) {
       .bd-annotation--review .bd-annotation-retake,
       .bd-annotation--review .bd-annotation-next,
       .bd-annotation--review .bd-tools,
+      .bd-annotation--review .bd-view-toggle,
       .bd-annotation--review .bd-view-controls,
       .bd-annotation--review .bd-annotation-instruction { display: none; }
       .bd-annotation--review .bd-annotation-back,

@@ -158,6 +158,7 @@ export const nl: WidgetStrings = {
   toolRedact: 'Redigeren',
   toolPan: 'Verschuiven',
   fitWidth: 'Breedte passend',
+  viewControls: 'Zoombediening',
   zoomIn: 'Inzoomen',
   zoomOut: 'Uitzoomen',
   resetView: 'Weergave herstellen',

@@ -142,6 +142,7 @@ export const zhCN: WidgetStrings = {
   toolRedact: '遮盖',
   toolPan: '平移',
   fitWidth: '适应宽度',
+  viewControls: '缩放控件',
   zoomIn: '放大',
   zoomOut: '缩小',
   resetView: '重置视图',

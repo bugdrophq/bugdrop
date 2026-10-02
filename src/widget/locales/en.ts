@@ -150,6 +150,7 @@ export const en: WidgetStrings = {
   toolRedact: 'Redact',
   toolPan: 'Pan',
   fitWidth: 'Fit width',
+  viewControls: 'Zoom controls',
   zoomIn: 'Zoom in',
   zoomOut: 'Zoom out',
   resetView: 'Reset view',

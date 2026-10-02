@@ -61,27 +61,7 @@ export function showAnnotationStep(
       panButton?.setAttribute('aria-pressed', 'true');
     }
 
-    const zoomLevel = modal.querySelector('.bd-zoom-level') as HTMLOutputElement;
-    modal.querySelectorAll<HTMLElement>('[data-view]').forEach(button => {
-      button.addEventListener('click', () => {
-        switch (button.dataset.view) {
-          case 'fit':
-            annotator.fitWidth();
-            break;
-          case 'in':
-            annotator.zoomIn();
-            break;
-          case 'out':
-            annotator.zoomOut();
-            break;
-          case 'reset':
-            annotator.resetView();
-            break;
-        }
-        zoomLevel.value = `${Math.round(annotator.getZoom() * 100)}%`;
-      });
-    });
-
+    const viewControls = wireViewControls(modal, annotator);
     wireAnnotationTools(modal, annotator);
 
     const closeBtn = modal.querySelector('.bd-close') as HTMLElement;
@@ -138,7 +118,8 @@ export function showAnnotationStep(
 
     modal.querySelector('[data-action="review"]')?.addEventListener('click', () => {
       annotator.fitWidth();
-      zoomLevel.value = `${Math.round(annotator.getZoom() * 100)}%`;
+      viewControls.update();
+      viewControls.close();
       modalElement.classList.add('bd-annotation--review');
       heading.textContent = t().reviewScreenshotTitle;
       nav.setAttribute('aria-label', t().reviewScreenshotTitle);
@@ -160,6 +141,65 @@ export function showAnnotationStep(
       }
     });
   });
+}
+
+function wireViewControls(modal: HTMLElement, annotator: ReturnType<typeof createAnnotator>) {
+  const zoomLevel = modal.querySelector('.bd-zoom-level') as HTMLOutputElement;
+  const viewToggle = modal.querySelector<HTMLButtonElement>('.bd-view-toggle')!;
+  const viewCurrent = viewToggle.querySelector('.bd-view-current')!;
+  const canvasArea = modal.querySelector('.bd-canvas-area')!;
+  const viewControls = modal.querySelector('.bd-view-controls')!;
+
+  function setOpen(open: boolean) {
+    canvasArea.classList.toggle('bd-canvas-area--view-open', open);
+    viewToggle.setAttribute('aria-expanded', String(open));
+  }
+  function update() {
+    zoomLevel.value = `${Math.round(annotator.getZoom() * 100)}%`;
+    viewCurrent.textContent = zoomLevel.value;
+    viewToggle.setAttribute('aria-label', `${t().viewControls}: ${zoomLevel.value}`);
+  }
+
+  viewToggle.addEventListener('click', () => {
+    setOpen(viewToggle.getAttribute('aria-expanded') !== 'true');
+  });
+  modal.addEventListener('pointerdown', event => {
+    if (
+      viewToggle.getAttribute('aria-expanded') === 'true' &&
+      !viewToggle.contains(event.target as Node) &&
+      !viewControls.contains(event.target as Node)
+    ) {
+      setOpen(false);
+    }
+  });
+  modal.addEventListener('keydown', event => {
+    if (event.key === 'Escape' && viewToggle.getAttribute('aria-expanded') === 'true') {
+      event.preventDefault();
+      setOpen(false);
+      viewToggle.focus();
+    }
+  });
+  modal.querySelectorAll<HTMLElement>('[data-view]').forEach(button => {
+    button.addEventListener('click', () => {
+      switch (button.dataset.view) {
+        case 'fit':
+          annotator.fitWidth();
+          break;
+        case 'in':
+          annotator.zoomIn();
+          break;
+        case 'out':
+          annotator.zoomOut();
+          break;
+        case 'reset':
+          annotator.resetView();
+          break;
+      }
+      update();
+    });
+  });
+
+  return { close: () => setOpen(false), update };
 }
 
 function wireAnnotationTools(modal: HTMLElement, annotator: ReturnType<typeof createAnnotator>) {
@@ -203,12 +243,13 @@ function annotationContent(redactionNote: string, selectedElementNote: string): 
           <button class="bd-tool" data-action="undo" aria-label="${escapeWidgetText(t().undo)}"><span class="bd-tool-icon" aria-hidden="true">↶</span><span class="bd-tool-label">${escapeWidgetText(t().undo)}</span></button>
         </div>
         <div class="bd-canvas-area">
-          <div class="bd-view-controls">
+          <button class="bd-tool bd-view-toggle" aria-label="${escapeWidgetText(t().viewControls)}: 100%" aria-controls="bd-view-controls" aria-expanded="false"><span class="bd-view-current">100%</span><span aria-hidden="true">⌄</span></button>
+          <div class="bd-view-controls" id="bd-view-controls" role="group" aria-label="${escapeWidgetText(t().viewControls)}">
             <button class="bd-tool" data-view="fit">${escapeWidgetText(t().fitWidth)}</button>
             <button class="bd-tool" data-view="out" aria-label="${escapeWidgetText(t().zoomOut)}">−</button>
             <output class="bd-zoom-level" aria-live="polite">100%</output>
             <button class="bd-tool" data-view="in" aria-label="${escapeWidgetText(t().zoomIn)}">+</button>
-            <button class="bd-tool" data-view="reset">${escapeWidgetText(t().resetView)}</button>
+            <button class="bd-tool" data-view="reset" aria-label="${escapeWidgetText(t().resetView)}"><span class="bd-reset-label">${escapeWidgetText(t().resetView)}</span><span class="bd-reset-icon" aria-hidden="true">↺</span></button>
           </div>
           <div id="annotation-canvas" class="bd-annotation-stage"></div>
         </div>

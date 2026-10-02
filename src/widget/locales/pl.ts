@@ -171,6 +171,7 @@ export const pl: WidgetStrings = {
   toolRedact: 'Zamaż',
   toolPan: 'Przesuń',
   fitWidth: 'Dopasuj szerokość',
+  viewControls: 'Sterowanie powiększeniem',
   zoomIn: 'Powiększ',
   zoomOut: 'Pomniejsz',
   resetView: 'Resetuj widok',

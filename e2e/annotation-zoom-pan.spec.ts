@@ -26,6 +26,9 @@ test('mobile zoom controls have usable touch targets and respond to repeated tap
     await host.locator('[data-action="capture"]').tap();
     await expect(host.locator('#annotation-canvas canvas')).toBeVisible();
 
+    const viewToggle = host.locator('.bd-view-toggle');
+    await expect(host.locator('.bd-view-controls')).toBeHidden();
+    await viewToggle.tap();
     const zoomIn = host.locator('[data-view="in"]');
     const bounds = await zoomIn.boundingBox();
     expect(bounds).not.toBeNull();
@@ -34,8 +37,18 @@ test('mobile zoom controls have usable touch targets and respond to repeated tap
     await zoomIn.tap();
     await zoomIn.tap();
     await expect(host.locator('.bd-zoom-level')).toHaveText('200%');
+    await expect(viewToggle).toContainText('200%');
+    const reset = host.locator('[data-view="reset"]');
+    await expect(reset).toHaveAttribute('aria-label', 'Reset view');
+    await reset.tap();
+    await expect(host.locator('.bd-zoom-level')).toHaveText('100%');
+    await page.keyboard.press('Escape');
+    await expect(host.locator('.bd-view-controls')).toBeHidden();
+    await expect(viewToggle).toBeFocused();
 
+    await viewToggle.tap();
     await host.locator('[data-tool="pan"]').tap();
+    await expect(host.locator('.bd-view-controls')).toBeHidden();
     await expect(host.locator('[data-tool="pan"]')).toHaveClass(/active/);
 
     await host.locator('[data-tool="rect"]').tap();
@@ -109,7 +122,7 @@ test('mobile dock keeps navigation separate from tools across phone sizes', asyn
         )
         .toBeLessThanOrEqual(1);
 
-      const { retake, review, stage, dock, close, tools } = await host
+      const { retake, review, stage, toggle, dock, close, tools } = await host
         .locator('.bd-modal--annotator')
         .evaluate(modal => {
           const box = (element: Element) => {
@@ -121,6 +134,7 @@ test('mobile dock keeps navigation separate from tools across phone sizes', asyn
             retake: select('[data-action="mobile-retake"]'),
             review: select('[data-action="review"]'),
             stage: select('#annotation-canvas'),
+            toggle: select('.bd-view-toggle'),
             dock: select('.bd-tools'),
             close: select('.bd-close'),
             tools: Array.from(modal.querySelectorAll('.bd-tools .bd-tool'), box),
@@ -133,7 +147,16 @@ test('mobile dock keeps navigation separate from tools across phone sizes', asyn
       expect(stage.height).toBeGreaterThanOrEqual(60);
       expect(retake.y + retake.height).toBeLessThan(stage.y);
       expect(review.y + review.height).toBeLessThan(stage.y);
+      expect(toggle.height).toBeGreaterThanOrEqual(44);
+      expect(toggle.y).toBeGreaterThanOrEqual(stage.y);
+      expect(toggle.y + toggle.height).toBeLessThanOrEqual(stage.y + stage.height);
       expect(dock.y).toBeGreaterThanOrEqual(stage.y + stage.height);
+      await expect(host.locator('.bd-view-controls')).toBeHidden();
+      await host.locator('.bd-view-toggle').tap();
+      const view = await host.locator('.bd-view-controls').boundingBox();
+      expect(view).not.toBeNull();
+      expect(view!.y + view!.height).toBeLessThanOrEqual(stage.y + stage.height);
+      await host.locator('.bd-view-toggle').tap();
       await expect(host.locator('[data-tool="pan"]')).toHaveAttribute('aria-pressed', 'true');
       expect(tools).toHaveLength(6);
       for (const bounds of tools) {
@@ -144,6 +167,7 @@ test('mobile dock keeps navigation separate from tools across phone sizes', asyn
 
       await host.locator('[data-action="review"]').tap();
       await expect(host.locator('[data-action="send-reviewed"]')).toBeVisible();
+      await expect(host.locator('.bd-view-toggle')).toBeHidden();
       await expect(host.locator('.bd-annotation-review-instruction')).toBeVisible();
       await expect(host.locator('.bd-tools')).toBeHidden();
       await host.locator('[data-action="back-to-edit"]').tap();
@@ -277,6 +301,7 @@ test('long mobile screenshot remains readable and annotations map through zoom a
   expect(initial.display).toBeGreaterThan(initial.stage * 0.8);
   expect(initial.scrollHeight).toBeGreaterThan(initial.clientHeight * 2);
 
+  await host.locator('.bd-view-toggle').click();
   await host.locator('[data-view="in"]').click();
   await expect(host.locator('output.bd-zoom-level')).toHaveText('150%');
   const zoomedWidth = await canvas.evaluate(element => element.getBoundingClientRect().width);
@@ -373,6 +398,7 @@ test('long mobile screenshot remains readable and annotations map through zoom a
   );
   expect(undone).toEqual([255, 255, 255, 255]);
 
+  await host.locator('.bd-view-toggle').click();
   await host.locator('[data-view="reset"]').click();
   await expect(host.locator('output.bd-zoom-level')).toHaveText('100%');
   expect(await stage.evaluate(element => [element.scrollLeft, element.scrollTop])).toEqual([0, 0]);

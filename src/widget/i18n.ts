@@ -140,6 +140,7 @@ export interface WidgetStrings {
   toolRedact: string;
   toolPan: string;
   fitWidth: string;
+  viewControls: string;
   zoomIn: string;
   zoomOut: string;
   resetView: string;

@@ -164,6 +164,7 @@ export const de: WidgetStrings = {
   toolRedact: 'Schwärzen',
   toolPan: 'Verschieben',
   fitWidth: 'Breite anpassen',
+  viewControls: 'Zoomsteuerung',
   zoomIn: 'Vergrößern',
   zoomOut: 'Verkleinern',
   resetView: 'Ansicht zurücksetzen',
