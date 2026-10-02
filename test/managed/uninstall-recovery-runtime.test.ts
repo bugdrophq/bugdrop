@@ -15,6 +15,7 @@ async function expired(recovery = true) {
   await service.request('/intake');
   await service.restart(retention);
   await service.alarm();
+  await service.prewarm();
 }
 async function continuation(recoveryRequestId = crypto.randomUUID()) {
   return {
@@ -237,6 +238,7 @@ describe('actual SQLite retention and private continuation', () => {
     expect((await service.request('/continue', first)).status).toBe(200);
     await service.restart(retention);
     await service.alarm();
+    await service.prewarm();
     const second = await continuation();
     expect((await service.request('/continue', second)).status).toBe(200);
     await service.restart(retention);
