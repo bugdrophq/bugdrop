@@ -2,7 +2,7 @@
   "schemaVersion": 4,
   "description": "Reviewed mobile annotation release candidate after temporarily removing PR #419 Simplified Chinese widget localization. Tracked public src (excluding src/managed), public assets, wrangler.toml, widget build script and widget tsconfig. SHA-256 of sorted path + NUL + exact bytes + NUL.",
   "fileCount": 147,
-  "sha256": "d63086c0683cea05e36a13cc731c002bbe7364039906cf986d781d4fd1f2a53f",
+  "sha256": "070ea4247c283e72a449d86c9f758030acded8af71a7f5fd2f224a8367f6b0a4",
   "approvedDelta": {
     "previousBaseline": "current-public-baseline.v3.json",
     "previousSha256": "9ec7da0bd17fd7f2343c8d1b1789daf018a1de2b3a76038d1ad4adb3a4850bda",
@@ -15,8 +15,7 @@
       "src/widget/locales/en.ts",
       "src/widget/locales/nl.ts",
       "src/widget/locales/pl.ts",
-      "src/widget/locales/zh-CN.ts",
-      "src/widget/ui.ts"
+      "src/widget/locales/zh-CN.ts"
     ],
     "reason": "Keep the reviewed PR #424 mobile annotation flow while deferring PR #419 Simplified Chinese widget localization to a later release."
   }

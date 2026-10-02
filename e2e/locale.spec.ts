@@ -110,6 +110,39 @@ test.describe('Widget localization', () => {
     await expect(modalTitle(page)).toHaveText(WELCOME_TITLES.en);
   });
 
+  test('Polish category labels stay inside their options at 320px', async ({ page }) => {
+    await page.setViewportSize({ width: 320, height: 640 });
+    await openWidget(page, { locale: 'pl' });
+    const widget = host(page);
+    await widget.locator('css=[data-action="continue"]').click();
+
+    const bounds = await widget.locator('css=.bd-category-option').evaluateAll(options =>
+      options.map(option => {
+        const label = option.getBoundingClientRect();
+        const text = option.querySelector('span')?.getBoundingClientRect();
+        if (!text) throw new Error('Category text missing');
+        return {
+          label: { left: label.left, right: label.right, top: label.top, bottom: label.bottom },
+          text: { left: text.left, right: text.right },
+        };
+      })
+    );
+
+    expect(bounds).toHaveLength(3);
+    for (const [index, option] of bounds.entries()) {
+      expect(option.text.left).toBeGreaterThanOrEqual(option.label.left - 0.5);
+      expect(option.text.right).toBeLessThanOrEqual(option.label.right + 0.5);
+      for (const next of bounds.slice(index + 1)) {
+        if (
+          Math.min(option.label.bottom, next.label.bottom) >
+          Math.max(option.label.top, next.label.top)
+        ) {
+          expect(option.label.right).toBeLessThanOrEqual(next.label.left + 0.5);
+        }
+      }
+    }
+  });
+
   test('localizes trigger text and keeps data-label as a visible-label override', async ({
     page,
   }) => {

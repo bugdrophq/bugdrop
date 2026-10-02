@@ -18,7 +18,9 @@ after PR #424 merged, so the next release can include the mobile annotation flow
 without shipping Chinese localization. PR #419 remains in Git history, and its
 v2 and v3 fingerprints remain immutable evidence. Explicit `zh-CN` and `zh-Hans`
 requests now fall back to English. Reintroducing Chinese later requires a new
-reviewed change and a new public fingerprint.
+reviewed change and a new public fingerprint. The language-neutral category
+wrapping from PR #419 remains, because removing it makes existing English and
+Polish category labels overlap at 320 px.
 
 ## Reviewed v3 public change
 

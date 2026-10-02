@@ -295,6 +295,7 @@ test.describe('paired default-flow screenshot compatibility oracle', () => {
           mimeType: 'image/png',
           buffer: Buffer.from('paired optional evidence'),
         });
+        await expect(widget.locator('css=.bd-upload-item')).toContainText('evidence.png');
         await observe(page, trace, 'completed-details');
 
         await act(page, trace, 'continue-to-capture', '#submit-btn');
