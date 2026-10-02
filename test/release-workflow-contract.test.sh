@@ -202,6 +202,9 @@ require_literal 'ref: ${{ needs.guard-and-plan.outputs.controller_sha }}'
 require_literal 'ref: ${{ inputs.target_sha }}'
 
 verify_block=$(job_block verify-candidate)
+candidate_checkout_block=$(sed -n '/      - name: Checkout immutable candidate$/,/      - uses: actions\/setup-node@/p' <<< "$verify_block")
+grep -Fq 'fetch-depth: 0' <<< "$candidate_checkout_block" ||
+  fail 'candidate verification must fetch history for cross-plane baseline tests'
 for literal in \
   'needs: guard-and-plan' \
   'path: controller' \
