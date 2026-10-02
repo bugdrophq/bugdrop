@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 5,
+  "description": "Reviewed current public tree after restoring Simplified Chinese localization on top of the mobile annotation release. Tracked public src (excluding src/managed), public assets, wrangler.toml, widget build script and widget tsconfig. SHA-256 of sorted path + NUL + exact bytes + NUL.",
+  "fileCount": 148,
+  "sha256": "9ec7da0bd17fd7f2343c8d1b1789daf018a1de2b3a76038d1ad4adb3a4850bda",
+  "approvedDelta": {
+    "previousBaseline": "current-public-baseline.v4.json",
+    "previousSha256": "070ea4247c283e72a449d86c9f758030acded8af71a7f5fd2f224a8367f6b0a4",
+    "restoredPullRequest": 419,
+    "changedPublicSources": [
+      "src/routes/api.ts",
+      "src/widget/i18n.ts",
+      "src/widget/index.ts",
+      "src/widget/locales/de.ts",
+      "src/widget/locales/en.ts",
+      "src/widget/locales/nl.ts",
+      "src/widget/locales/pl.ts",
+      "src/widget/locales/zh-CN.ts"
+    ],
+    "reason": "Restore the previously reviewed PR #419 localization to main for issuer QA after v1.58.0 shipped the mobile annotation flow alone. No production release is part of this change."
+  }
+}

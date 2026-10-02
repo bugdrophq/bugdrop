@@ -2,24 +2,31 @@
 
 The current public system remains supported. This harness compares its tracked
 runtime, assets, widget build inputs and Wrangler configuration to the reviewed
-feature commit recorded in `test/cross-plane/fixtures/current-public-baseline.v4.json`.
-The test verifies that the v2 and v3 fixtures' commits produce their exact file
-counts and fingerprints, then compares the working tree against the reviewed v4
-fingerprint. Public fingerprint mutations and changed/skipped/retried browser evidence must fail.
+feature commit recorded in `test/cross-plane/fixtures/current-public-baseline.v5.json`.
+The test verifies that the v2, v3 and v4 fixtures' commits produce their exact
+file counts and fingerprints, then compares the working tree against the reviewed
+v5 fingerprint. Public fingerprint mutations and changed/skipped/retried browser evidence must fail.
 An intentional future public change requires explicit baseline review; do not
 refresh the fingerprint merely to make a failure disappear. The v1 fixture is
 pre-localization history; v2 records Chinese localization; v3 records the mobile
-annotation change; and v4 records the temporary deferral of Chinese localization.
+annotation change; v4 records the temporary deferral; and v5 restores Chinese
+localization for issuer QA.
+
+## Reviewed v5 localization restoration
+
+The v5 fixture restores the previously reviewed PR #419 Chinese widget sources
+after v1.58.0 released the mobile annotation flow alone. Its 148 public files
+have the same fingerprint as v3 because the restoration reverses only PR #425's
+public code changes. The v4 fixture remains immutable evidence of the shipped
+release state. Merging v5 into main permits preview and issuer QA; publishing a
+new production release requires a separate operator decision.
 
 ## Reviewed v4 release deferral
 
-The v4 fixture removes the Chinese widget feature from the current public tree
-after PR #424 merged, so the next release can include the mobile annotation flow
-without shipping Chinese localization. PR #419 remains in Git history, and its
-v2 and v3 fingerprints remain immutable evidence. Explicit `zh-CN` and `zh-Hans`
-requests now fall back to English. Reintroducing Chinese later requires a new
-reviewed change and a new public fingerprint. The language-neutral category
-wrapping from PR #419 remains, because removing it makes existing English and
+The v4 fixture removed the Chinese widget feature from the public tree after PR
+#424 merged, allowing the mobile annotation flow to ship without Chinese
+localization. PR #419 remains in Git history. The language-neutral category
+wrapping from PR #419 stayed because removing it makes existing English and
 Polish category labels overlap at 320 px.
 
 ## Reviewed v3 public change

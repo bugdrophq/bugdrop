@@ -55,7 +55,7 @@ describe('repository policy real-client integration', () => {
   it.each([
     ['legacy', legacy],
     ['structured', structured],
-  ])('rejects %s feedback before external access', async (_, payload) => {
+  ])('rejects %s feedback before external access', async (format, payload) => {
     const response = await app.request(
       'http://bugdrop.localhost/api/feedback',
       {
@@ -66,7 +66,10 @@ describe('repository policy real-client integration', () => {
       env
     );
     expect(response.status).toBe(403);
-    expect(await response.json()).toEqual({ error: 'Repository is not allowed' });
+    expect(await response.json()).toEqual({
+      error: 'Repository is not allowed',
+      ...(format === 'legacy' ? { code: 'REPOSITORY_NOT_ALLOWED' } : {}),
+    });
     expect(network).not.toHaveBeenCalled();
   });
   it('keeps invalid JSON on the validation path', async () => {
@@ -80,7 +83,7 @@ describe('repository policy real-client integration', () => {
       env
     );
     expect(response.status).toBe(400);
-    expect(await response.json()).toEqual({ error: 'Invalid JSON' });
+    expect(await response.json()).toEqual({ error: 'Invalid JSON', code: 'INVALID_JSON' });
     expect(network).not.toHaveBeenCalled();
   });
   it('does not restrict health checks', async () => {
