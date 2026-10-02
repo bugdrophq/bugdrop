@@ -1084,7 +1084,7 @@ export function injectStyles(shadow: ShadowRoot, config: WidgetConfig) {
       color: var(--bd-text-secondary);
     }
 
-    .bd-reset-icon, .bd-view-toggle { display: none; }
+    .bd-view-toggle { display: none; }
 
     /* Preview */
     .bd-preview {
@@ -1464,8 +1464,8 @@ export function injectStyles(shadow: ShadowRoot, config: WidgetConfig) {
       }
       .bd-modal--annotator .bd-zoom-level { color: var(--bd-text-primary); }
       .bd-modal--annotator .bd-view-controls [data-view="fit"] { display: none; }
-      .bd-modal--annotator .bd-view-controls .bd-reset-label { display: none; }
-      .bd-modal--annotator .bd-view-controls .bd-reset-icon { display: inline; font-size: 24px; }
+      .bd-modal--annotator .bd-view-controls [data-view="reset"] { font-size: 0; }
+      .bd-modal--annotator .bd-view-controls [data-view="reset"]::before { content: '↺'; font-size: 24px; }
       .bd-modal--annotator .bd-annotation-stage {
         flex: 1 1 auto;
         min-height: 0;

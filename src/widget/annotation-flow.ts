@@ -249,7 +249,7 @@ function annotationContent(redactionNote: string, selectedElementNote: string): 
             <button class="bd-tool" data-view="out" aria-label="${escapeWidgetText(t().zoomOut)}">−</button>
             <output class="bd-zoom-level" aria-live="polite">100%</output>
             <button class="bd-tool" data-view="in" aria-label="${escapeWidgetText(t().zoomIn)}">+</button>
-            <button class="bd-tool" data-view="reset" aria-label="${escapeWidgetText(t().resetView)}"><span class="bd-reset-label">${escapeWidgetText(t().resetView)}</span><span class="bd-reset-icon" aria-hidden="true">↺</span></button>
+            <button class="bd-tool" data-view="reset" aria-label="${escapeWidgetText(t().resetView)}">${escapeWidgetText(t().resetView)}</button>
           </div>
           <div id="annotation-canvas" class="bd-annotation-stage"></div>
         </div>
