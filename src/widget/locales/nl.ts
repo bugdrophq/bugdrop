@@ -67,25 +67,6 @@ export const nl: WidgetStrings = {
   submitFailedFallback: 'Versturen mislukt',
   networkError: 'Netwerkfout. Controleer uw verbinding.',
   submissionFailedTitle: 'Versturen mislukt',
-  submissionErrors: {
-    INVALID_JSON: 'Ongeldig verzoek. Probeer het opnieuw.',
-    INVALID_SUBMITTER: 'De naam of het e-mailadres is ongeldig. Controleer uw gegevens.',
-    MISSING_REQUIRED_FIELDS: 'Een repository en titel zijn vereist.',
-    INVALID_APP_VERSION: 'De appversie is ongeldig. Neem contact op met de sitebeheerder.',
-    INVALID_SCREENSHOT: 'De schermafbeelding is ongeldig. Maak een nieuwe.',
-    SCREENSHOT_TOO_LARGE: 'De schermafbeelding is te groot. Kies een kleiner gebied.',
-    INVALID_ATTACHMENT: 'Een bijlage is ongeldig. Verwijder deze en probeer het opnieuw.',
-    TOO_MANY_ATTACHMENTS: 'Te veel bijlagen. Verwijder enkele bestanden.',
-    UNSUPPORTED_ATTACHMENT_TYPE: 'Dit bestandstype wordt niet ondersteund. Verwijder het bestand.',
-    ATTACHMENT_TOO_LARGE: 'Een bijlage is te groot. Verwijder deze.',
-    INVALID_REPOSITORY: 'De repository is ongeldig. Neem contact op met de sitebeheerder.',
-    REPOSITORY_NOT_ALLOWED:
-      'Deze repository kan geen feedback ontvangen. Neem contact op met de sitebeheerder.',
-    AUTH_REQUIRED:
-      'Autorisatie mislukt. Laad de pagina opnieuw of neem contact op met de sitebeheerder.',
-    APP_NOT_INSTALLED: 'De GitHub-app is niet geïnstalleerd voor deze repository.',
-    ISSUE_CREATION_FAILED: 'Kan geen issue aanmaken. Probeer het later opnieuw.',
-  },
   tryAgain: 'Opnieuw proberen',
   // Success modal
   successTitle: 'Feedback verstuurd!',

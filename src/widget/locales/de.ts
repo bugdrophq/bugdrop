@@ -69,30 +69,6 @@ export const de: WidgetStrings = {
   submitFailedFallback: 'Senden fehlgeschlagen',
   networkError: 'Netzwerkfehler. Bitte überprüfen Sie Ihre Verbindung.',
   submissionFailedTitle: 'Senden fehlgeschlagen',
-  submissionErrors: {
-    INVALID_JSON: 'Ungültige Anfrage. Bitte versuchen Sie es erneut.',
-    INVALID_SUBMITTER: 'Name oder E-Mail-Adresse sind ungültig. Bitte prüfen Sie Ihre Angaben.',
-    MISSING_REQUIRED_FIELDS: 'Repository und Titel sind erforderlich.',
-    INVALID_APP_VERSION:
-      'Die App-Version ist ungültig. Bitte wenden Sie sich an den Websitebetreiber.',
-    INVALID_SCREENSHOT: 'Der Screenshot ist ungültig. Bitte erstellen Sie ihn erneut.',
-    SCREENSHOT_TOO_LARGE: 'Der Screenshot ist zu groß. Bitte wählen Sie einen kleineren Bereich.',
-    INVALID_ATTACHMENT:
-      'Ein Anhang ist ungültig. Bitte entfernen Sie ihn und versuchen Sie es erneut.',
-    TOO_MANY_ATTACHMENTS: 'Zu viele Anhänge. Bitte entfernen Sie einige Dateien.',
-    UNSUPPORTED_ATTACHMENT_TYPE:
-      'Ein Dateityp wird nicht unterstützt. Bitte entfernen Sie die Datei.',
-    ATTACHMENT_TOO_LARGE: 'Ein Anhang ist zu groß. Bitte entfernen Sie ihn.',
-    INVALID_REPOSITORY:
-      'Das Repository ist ungültig. Bitte wenden Sie sich an den Websitebetreiber.',
-    REPOSITORY_NOT_ALLOWED:
-      'Dieses Repository kann kein Feedback empfangen. Bitte wenden Sie sich an den Websitebetreiber.',
-    AUTH_REQUIRED:
-      'Autorisierung fehlgeschlagen. Bitte laden Sie die Seite neu oder wenden Sie sich an den Websitebetreiber.',
-    APP_NOT_INSTALLED: 'Die GitHub-App ist für dieses Repository nicht installiert.',
-    ISSUE_CREATION_FAILED:
-      'Das Issue konnte nicht erstellt werden. Bitte versuchen Sie es später erneut.',
-  },
   tryAgain: 'Erneut versuchen',
   // Success modal
   successTitle: 'Feedback gesendet!',

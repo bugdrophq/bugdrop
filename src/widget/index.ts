@@ -29,14 +29,7 @@ import {
   startConsoleLogCapture,
   type ConsoleLogEntry,
 } from './console-logs';
-import {
-  escapeWidgetText,
-  resolveLocale,
-  setLocale,
-  submissionErrorMessage,
-  t,
-  type SupportedLocale,
-} from './i18n';
+import { escapeWidgetText, resolveLocale, setLocale, t, type SupportedLocale } from './i18n';
 import { installRadixDialogCompatibility } from './radix-compat';
 import { closeActiveVariantModal } from './variants/modal-coordinator';
 import { resolveAccentColor } from '../defaults';
@@ -1890,12 +1883,7 @@ async function submitFeedback(root: HTMLElement, config: WidgetConfig, data: Fee
         config.issueLinkVisibility
       );
     } else {
-      showSubmitError(
-        root,
-        config,
-        data,
-        submissionErrorMessage(result.code, result.error, config.locale)
-      );
+      showSubmitError(root, config, data, result.error || t().submitFailedFallback);
     }
   } catch (_error) {
     modal.remove();

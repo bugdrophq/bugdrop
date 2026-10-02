@@ -517,10 +517,7 @@ describe('API Routes', () => {
       const res = await app.fetch(req, env, { waitUntil } as unknown as ExecutionContext);
 
       expect(res.status).toBe(500);
-      expect(await res.json()).toEqual({
-        error: 'GitHub returned an invalid Issue result',
-        code: 'ISSUE_CREATION_FAILED',
-      });
+      expect(await res.json()).toEqual({ error: 'GitHub returned an invalid Issue result' });
       expect(counterFetch).not.toHaveBeenCalled();
       expect(waitUntil).not.toHaveBeenCalled();
     });
@@ -601,7 +598,7 @@ describe('API Routes', () => {
       const data = await res.json();
 
       expect(res.status).toBe(401);
-      expect(data).toEqual({ error: 'BugDrop auth token required', code: 'AUTH_REQUIRED' });
+      expect(data).toEqual({ error: 'BugDrop auth token required' });
       expect(mockGetInstallationToken).not.toHaveBeenCalled();
       expect(mockCreateIssue).not.toHaveBeenCalled();
     });
@@ -1508,7 +1505,6 @@ describe('API Routes', () => {
 
       expect(res.status).toBe(400);
       expect(data.error).toContain('Missing required fields');
-      expect(data.code).toBe('MISSING_REQUIRED_FIELDS');
     });
 
     it('should return 400 when title is missing', async () => {
@@ -1542,7 +1538,6 @@ describe('API Routes', () => {
 
         expect(res.status).toBe(400);
         expect(data.error).toBe('Invalid metadata appVersion');
-        expect(data.code).toBe('INVALID_APP_VERSION');
         expect(mockCreateIssue).not.toHaveBeenCalled();
       }
     );
@@ -1575,7 +1570,6 @@ describe('API Routes', () => {
 
       expect(res.status).toBe(400);
       expect(data.error).toContain('Invalid repo format');
-      expect(data.code).toBe('INVALID_REPOSITORY');
     });
 
     it('should return 400 when JSON is invalid', async () => {
@@ -1589,7 +1583,6 @@ describe('API Routes', () => {
 
       expect(res.status).toBe(400);
       expect(data.error).toBe('Invalid JSON');
-      expect(data.code).toBe('INVALID_JSON');
     });
 
     it('should return 403 when app is not installed with configurable app name', async () => {
@@ -1605,23 +1598,7 @@ describe('API Routes', () => {
 
       expect(res.status).toBe(403);
       expect(data.error).toContain('not installed');
-      expect(data.code).toBe('APP_NOT_INSTALLED');
       expect(data.installUrl).toBe('https://github.com/apps/test-bugdrop-app/installations/new');
-    });
-
-    it('keeps an actionable code and English message for a disallowed repository', async () => {
-      const req = new Request('http://localhost/feedback', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(validPayload),
-      });
-      const res = await app.fetch(req, { ...mockEnv, ALLOWED_REPOSITORIES: 'another/repo' });
-
-      expect(res.status).toBe(403);
-      expect(await res.json()).toEqual({
-        error: 'Repository is not allowed',
-        code: 'REPOSITORY_NOT_ALLOWED',
-      });
     });
 
     it('should upload screenshot and include URL in issue body', async () => {
@@ -1751,7 +1728,6 @@ describe('API Routes', () => {
 
       expect(res.status).toBe(400);
       expect(data.error).toContain('Unsupported file type');
-      expect(data.code).toBe('UNSUPPORTED_ATTACHMENT_TYPE');
       expect(mockUploadAttachmentAsAsset).not.toHaveBeenCalled();
       expect(mockCreateIssue).not.toHaveBeenCalled();
     });
@@ -1780,7 +1756,6 @@ describe('API Routes', () => {
       expect(res.status).toBe(400);
       expect(data.error).toContain('File is too large');
       expect(data.error).toContain('exceeds 5MB limit');
-      expect(data.code).toBe('ATTACHMENT_TOO_LARGE');
       expect(mockUploadAttachmentAsAsset).not.toHaveBeenCalled();
       expect(mockCreateIssue).not.toHaveBeenCalled();
     });
@@ -1917,7 +1892,6 @@ describe('API Routes', () => {
 
       expect(res.status).toBe(400);
       expect(data.error).toContain('Screenshot too large');
-      expect(data.code).toBe('SCREENSHOT_TOO_LARGE');
       expect(data.error).toContain('exceeds 5MB limit');
     });
 
@@ -1978,7 +1952,6 @@ describe('API Routes', () => {
     it('should return 500 when GitHub API fails', async () => {
       mockGetInstallationToken.mockResolvedValue('test-token');
       mockCreateIssue.mockRejectedValue(new Error('GitHub API error'));
-      const errorLog = vi.spyOn(console, 'error').mockImplementation(() => undefined);
 
       const req = new Request('http://localhost/feedback', {
         method: 'POST',
@@ -1989,9 +1962,7 @@ describe('API Routes', () => {
       const data = await res.json();
 
       expect(res.status).toBe(500);
-      expect(data).toEqual({ error: 'GitHub API error', code: 'ISSUE_CREATION_FAILED' });
-      expect(errorLog).toHaveBeenCalledWith('Error creating feedback:', expect.any(Error));
-      errorLog.mockRestore();
+      expect(data.error).toContain('GitHub API error');
     });
 
     it('should format issue body with metadata', async () => {
@@ -2401,10 +2372,7 @@ describe('API Routes', () => {
         mockEnv
       );
       expect(res.status).toBe(400);
-      expect(await res.json()).toEqual({
-        error: 'Invalid submitter name or email',
-        code: 'INVALID_SUBMITTER',
-      });
+      expect(await res.json()).toEqual({ error: 'Invalid submitter name or email' });
       expect(mockGetInstallationToken).not.toHaveBeenCalled();
       expect(mockCreateIssue).not.toHaveBeenCalled();
     });

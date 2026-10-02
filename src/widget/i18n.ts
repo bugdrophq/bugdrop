@@ -2,25 +2,7 @@ import { de } from './locales/de';
 import { en } from './locales/en';
 import { nl } from './locales/nl';
 import { pl } from './locales/pl';
-import { zhCN } from './locales/zh-CN';
 import { escapeHtml } from './sanitize';
-
-type FeedbackErrorCode =
-  | 'INVALID_JSON'
-  | 'INVALID_SUBMITTER'
-  | 'MISSING_REQUIRED_FIELDS'
-  | 'INVALID_APP_VERSION'
-  | 'INVALID_SCREENSHOT'
-  | 'SCREENSHOT_TOO_LARGE'
-  | 'INVALID_ATTACHMENT'
-  | 'TOO_MANY_ATTACHMENTS'
-  | 'UNSUPPORTED_ATTACHMENT_TYPE'
-  | 'ATTACHMENT_TOO_LARGE'
-  | 'INVALID_REPOSITORY'
-  | 'REPOSITORY_NOT_ALLOWED'
-  | 'AUTH_REQUIRED'
-  | 'APP_NOT_INSTALLED'
-  | 'ISSUE_CREATION_FAILED';
 
 export interface WidgetStrings {
   // Trigger button & pull tab
@@ -81,7 +63,6 @@ export interface WidgetStrings {
   submitFailedFallback: string;
   networkError: string;
   submissionFailedTitle: string;
-  submissionErrors: Record<FeedbackErrorCode, string>;
   tryAgain: string;
   // Success modal
   successTitle: string;
@@ -151,7 +132,7 @@ export interface WidgetStrings {
   captureTimeout: string;
 }
 
-const DICTIONARIES = { en, de, nl, pl, 'zh-CN': zhCN } satisfies Record<string, WidgetStrings>;
+const DICTIONARIES = { en, de, nl, pl } satisfies Record<string, WidgetStrings>;
 
 export type SupportedLocale = keyof typeof DICTIONARIES;
 
@@ -162,22 +143,6 @@ export function escapeWidgetText(value: string): string {
 
 export function resolveLocale(raw: string | undefined | null): SupportedLocale {
   if (!raw) return 'en';
-  const normalized = raw.replace(/_/g, '-');
-  // Chinese needs script and region information: bare zh and Traditional Chinese are unsupported.
-  if (/^zh(?:-|$)/i.test(normalized)) {
-    try {
-      const locale = new Intl.Locale(normalized);
-      if (
-        locale.language === 'zh' &&
-        (locale.script === 'Hans' || (!locale.script && locale.region === 'CN'))
-      )
-        return 'zh-CN';
-    } catch {
-      // Invalid tags use the same unsupported-locale fallback below.
-    }
-    console.warn(`[BugDrop] Unsupported data-locale "${raw}"; falling back to English.`);
-    return 'en';
-  }
   // Accept both BCP 47 ("nl-NL") and POSIX/Symfony ("nl_NL") region formats.
   const base = raw.toLowerCase().split(/[-_]/)[0];
   if (Object.prototype.hasOwnProperty.call(DICTIONARIES, base)) return base as SupportedLocale;
@@ -194,20 +159,4 @@ export function setLocale(locale: SupportedLocale): void {
 
 export function t(): WidgetStrings {
   return currentStrings;
-}
-
-export function submissionErrorMessage(
-  code: unknown,
-  serverMessage: unknown,
-  locale: SupportedLocale
-): string {
-  // Keep the existing English API wording, including operator-provided details.
-  if (locale === 'en' && typeof serverMessage === 'string' && serverMessage) return serverMessage;
-  if (
-    typeof code === 'string' &&
-    Object.prototype.hasOwnProperty.call(t().submissionErrors, code)
-  ) {
-    return t().submissionErrors[code as FeedbackErrorCode];
-  }
-  return t().submitFailedFallback;
 }

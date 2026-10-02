@@ -151,10 +151,7 @@ for (const [format, payload] of Object.entries({ legacy, structured })) {
     it('denies before all GitHub operations', async () => {
       const response = await submit(payload, { ...env, ALLOWED_REPOSITORIES: 'approved/repo' });
       expect(response.status).toBe(403);
-      expect(await response.json()).toEqual({
-        error: 'Repository is not allowed',
-        ...(format === 'legacy' ? { code: 'REPOSITORY_NOT_ALLOWED' } : {}),
-      });
+      expect(await response.json()).toEqual({ error: 'Repository is not allowed' });
       expectNoGitHub();
     });
     it.each([undefined, '', ' \n ', '*', ' TESTOWNER/TESTREPO '])(
@@ -201,10 +198,7 @@ for (const [format, payload] of Object.entries({ legacy, structured })) {
         );
         expect(response.status).toBe(status);
         if (status === 403)
-          expect(await response.json()).toEqual({
-            error: 'Repository is not allowed',
-            ...(format === 'legacy' ? { code: 'REPOSITORY_NOT_ALLOWED' } : {}),
-          });
+          expect(await response.json()).toEqual({ error: 'Repository is not allowed' });
         expect(kv.put.mock.calls.some(([key]) => key.startsWith('repo:'))).toBe(repoWritten);
         expectNoGitHub();
       }
@@ -242,10 +236,7 @@ describe('legacy repository format', () => {
     );
 
     expect(response.status).toBe(400);
-    expect(await response.json()).toEqual({
-      error: 'Invalid repo format. Expected: owner/repo',
-      code: 'INVALID_REPOSITORY',
-    });
+    expect(await response.json()).toEqual({ error: 'Invalid repo format. Expected: owner/repo' });
     expectNoGitHub();
   });
 });
