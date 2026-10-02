@@ -36,23 +36,6 @@ type ApiVariables = {
 };
 type ApiEnv = { Bindings: Env; Variables: ApiVariables };
 
-// Keep in sync with the default widget's submission error dictionary.
-type FeedbackErrorCode =
-  | 'INVALID_JSON'
-  | 'MISSING_REQUIRED_FIELDS'
-  | 'INVALID_APP_VERSION'
-  | 'INVALID_SCREENSHOT'
-  | 'SCREENSHOT_TOO_LARGE'
-  | 'INVALID_ATTACHMENT'
-  | 'TOO_MANY_ATTACHMENTS'
-  | 'UNSUPPORTED_ATTACHMENT_TYPE'
-  | 'ATTACHMENT_TOO_LARGE'
-  | 'INVALID_REPOSITORY'
-  | 'REPOSITORY_NOT_ALLOWED'
-  | 'AUTH_REQUIRED'
-  | 'APP_NOT_INSTALLED'
-  | 'ISSUE_CREATION_FAILED';
-
 const api = new Hono<ApiEnv>();
 
 const DEFAULT_CATEGORY_LABELS: Record<FeedbackCategory, string[]> = {
@@ -249,7 +232,7 @@ api.post('/feedback', async c => {
   try {
     requestPayload = c.get('feedbackPayload') ?? (await c.req.json());
   } catch {
-    return c.json({ error: 'Invalid JSON', code: 'INVALID_JSON' }, 400);
+    return c.json({ error: 'Invalid JSON' }, 400);
   }
 
   if (isStructuredFeedbackRequest(requestPayload)) {
@@ -259,7 +242,7 @@ api.post('/feedback', async c => {
   const payload = requestPayload as FeedbackPayload;
 
   if (!isValidSubmitter(payload?.submitter)) {
-    return c.json({ error: 'Invalid submitter name or email', code: 'INVALID_SUBMITTER' }, 400);
+    return c.json({ error: 'Invalid submitter name or email' }, 400);
   }
 
   // Validate required fields (description is optional — many reports are title + screenshot)
@@ -267,7 +250,6 @@ api.post('/feedback', async c => {
     return c.json(
       {
         error: 'Missing required fields: repo, title',
-        code: 'MISSING_REQUIRED_FIELDS',
       },
       400
     );
@@ -275,8 +257,7 @@ api.post('/feedback', async c => {
 
   if (payload.metadata?.appVersion !== undefined) {
     const appVersion = parseAppVersion(payload.metadata.appVersion);
-    if (!appVersion)
-      return c.json({ error: 'Invalid metadata appVersion', code: 'INVALID_APP_VERSION' }, 400);
+    if (!appVersion) return c.json({ error: 'Invalid metadata appVersion' }, 400);
     payload.metadata.appVersion = appVersion;
   }
 
@@ -286,12 +267,12 @@ api.post('/feedback', async c => {
   if (payload.screenshot) {
     const validation = validateScreenshotDataUrl(payload.screenshot, maxSizeMB);
     if (!validation.valid) {
-      return c.json({ error: validation.error, code: validation.code }, 400);
+      return c.json({ error: validation.error }, 400);
     }
   }
   const attachmentValidation = validateAttachments(payload.attachments, maxSizeMB);
   if (!attachmentValidation.valid) {
-    return c.json({ error: attachmentValidation.error, code: attachmentValidation.code }, 400);
+    return c.json({ error: attachmentValidation.error }, 400);
   }
 
   // Parse owner/repo
@@ -299,7 +280,6 @@ api.post('/feedback', async c => {
     return c.json(
       {
         error: 'Invalid repo format. Expected: owner/repo',
-        code: 'INVALID_REPOSITORY',
       },
       400
     );
@@ -307,10 +287,10 @@ api.post('/feedback', async c => {
   const [owner, repo] = payload.repo.split('/');
 
   if (!isRepositoryAllowed(c.env.ALLOWED_REPOSITORIES, payload.repo)) {
-    return c.json({ error: 'Repository is not allowed', code: 'REPOSITORY_NOT_ALLOWED' }, 403);
+    return c.json({ error: 'Repository is not allowed' }, 403);
   }
 
-  const authError = await requireBugDropAuthToken(c, payload.repo, true);
+  const authError = await requireBugDropAuthToken(c, payload.repo);
   if (authError) return authError;
 
   try {
@@ -321,7 +301,6 @@ api.post('/feedback', async c => {
       return c.json(
         {
           error: 'GitHub App not installed on this repository',
-          code: 'APP_NOT_INSTALLED',
           installUrl: `https://github.com/apps/${appName}/installations/new`,
         },
         403
@@ -422,7 +401,6 @@ api.post('/feedback', async c => {
     return c.json(
       {
         error: error instanceof Error ? error.message : 'Failed to create issue',
-        code: 'ISSUE_CREATION_FAILED',
       },
       500
     );
@@ -440,11 +418,7 @@ async function requireBugDropFeedbackAuthToken(
     c.set('feedbackPayload', payload);
     if (!isPlainObject(payload) || typeof payload.repo !== 'string') return next();
 
-    const authError = await requireBugDropAuthToken(
-      c,
-      payload.repo,
-      !isStructuredFeedbackRequest(payload)
-    );
+    const authError = await requireBugDropAuthToken(c, payload.repo);
     if (authError) return authError;
   } catch {
     // Let the route handler return the existing invalid JSON response.
@@ -457,11 +431,7 @@ function getBearerToken(value: string | undefined): string | undefined {
   return value?.match(/^Bearer\s+(.+)$/i)?.[1];
 }
 
-async function requireBugDropAuthToken(
-  c: Context<ApiEnv>,
-  repo: string,
-  legacyFeedback = false
-): Promise<Response | null> {
+async function requireBugDropAuthToken(c: Context<ApiEnv>, repo: string): Promise<Response | null> {
   const secrets = getBugDropAuthTokenSecrets(c.env);
   if (secrets.length === 0) return null;
 
@@ -478,9 +448,7 @@ async function requireBugDropAuthToken(
       repo,
       reason: error instanceof Error ? error.message : String(error),
     });
-    return legacyFeedback
-      ? c.json({ error: 'BugDrop auth token required', code: 'AUTH_REQUIRED' }, 401)
-      : c.json({ error: 'BugDrop auth token required' }, 401);
+    return c.json({ error: 'BugDrop auth token required' }, 401);
   }
 }
 
@@ -529,8 +497,7 @@ async function verifyBugDropAuthTokenWithAnySecret(
   throw lastError ?? new Error('Missing BugDrop auth token');
 }
 
-type ScreenshotValidationResult =
-  { valid: true } | { valid: false; error: string; code: FeedbackErrorCode };
+type ScreenshotValidationResult = { valid: true } | { valid: false; error: string };
 type LabelResolution = {
   labels: string[];
   warnings: string[];
@@ -546,7 +513,6 @@ function validateScreenshotDataUrl(dataUrl: string, maxSizeMB: number): Screensh
     return {
       valid: false,
       error: 'Invalid screenshot format. Expected a PNG data URL.',
-      code: 'INVALID_SCREENSHOT',
     };
   }
 
@@ -555,7 +521,6 @@ function validateScreenshotDataUrl(dataUrl: string, maxSizeMB: number): Screensh
     return {
       valid: false,
       error: 'Invalid screenshot format. Expected a PNG data URL.',
-      code: 'INVALID_SCREENSHOT',
     };
   }
 
@@ -567,7 +532,6 @@ function validateScreenshotDataUrl(dataUrl: string, maxSizeMB: number): Screensh
     return {
       valid: false,
       error: `Screenshot too large: ${estimatedSizeMB.toFixed(1)}MB exceeds ${maxSizeMB}MB limit`,
-      code: 'SCREENSHOT_TOO_LARGE',
     };
   }
 
@@ -578,7 +542,6 @@ function validateScreenshotDataUrl(dataUrl: string, maxSizeMB: number): Screensh
     return {
       valid: false,
       error: 'Invalid screenshot format. Expected valid base64 PNG data.',
-      code: 'INVALID_SCREENSHOT',
     };
   }
 
@@ -586,7 +549,6 @@ function validateScreenshotDataUrl(dataUrl: string, maxSizeMB: number): Screensh
     return {
       valid: false,
       error: 'Invalid screenshot format. Expected PNG image data.',
-      code: 'INVALID_SCREENSHOT',
     };
   }
 
@@ -599,18 +561,10 @@ function validateAttachments(
 ): ScreenshotValidationResult {
   if (attachments === undefined) return { valid: true };
   if (!Array.isArray(attachments)) {
-    return {
-      valid: false,
-      error: 'Invalid upload format. Expected a list of files.',
-      code: 'INVALID_ATTACHMENT',
-    };
+    return { valid: false, error: 'Invalid upload format. Expected a list of files.' };
   }
   if (attachments.length > MAX_ATTACHMENTS) {
-    return {
-      valid: false,
-      error: `Too many files. Upload up to ${MAX_ATTACHMENTS} files.`,
-      code: 'TOO_MANY_ATTACHMENTS',
-    };
+    return { valid: false, error: `Too many files. Upload up to ${MAX_ATTACHMENTS} files.` };
   }
 
   for (const attachment of attachments) {
@@ -626,11 +580,7 @@ function validateAttachment(
   maxSizeMB: number
 ): ScreenshotValidationResult {
   if (!isPlainObject(attachment)) {
-    return {
-      valid: false,
-      error: 'Invalid upload format. Expected file details.',
-      code: 'INVALID_ATTACHMENT',
-    };
+    return { valid: false, error: 'Invalid upload format. Expected file details.' };
   }
 
   const name = attachment.name;
@@ -646,28 +596,16 @@ function validateAttachment(
     typeof size !== 'number' ||
     !Number.isFinite(size)
   ) {
-    return {
-      valid: false,
-      error: 'Invalid upload format. Expected file name, type, and data.',
-      code: 'INVALID_ATTACHMENT',
-    };
+    return { valid: false, error: 'Invalid upload format. Expected file name, type, and data.' };
   }
 
   if (!ALLOWED_ATTACHMENT_TYPES.has(type)) {
-    return {
-      valid: false,
-      error: `Unsupported file type: ${type || 'unknown'}.`,
-      code: 'UNSUPPORTED_ATTACHMENT_TYPE',
-    };
+    return { valid: false, error: `Unsupported file type: ${type || 'unknown'}.` };
   }
 
   const match = dataUrl.match(/^data:([^;,]+);base64,([A-Za-z0-9+/]+={0,2})$/);
   if (!match || match[1] !== type || !match[2]) {
-    return {
-      valid: false,
-      error: 'Invalid upload format. Expected a matching file data URL.',
-      code: 'INVALID_ATTACHMENT',
-    };
+    return { valid: false, error: 'Invalid upload format. Expected a matching file data URL.' };
   }
 
   const estimatedSizeBytes =
@@ -679,18 +617,13 @@ function validateAttachment(
     return {
       valid: false,
       error: `File is too large: ${estimatedSizeMB.toFixed(1)}MB exceeds ${maxSizeMB}MB limit.`,
-      code: 'ATTACHMENT_TOO_LARGE',
     };
   }
 
   try {
     base64ToBytes(match[2]);
   } catch {
-    return {
-      valid: false,
-      error: 'Invalid upload format. Expected valid file data.',
-      code: 'INVALID_ATTACHMENT',
-    };
+    return { valid: false, error: 'Invalid upload format. Expected valid file data.' };
   }
 
   return { valid: true };

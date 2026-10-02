@@ -2,16 +2,25 @@
 
 The current public system remains supported. This harness compares its tracked
 runtime, assets, widget build inputs and Wrangler configuration to the reviewed
-feature commit recorded in `test/cross-plane/fixtures/current-public-baseline.v2.json`.
-The test verifies that the v2 fixture's commit produces its exact file count and
-fingerprint, then compares the working tree against the reviewed v3 fingerprint.
-Public
-fingerprint mutations and changed/skipped/retried browser evidence must fail.
+feature commit recorded in `test/cross-plane/fixtures/current-public-baseline.v4.json`.
+The test verifies that the v2 and v3 fixtures' commits produce their exact file
+counts and fingerprints, then compares the working tree against the reviewed v4
+fingerprint. Public fingerprint mutations and changed/skipped/retried browser evidence must fail.
 An intentional future public change requires explicit baseline review; do not
-refresh the fingerprint merely to make a failure disappear. The v1 fixture
-remains as the pre-localization historical baseline. The v2 fixture remains
-immutable historical evidence; the v3 fixture records the mobile annotation
-change.
+refresh the fingerprint merely to make a failure disappear. The v1 fixture is
+pre-localization history; v2 records Chinese localization; v3 records the mobile
+annotation change; and v4 records the temporary deferral of Chinese localization.
+
+## Reviewed v4 release deferral
+
+The v4 fixture removes the Chinese widget feature from the current public tree
+after PR #424 merged, so the next release can include the mobile annotation flow
+without shipping Chinese localization. PR #419 remains in Git history, and its
+v2 and v3 fingerprints remain immutable evidence. Explicit `zh-CN` and `zh-Hans`
+requests now fall back to English. Reintroducing Chinese later requires a new
+reviewed change and a new public fingerprint. The language-neutral category
+wrapping from PR #419 remains, because removing it makes existing English and
+Polish category labels overlap at 320 px.
 
 ## Reviewed v3 public change
 
