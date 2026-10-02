@@ -97,6 +97,7 @@ test('mobile dock keeps navigation separate from tools across phone sizes', asyn
       await host.locator('#submit-btn').tap();
       await host.locator('[data-action="capture"]').tap();
       await expect(host.locator('#annotation-canvas canvas')).toBeVisible();
+      await expect(host.locator('.bd-annotation-instruction')).toBeHidden();
       await host.locator('.bd-modal--annotator').evaluate(async element => {
         await Promise.all(element.getAnimations().map(animation => animation.finished));
       });
@@ -143,6 +144,7 @@ test('mobile dock keeps navigation separate from tools across phone sizes', asyn
 
       await host.locator('[data-action="review"]').tap();
       await expect(host.locator('[data-action="send-reviewed"]')).toBeVisible();
+      await expect(host.locator('.bd-annotation-review-instruction')).toBeVisible();
       await expect(host.locator('.bd-tools')).toBeHidden();
       await host.locator('[data-action="back-to-edit"]').tap();
       await expect(host.locator('.bd-tools')).toBeVisible();

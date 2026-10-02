@@ -1409,7 +1409,7 @@ export function injectStyles(shadow: ShadowRoot, config: WidgetConfig) {
         padding: 8px 14px 0;
       }
       .bd-annotation-notes .bd-redaction-note { margin-bottom: 6px !important; }
-      .bd-annotation-instruction { margin-bottom: 8px; font-size: 12px; }
+      .bd-annotation-instruction { display: none; }
       .bd-canvas-area {
         order: 2;
         display: flex;
