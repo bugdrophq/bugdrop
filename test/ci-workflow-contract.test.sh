@@ -111,6 +111,7 @@ required_contexts=(
   'Lint, Typecheck, Knip, Audit'
   'Unit Tests & Build'
   'E2E Tests (Shard ${{ matrix.shard }}/2)'
+  'Mobile WebKit E2E'
   'Deploy Preview'
   'Live Preview Tests'
 )
@@ -337,6 +338,18 @@ fi
 grep -Fq 'shard: [1, 2]' <<< "$e2e_block" || fail 'the two-shard E2E matrix changed'
 grep -Fq 'Skip expensive E2E for documentation or metadata changes' <<< "$e2e_block" ||
   fail 'the documentation-only E2E context bridge is missing'
+mobile_webkit_block=$(job_block "$ci_workflow" mobile-webkit-e2e)
+grep -Fq 'name: Mobile WebKit E2E' <<< "$mobile_webkit_block" ||
+  fail 'mobile WebKit CI job is missing'
+grep -Fq "if: needs.check.outputs.full_ci != 'false'" <<< "$mobile_webkit_block" ||
+  fail 'mobile WebKit CI must run for runtime changes'
+grep -Fq 'run: make test-mobile-webkit-e2e' <<< "$mobile_webkit_block" ||
+  fail 'mobile WebKit CI must run the focused annotation suite'
+require_literal "$makefile" 'test-mobile-webkit-e2e:'
+require_literal "$makefile" '--project=webkit-mobile --workers=1 --retries=0'
+require_literal "$playwright_config" "name: 'webkit-mobile'"
+require_literal "$playwright_config" "devices['iPhone 11']"
+require_literal "$playwright_config" 'testMatch: /annotation-zoom-pan\.spec\.ts$/'
 require_literal "$ci_workflow" 'Verify previous full CI succeeded'
 require_literal "$ci_workflow" 'steps.previous-ci.outputs.result'
 require_literal "$ci_workflow" "run.app?.slug !== 'github-actions'"
@@ -349,7 +362,7 @@ critical=$(job_block "$ci_workflow" deploy-preview)
 bridge=$(job_block "$ci_workflow" live-preview-tests)
 
 grep -Fq 'name: Deploy Preview' <<< "$critical" || fail 'critical job lost its required name'
-grep -Fq 'needs: [check, test, e2e, radix-e2e]' <<< "$critical" ||
+grep -Fq 'needs: [check, test, e2e, radix-e2e, mobile-webkit-e2e]' <<< "$critical" ||
   fail 'preview deployment is not gated by every local job'
 grep -Fq "always() && github.event_name == 'merge_group'" <<< "$critical" ||
   fail 'critical job is not merge-group-only'

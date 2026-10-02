@@ -1,4 +1,4 @@
-.PHONY: dev build build-widget build-all deploy test test-release test-release-workflow test-static-assets release-plan-help test-watch test-e2e test-e2e-ui test-e2e-shard test-radix-e2e test-live-radix test-live-cross-browser lint lint-fix format format-check typecheck knip audit check-actions-node24 check-workflow-permissions check-security-analysis-workflows check-ci-scope check-ci-workflow check-production-heartbeat-workflow check-release-workflow check ci clean install install-playwright help
+.PHONY: dev build build-widget build-all deploy test test-release test-release-workflow test-static-assets release-plan-help test-watch test-e2e test-e2e-ui test-e2e-shard test-mobile-webkit-e2e test-radix-e2e test-live-radix test-live-cross-browser lint lint-fix format format-check typecheck knip audit check-actions-node24 check-workflow-permissions check-security-analysis-workflows check-ci-scope check-ci-workflow check-production-heartbeat-workflow check-release-workflow check ci clean install install-playwright help
 
 # Development
 dev:
@@ -47,6 +47,9 @@ test-e2e-shard:
 		exit 1; \
 	fi
 	npx playwright test --project=chromium --shard=$(SHARD)
+
+test-mobile-webkit-e2e:
+	npx playwright test e2e/annotation-zoom-pan.spec.ts --project=webkit-mobile --workers=1 --retries=0
 
 test-radix-e2e:
 	@if [ -z "$(BROWSER)" ]; then \
@@ -158,6 +161,7 @@ help:
 	@echo "    make test-e2e         - Run E2E tests"
 	@echo "    make test-e2e-ui      - Run E2E tests with UI"
 	@echo "    make test-e2e-shard SHARD=1/2  - Run E2E test shard"
+	@echo "    make test-mobile-webkit-e2e  - Run mobile annotation flow in WebKit"
 	@echo "    make test-radix-e2e BROWSER=chromium|firefox|webkit"
 	@echo "                          - Run focused Radix compatibility E2E tests"
 	@echo "    LIVE_TARGET=preview PLAYWRIGHT_BASE_URL=<url> make test-live-radix"

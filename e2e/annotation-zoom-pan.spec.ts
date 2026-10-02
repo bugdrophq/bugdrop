@@ -42,6 +42,7 @@ test('mobile zoom controls have usable touch targets and respond to repeated tap
     await expect(reset).toHaveAttribute('aria-label', 'Reset view');
     await reset.tap();
     await expect(host.locator('.bd-zoom-level')).toHaveText('100%');
+    await reset.focus();
     await page.keyboard.press('Escape');
     await expect(host.locator('.bd-view-controls')).toBeHidden();
     await expect(viewToggle).toBeFocused();
