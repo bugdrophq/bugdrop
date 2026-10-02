@@ -245,7 +245,7 @@ test.describe('Widget localization', () => {
     await widget.locator('css=[data-action="capture"]').click();
     await expect(modalTitle(page)).toHaveText('检查截图', { timeout: 15000 });
     await expect(widget.locator('css=#annotation-canvas canvas')).toBeVisible();
-    await expect(widget.locator('css=[data-tool="redact"]')).toHaveText('遮盖');
+    await expect(widget.locator('css=[data-tool="redact"]')).toHaveAttribute('aria-label', '遮盖');
     await expect(widget.locator('css=[data-tool="pan"]')).toContainText('平移');
     await expect(widget.locator('css=[data-view="fit"]')).toHaveText('适应宽度');
     await expect(widget.locator('css=[data-view="in"]')).toHaveAttribute('aria-label', '放大');
@@ -254,6 +254,57 @@ test.describe('Widget localization', () => {
     await expect(widget.locator('css=[data-action="retake"]')).toHaveText('重新截图');
     await expect(widget.locator('css=[data-action="done"]')).toHaveText('提交反馈');
     await expect(widget.locator('css=.bd-modal')).toContainText('遮盖效果会永久保留在上传的图片中');
+  });
+
+  test('keeps the Chinese mobile edit and review controls visible', async ({ page }) => {
+    await page.setViewportSize({ width: 320, height: 640 });
+    await page.addInitScript(() => {
+      (
+        window as typeof window & { __bugdropMockToPng?: () => Promise<string> }
+      ).__bugdropMockToPng = async () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = 400;
+        canvas.height = 600;
+        return canvas.toDataURL('image/png');
+      };
+    });
+    await openWidget(page, { locale: 'zh-CN' });
+    const widget = host(page);
+    await widget.locator('[data-action="continue"]').click();
+    await widget.locator('#title').fill('中文移动标注');
+    await widget.locator('#submit-btn').click();
+    await widget.locator('[data-action="capture"]').click();
+    await expect(modalTitle(page)).toHaveText('编辑截图');
+    await expect(widget.locator('[data-action="review"]')).toHaveText('检查 →');
+    await expect(widget.locator('[data-action="mobile-retake"]')).toHaveText('← 重新截图');
+    await widget.locator('[data-tool="rect"]').click();
+    await widget.locator('#annotation-canvas canvas').evaluate(canvas => {
+      const rect = canvas.getBoundingClientRect();
+      const options = { bubbles: true, pointerId: 11, pointerType: 'touch', isPrimary: true };
+      canvas.dispatchEvent(
+        new PointerEvent('pointerdown', {
+          ...options,
+          clientX: rect.left + 30,
+          clientY: rect.top + 30,
+        })
+      );
+      window.dispatchEvent(
+        new PointerEvent('pointerup', {
+          ...options,
+          clientX: rect.left + 70,
+          clientY: rect.top + 70,
+        })
+      );
+    });
+    await widget.locator('[data-action="mobile-retake"]').click();
+    await expect(widget.locator('#bd-retake-title')).toHaveText('重新截图？');
+    await expect(widget.locator('[data-action="confirm-retake"]')).toHaveText('放弃修改并重新截图');
+    await widget.locator('[data-action="keep-editing"]').click();
+    await widget.locator('[data-action="review"]').click();
+    await expect(modalTitle(page)).toHaveText('检查截图');
+    await expect(widget.locator('[data-action="send-reviewed"]')).toHaveText('提交反馈');
+    await widget.locator('[data-action="back-to-edit"]').click();
+    await expect(modalTitle(page)).toHaveText('编辑截图');
   });
 
   test('shows the prefilled-email privacy reminder in Chinese', async ({ page }) => {

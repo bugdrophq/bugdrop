@@ -39,99 +39,234 @@ export function showAnnotationStep(
     const modal = createModal(
       root,
       t().reviewScreenshotTitle,
-      `
-        ${redactionNote}
-        <p style="margin: 0 0 12px; color: var(--bd-text-secondary); font-size: 13px;">
-          ${escapeWidgetText(t().annotationInstruction)}
-        </p>
-        ${selectedElementNote}
-        <div class="bd-tools">
-          <button class="bd-tool active" data-tool="draw">✏️ ${escapeWidgetText(t().toolDraw)}</button>
-          <button class="bd-tool" data-tool="arrow">➡️ ${escapeWidgetText(t().toolArrow)}</button>
-          <button class="bd-tool" data-tool="rect">▢ ${escapeWidgetText(t().toolRectangle)}</button>
-          <button class="bd-tool" data-tool="redact">${escapeWidgetText(t().toolRedact)}</button>
-          <button class="bd-tool" data-tool="pan">✋ ${escapeWidgetText(t().toolPan)}</button>
-          <button class="bd-tool" data-action="undo">↶ ${escapeWidgetText(t().undo)}</button>
-        </div>
-        <div class="bd-view-controls">
-          <button class="bd-tool" data-view="fit">${escapeWidgetText(t().fitWidth)}</button>
-          <button class="bd-tool" data-view="out" aria-label="${escapeWidgetText(t().zoomOut)}">−</button>
-          <output class="bd-zoom-level" aria-live="polite">100%</output>
-          <button class="bd-tool" data-view="in" aria-label="${escapeWidgetText(t().zoomIn)}">+</button>
-          <button class="bd-tool" data-view="reset">${escapeWidgetText(t().resetView)}</button>
-        </div>
-        <div id="annotation-canvas" class="bd-annotation-stage"></div>
-        <div class="bd-actions">
-          <button class="bd-btn bd-btn-secondary" data-action="retake">${escapeWidgetText(t().retake)}</button>
-          <button class="bd-btn bd-btn-primary" data-action="done">${escapeWidgetText(t().submitFeedback)}</button>
-        </div>
-      `,
+      annotationContent(redactionNote, selectedElementNote),
       false,
       'bd-modal--annotator'
     );
 
     const canvasContainer = modal.querySelector('#annotation-canvas') as HTMLElement;
     const annotator = createAnnotator(canvasContainer, screenshot);
+    const modalElement = modal.querySelector('.bd-modal--annotator') as HTMLElement;
+    const nav = modal.querySelector('.bd-annotation-nav') as HTMLElement;
+    const heading = modal.querySelector('.bd-title') as HTMLElement;
+    if (
+      window.matchMedia?.('(max-width: 640px), (max-width: 1024px) and (max-height: 500px)').matches
+    ) {
+      annotator.setTool('pan');
+      heading.textContent = t().editScreenshotTitle;
+      modal.querySelector('[data-tool="draw"]')?.classList.remove('active');
+      modal.querySelector('[data-tool="draw"]')?.setAttribute('aria-pressed', 'false');
+      const panButton = modal.querySelector('[data-tool="pan"]');
+      panButton?.classList.add('active');
+      panButton?.setAttribute('aria-pressed', 'true');
+    }
 
-    const zoomLevel = modal.querySelector('.bd-zoom-level') as HTMLOutputElement;
-    modal.querySelectorAll<HTMLElement>('[data-view]').forEach(button => {
-      button.addEventListener('click', () => {
-        switch (button.dataset.view) {
-          case 'fit':
-            annotator.fitWidth();
-            break;
-          case 'in':
-            annotator.zoomIn();
-            break;
-          case 'out':
-            annotator.zoomOut();
-            break;
-          case 'reset':
-            annotator.resetView();
-            break;
-        }
-        zoomLevel.value = `${Math.round(annotator.getZoom() * 100)}%`;
-      });
-    });
-
-    const toolButtons = modal.querySelectorAll('[data-tool]');
-    toolButtons.forEach(btn => {
-      btn.addEventListener('click', e => {
-        const target = e.currentTarget as HTMLElement;
-        const tool = target.dataset.tool;
-
-        if (tool) {
-          toolButtons.forEach(b => b.classList.remove('active'));
-          target.classList.add('active');
-          annotator.setTool(tool as Tool);
-        }
-      });
-    });
-
-    const undoBtn = modal.querySelector('[data-action="undo"]') as HTMLElement | null;
-    undoBtn?.addEventListener('click', () => annotator.undo());
+    const viewControls = wireViewControls(modal, annotator);
+    wireAnnotationTools(modal, annotator);
 
     const closeBtn = modal.querySelector('.bd-close') as HTMLElement;
     const retakeBtn = modal.querySelector('[data-action="retake"]') as HTMLElement;
     const doneBtn = modal.querySelector('[data-action="done"]') as HTMLElement;
+    const confirmation = modal.querySelector('.bd-retake-confirm') as HTMLElement;
+    const keepEditing = modal.querySelector('[data-action="keep-editing"]') as HTMLElement;
+    const confirmRetake = modal.querySelector('[data-action="confirm-retake"]') as HTMLElement;
+    let retakeFocus: HTMLElement | null = null;
+
+    function finish(value: string | 'retake' | 'cancel') {
+      annotator.destroy();
+      modal.remove();
+      resolve(value);
+    }
+
+    function requestRetake(event: Event) {
+      if (!annotator.hasEdits()) {
+        finish('retake');
+        return;
+      }
+      retakeFocus = event.currentTarget as HTMLElement;
+      confirmation.hidden = false;
+      keepEditing.focus();
+    }
+
+    function dismissRetake() {
+      confirmation.hidden = true;
+      retakeFocus?.focus();
+    }
 
     closeBtn?.addEventListener('click', () => {
-      annotator.destroy();
-      modal.remove();
-      resolve('cancel');
+      finish('cancel');
     });
 
-    retakeBtn?.addEventListener('click', () => {
-      annotator.destroy();
-      modal.remove();
-      resolve('retake');
+    retakeBtn?.addEventListener('click', requestRetake);
+    modal.querySelector('[data-action="mobile-retake"]')?.addEventListener('click', requestRetake);
+    keepEditing.addEventListener('click', dismissRetake);
+    confirmRetake.addEventListener('click', () => finish('retake'));
+    confirmation.addEventListener('keydown', event => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        dismissRetake();
+      } else if (event.key === 'Tab') {
+        if (event.shiftKey && event.target === keepEditing) {
+          event.preventDefault();
+          confirmRetake.focus();
+        } else if (!event.shiftKey && event.target === confirmRetake) {
+          event.preventDefault();
+          keepEditing.focus();
+        }
+      }
+    });
+
+    modal.querySelector('[data-action="review"]')?.addEventListener('click', () => {
+      annotator.fitWidth();
+      viewControls.update();
+      viewControls.close();
+      modalElement.classList.add('bd-annotation--review');
+      heading.textContent = t().reviewScreenshotTitle;
+      nav.setAttribute('aria-label', t().reviewScreenshotTitle);
+      modal.querySelector<HTMLElement>('[data-action="back-to-edit"]')?.focus();
+    });
+    modal.querySelector('[data-action="back-to-edit"]')?.addEventListener('click', () => {
+      modalElement.classList.remove('bd-annotation--review');
+      heading.textContent = t().editScreenshotTitle;
+      nav.setAttribute('aria-label', t().editScreenshotTitle);
+      modal.querySelector<HTMLElement>('[data-action="review"]')?.focus();
     });
 
     doneBtn?.addEventListener('click', () => {
-      const annotated = annotator.getImageData();
-      annotator.destroy();
-      modal.remove();
-      resolve(annotated);
+      finish(annotator.getImageData());
+    });
+    modal.querySelector('[data-action="send-reviewed"]')?.addEventListener('click', () => {
+      if (modalElement.classList.contains('bd-annotation--review')) {
+        finish(annotator.getImageData());
+      }
     });
   });
+}
+
+function wireViewControls(modal: HTMLElement, annotator: ReturnType<typeof createAnnotator>) {
+  const zoomLevel = modal.querySelector('.bd-zoom-level') as HTMLOutputElement;
+  const viewToggle = modal.querySelector<HTMLButtonElement>('.bd-view-toggle')!;
+  const viewCurrent = viewToggle.querySelector('.bd-view-current')!;
+  const canvasArea = modal.querySelector('.bd-canvas-area')!;
+  const viewControls = modal.querySelector('.bd-view-controls')!;
+
+  function setOpen(open: boolean) {
+    canvasArea.classList.toggle('bd-canvas-area--view-open', open);
+    viewToggle.setAttribute('aria-expanded', String(open));
+  }
+  function update() {
+    zoomLevel.value = `${Math.round(annotator.getZoom() * 100)}%`;
+    viewCurrent.textContent = zoomLevel.value;
+    viewToggle.setAttribute('aria-label', `${t().viewControls}: ${zoomLevel.value}`);
+  }
+
+  viewToggle.addEventListener('click', () => {
+    setOpen(viewToggle.getAttribute('aria-expanded') !== 'true');
+  });
+  modal.addEventListener('pointerdown', event => {
+    if (
+      viewToggle.getAttribute('aria-expanded') === 'true' &&
+      !viewToggle.contains(event.target as Node) &&
+      !viewControls.contains(event.target as Node)
+    ) {
+      setOpen(false);
+    }
+  });
+  modal.addEventListener('keydown', event => {
+    if (event.key === 'Escape' && viewToggle.getAttribute('aria-expanded') === 'true') {
+      event.preventDefault();
+      setOpen(false);
+      viewToggle.focus();
+    }
+  });
+  modal.querySelectorAll<HTMLElement>('[data-view]').forEach(button => {
+    button.addEventListener('click', () => {
+      switch (button.dataset.view) {
+        case 'fit':
+          annotator.fitWidth();
+          break;
+        case 'in':
+          annotator.zoomIn();
+          break;
+        case 'out':
+          annotator.zoomOut();
+          break;
+        case 'reset':
+          annotator.resetView();
+          break;
+      }
+      update();
+    });
+  });
+
+  return { close: () => setOpen(false), update };
+}
+
+function wireAnnotationTools(modal: HTMLElement, annotator: ReturnType<typeof createAnnotator>) {
+  const toolButtons = modal.querySelectorAll('[data-tool]');
+  toolButtons.forEach(btn => {
+    btn.addEventListener('click', event => {
+      const target = event.currentTarget as HTMLElement;
+      const tool = target.dataset.tool;
+      if (!tool) return;
+      toolButtons.forEach(button => {
+        button.classList.remove('active');
+        button.setAttribute('aria-pressed', 'false');
+      });
+      target.classList.add('active');
+      target.setAttribute('aria-pressed', 'true');
+      annotator.setTool(tool as Tool);
+    });
+  });
+  modal.querySelector('[data-action="undo"]')?.addEventListener('click', () => annotator.undo());
+}
+
+function annotationContent(redactionNote: string, selectedElementNote: string): string {
+  return `
+        <nav class="bd-annotation-nav" aria-label="${escapeWidgetText(t().editScreenshotTitle)}">
+          <button class="bd-btn bd-btn-secondary bd-annotation-retake" data-action="mobile-retake">← ${escapeWidgetText(t().retake)}</button>
+          <button class="bd-btn bd-btn-secondary bd-annotation-back" data-action="back-to-edit">← ${escapeWidgetText(t().backToEdit)}</button>
+          <button class="bd-btn bd-btn-primary bd-annotation-next" data-action="review">${escapeWidgetText(t().reviewButton)} →</button>
+        </nav>
+        <div class="bd-annotation-notes">
+          ${redactionNote}
+          <p class="bd-annotation-instruction">${escapeWidgetText(t().annotationInstruction)}</p>
+          <p class="bd-annotation-review-instruction">${escapeWidgetText(t().reviewInstruction)}</p>
+          ${selectedElementNote}
+        </div>
+        <div class="bd-tools">
+          <button class="bd-tool active" data-tool="draw" aria-label="${escapeWidgetText(t().toolDraw)}" aria-pressed="true"><span class="bd-tool-icon" aria-hidden="true">✏️</span><span class="bd-tool-label">${escapeWidgetText(t().toolDraw)}</span></button>
+          <button class="bd-tool" data-tool="arrow" aria-label="${escapeWidgetText(t().toolArrow)}" aria-pressed="false"><span class="bd-tool-icon" aria-hidden="true">➡️</span><span class="bd-tool-label">${escapeWidgetText(t().toolArrow)}</span></button>
+          <button class="bd-tool" data-tool="rect" aria-label="${escapeWidgetText(t().toolRectangle)}" aria-pressed="false"><span class="bd-tool-icon" aria-hidden="true">▢</span><span class="bd-tool-label">${escapeWidgetText(t().toolRectangle)}</span></button>
+          <button class="bd-tool" data-tool="redact" aria-label="${escapeWidgetText(t().toolRedact)}" aria-pressed="false"><span class="bd-tool-icon" aria-hidden="true">▨</span><span class="bd-tool-label">${escapeWidgetText(t().toolRedact)}</span></button>
+          <button class="bd-tool" data-tool="pan" aria-label="${escapeWidgetText(t().toolPan)}" aria-pressed="false"><span class="bd-tool-icon" aria-hidden="true">✋</span><span class="bd-tool-label">${escapeWidgetText(t().toolPan)}</span></button>
+          <button class="bd-tool" data-action="undo" aria-label="${escapeWidgetText(t().undo)}"><span class="bd-tool-icon" aria-hidden="true">↶</span><span class="bd-tool-label">${escapeWidgetText(t().undo)}</span></button>
+        </div>
+        <div class="bd-canvas-area">
+          <button class="bd-tool bd-view-toggle" aria-label="${escapeWidgetText(t().viewControls)}: 100%" aria-controls="bd-view-controls" aria-expanded="false"><span class="bd-view-current">100%</span><span aria-hidden="true">⌄</span></button>
+          <div class="bd-view-controls" id="bd-view-controls" role="group" aria-label="${escapeWidgetText(t().viewControls)}">
+            <button class="bd-tool" data-view="fit">${escapeWidgetText(t().fitWidth)}</button>
+            <button class="bd-tool" data-view="out" aria-label="${escapeWidgetText(t().zoomOut)}">−</button>
+            <output class="bd-zoom-level" aria-live="polite">100%</output>
+            <button class="bd-tool" data-view="in" aria-label="${escapeWidgetText(t().zoomIn)}">+</button>
+            <button class="bd-tool" data-view="reset" aria-label="${escapeWidgetText(t().resetView)}">${escapeWidgetText(t().resetView)}</button>
+          </div>
+          <div id="annotation-canvas" class="bd-annotation-stage"></div>
+        </div>
+        <div class="bd-actions">
+          <button class="bd-btn bd-btn-secondary" data-action="retake">${escapeWidgetText(t().retake)}</button>
+          <button class="bd-btn bd-btn-primary" data-action="done">${escapeWidgetText(t().submitFeedback)}</button>
+        </div>
+        <div class="bd-annotation-send">
+          <button class="bd-btn bd-btn-primary" data-action="send-reviewed">${escapeWidgetText(t().submitFeedback)}</button>
+        </div>
+        <div class="bd-retake-confirm" role="dialog" aria-modal="true" aria-labelledby="bd-retake-title" hidden>
+          <div class="bd-retake-confirm-card">
+            <h3 id="bd-retake-title">${escapeWidgetText(t().retakeConfirmTitle)}</h3>
+            <p>${escapeWidgetText(t().retakeConfirmMessage)}</p>
+            <button class="bd-btn bd-btn-secondary" data-action="keep-editing">${escapeWidgetText(t().keepEditing)}</button>
+            <button class="bd-btn bd-btn-primary" data-action="confirm-retake">${escapeWidgetText(t().discardAndRetake)}</button>
+          </div>
+        </div>
+  `;
 }

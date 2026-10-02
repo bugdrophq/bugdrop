@@ -17,6 +17,7 @@ export function createAnnotator(
   resetView: () => void;
   getZoom: () => number;
   undo: () => void;
+  hasEdits: () => boolean;
   getImageData: () => string;
   destroy: () => void;
 } {
@@ -274,6 +275,10 @@ export function createAnnotator(
       history.pop();
       const previousState = getLatestState();
       if (previousState) restoreState(previousState);
+    },
+
+    hasEdits() {
+      return history.length > 1;
     },
 
     getImageData(): string {

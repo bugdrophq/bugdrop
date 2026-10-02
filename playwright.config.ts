@@ -84,6 +84,12 @@ export default defineConfig({
       testMatch: /.*\.radix\.spec\.ts/,
     },
     {
+      name: 'webkit-mobile',
+      use: { ...devices['iPhone 11'] },
+      testMatch: /annotation-zoom-pan\.spec\.ts$/,
+      timeout: 60_000,
+    },
+    {
       name: 'chromium-live',
       fullyParallel: false,
       use: {

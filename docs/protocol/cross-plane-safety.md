@@ -3,12 +3,24 @@
 The current public system remains supported. This harness compares its tracked
 runtime, assets, widget build inputs and Wrangler configuration to the reviewed
 feature commit recorded in `test/cross-plane/fixtures/current-public-baseline.v2.json`.
-The test verifies that the fixture's commit produces its exact file count and
-fingerprint, then compares the working tree against that fingerprint. Public
+The test verifies that the v2 fixture's commit produces its exact file count and
+fingerprint, then compares the working tree against the reviewed v3 fingerprint.
+Public
 fingerprint mutations and changed/skipped/retried browser evidence must fail.
 An intentional future public change requires explicit baseline review; do not
 refresh the fingerprint merely to make a failure disappear. The v1 fixture
-remains as the pre-localization historical baseline.
+remains as the pre-localization historical baseline. The v2 fixture remains
+immutable historical evidence; the v3 fixture records the mobile annotation
+change.
+
+## Reviewed v3 public change
+
+The v3 fixture records the mobile screenshot Edit and Review flow, responsive
+tool dock, confirmation before discarding annotations, and matching copy in all
+five locales. It retains the 148-file source set and the v2 fingerprint as
+provenance. Mobile browser checks cover 320–932 px phone layouts and an
+annotated image submitted only after Review. Desktop compatibility, WebKit,
+and the full unit suite also passed before the v3 fingerprint refresh.
 
 The iOS annotation touch change in PR #414 intentionally updates
 `src/widget/annotator.ts` and `src/widget/ui.ts`. Its reviewed public file set

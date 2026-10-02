@@ -141,6 +141,14 @@ export const pl: WidgetStrings = {
   continueWithoutScreenshot: 'Kontynuuj bez zrzutu ekranu',
   // Annotation step
   reviewScreenshotTitle: 'Sprawdź zrzut ekranu',
+  editScreenshotTitle: 'Edytuj zrzut ekranu',
+  reviewButton: 'Sprawdź',
+  backToEdit: 'Edytuj',
+  reviewInstruction: 'Sprawdź zrzut przed wysłaniem. Możesz wrócić do edycji.',
+  retakeConfirmTitle: 'Zrobić nowy zrzut?',
+  retakeConfirmMessage: 'Zmiany w tym zrzucie zostaną utracone.',
+  keepEditing: 'Kontynuuj edycję',
+  discardAndRetake: 'Odrzuć i zrób nowy',
   viewportRedactionUnavailableNote:
     'Na tym zrzucie przechwyconym przez przeglądarkę nie udało się automatycznie zamaskować pól prywatnych. Sprawdź i zakryj poufne obszary przed wysłaniem.',
   redactionCountNote: (count: number) =>
@@ -163,6 +171,7 @@ export const pl: WidgetStrings = {
   toolRedact: 'Zamaż',
   toolPan: 'Przesuń',
   fitWidth: 'Dopasuj szerokość',
+  viewControls: 'Sterowanie powiększeniem',
   zoomIn: 'Powiększ',
   zoomOut: 'Pomniejsz',
   resetView: 'Resetuj widok',

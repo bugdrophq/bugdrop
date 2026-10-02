@@ -120,6 +120,14 @@ export interface WidgetStrings {
   continueWithoutScreenshot: string;
   // Annotation step
   reviewScreenshotTitle: string;
+  editScreenshotTitle: string;
+  reviewButton: string;
+  backToEdit: string;
+  reviewInstruction: string;
+  retakeConfirmTitle: string;
+  retakeConfirmMessage: string;
+  keepEditing: string;
+  discardAndRetake: string;
   viewportRedactionUnavailableNote: string;
   redactionCountNote: (count: number) => string;
   redactionLimitationsNote: string;
@@ -132,6 +140,7 @@ export interface WidgetStrings {
   toolRedact: string;
   toolPan: string;
   fitWidth: string;
+  viewControls: string;
   zoomIn: string;
   zoomOut: string;
   resetView: string;

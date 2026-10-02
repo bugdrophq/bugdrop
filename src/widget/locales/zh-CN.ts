@@ -118,6 +118,14 @@ export const zhCN: WidgetStrings = {
   continueWithoutScreenshot: '不附截图，继续',
   // Annotation step
   reviewScreenshotTitle: '检查截图',
+  editScreenshotTitle: '编辑截图',
+  reviewButton: '检查',
+  backToEdit: '继续编辑',
+  reviewInstruction: '发送前请检查截图。您可以返回继续修改。',
+  retakeConfirmTitle: '重新截图？',
+  retakeConfirmMessage: '当前截图上的修改将会丢失。',
+  keepEditing: '继续编辑',
+  discardAndRetake: '放弃修改并重新截图',
   viewportRedactionUnavailableNote:
     '此浏览器可见区域截图无法自动遮盖私密字段。发送前请检查并遮盖所有敏感区域。',
   redactionCountNote: (count: number) =>
@@ -134,6 +142,7 @@ export const zhCN: WidgetStrings = {
   toolRedact: '遮盖',
   toolPan: '平移',
   fitWidth: '适应宽度',
+  viewControls: '缩放控件',
   zoomIn: '放大',
   zoomOut: '缩小',
   resetView: '重置视图',

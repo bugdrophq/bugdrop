@@ -43,6 +43,7 @@ jobs:
               'Radix Cross-Browser E2E (chromium)',
               'Radix Cross-Browser E2E (firefox)',
               'Radix Cross-Browser E2E (webkit)',
+              'Mobile WebKit E2E',
             ];
             const { data } = await github.rest.checks.listForRef({
               owner: context.repo.owner,
@@ -322,18 +323,59 @@ jobs:
           path: playwright-report/
           retention-days: 7
 
+  # Focused iPhone-profile WebKit coverage for the mobile annotation flow
+  mobile-webkit-e2e:
+    name: Mobile WebKit E2E
+    runs-on: ubuntu-latest
+    container:
+      image: mcr.microsoft.com/playwright:v1.63.0-noble@sha256:eff16c30e6f3f4af0a03fa4b706120d5e9b0891c344a27d64559aff5900a4a27
+      options: --user 1001
+    needs: check
+    permissions:
+      contents: read
+    if: needs.check.outputs.full_ci != 'false'
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Verify Playwright image version
+        run: test "$(npx playwright --version)" = 'Version 1.63.0'
+
+      - name: Run mobile WebKit E2E
+        run: >-
+          npx playwright test e2e/annotation-zoom-pan.spec.ts
+          --project=webkit-mobile --workers=1 --retries=0
+        env:
+          CI: true
+
+      - name: Upload mobile WebKit E2E Report
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: failure()
+        with:
+          name: playwright-mobile-webkit-report
+          path: playwright-report/
+          retention-days: 7
+
   # Deploy to preview CF Worker (merge queue only)
   deploy-preview:
     name: Deploy Preview
     runs-on: ubuntu-latest
     timeout-minutes: 45
-    needs: [check, test, e2e, radix-e2e]
+    needs: [check, test, e2e, radix-e2e, mobile-webkit-e2e]
     if: >-
       ${{ always() && github.event_name == 'merge_group' &&
           needs.check.result == 'success' &&
           (needs.check.outputs.full_ci == 'false' ||
            (needs.test.result == 'success' && needs.e2e.result == 'success' &&
-            needs.radix-e2e.result == 'success')) }}
+            needs.radix-e2e.result == 'success' &&
+            needs.mobile-webkit-e2e.result == 'success')) }}
     permissions:
       contents: read
     concurrency:

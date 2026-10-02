@@ -3,6 +3,7 @@ import { execFileSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import baseline from './fixtures/current-public-baseline.v2.json';
+import current from './fixtures/current-public-baseline.v3.json';
 
 function isPublicPath(path: string): boolean {
   return (
@@ -46,8 +47,8 @@ describe('current public plane remains unchanged through managed integration', (
   it('matches the reviewed tracked runtime, assets and configuration byte for byte', () => {
     const paths = publicFiles();
     expect(paths).toContain('src/widget/locales/zh-CN.ts');
-    expect(paths.length).toBe(baseline.fileCount);
-    expect(fingerprint(paths, readFileSync)).toBe(baseline.sha256);
+    expect(paths.length).toBe(current.fileCount);
+    expect(fingerprint(paths, readFileSync)).toBe(current.sha256);
   });
 
   it.each([
@@ -60,6 +61,6 @@ describe('current public plane remains unchanged through managed integration', (
       const bytes = readFileSync(path);
       return path === target ? Buffer.concat([bytes, Buffer.from('\nMANAGED_MUTATION')]) : bytes;
     });
-    expect(hash).not.toBe(baseline.sha256);
+    expect(hash).not.toBe(current.sha256);
   });
 });

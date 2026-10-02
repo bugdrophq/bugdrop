@@ -162,7 +162,9 @@ describe('createAnnotator', () => {
 
   it('undoes mixed completed annotations in order', async () => {
     const { annotator, canvas } = await setup();
+    expect(annotator.hasEdits()).toBe(false);
     drag(canvas, [30, 40], [90, 80]);
+    expect(annotator.hasEdits()).toBe(true);
     annotator.setTool('arrow');
     drag(canvas, [40, 45], [100, 85]);
     annotator.setTool('rect');
@@ -173,6 +175,8 @@ describe('createAnnotator', () => {
     annotator.undo();
     annotator.undo();
     annotator.undo();
+
+    expect(annotator.hasEdits()).toBe(false);
 
     expect(
       context.putImageData.mock.calls.map(([state]) => (state as { marker: number }).marker)

@@ -10,7 +10,9 @@ const permitsPreview = new Function(
   'always',
   'github',
   'needs',
-  `return (${condition.replaceAll('needs.radix-e2e', "needs['radix-e2e']")});`
+  `return (${condition
+    .replaceAll('needs.radix-e2e', "needs['radix-e2e']")
+    .replaceAll('needs.mobile-webkit-e2e', "needs['mobile-webkit-e2e']")});`
 );
 for (const event of ['pull_request', 'merge_group']) {
   for (const full of ['true', 'false', undefined]) {
@@ -18,23 +20,27 @@ for (const event of ['pull_request', 'merge_group']) {
       for (const test of ['success', 'failure', 'skipped', 'cancelled']) {
         for (const e2e of ['success', 'failure', 'skipped', 'cancelled']) {
           for (const radix of ['success', 'failure', 'skipped', 'cancelled']) {
-            const expected =
-              event === 'merge_group' &&
-              check === 'success' &&
-              (full === 'false' || [test, e2e, radix].every(result => result === 'success'));
-            assert.equal(
-              permitsPreview(
-                () => true,
-                { event_name: event },
-                {
-                  check: { result: check, outputs: { full_ci: full } },
-                  test: { result: test },
-                  e2e: { result: e2e },
-                  'radix-e2e': { result: radix },
-                }
-              ),
-              expected
-            );
+            for (const mobileWebkit of ['success', 'failure', 'skipped', 'cancelled']) {
+              const expected =
+                event === 'merge_group' &&
+                check === 'success' &&
+                (full === 'false' ||
+                  [test, e2e, radix, mobileWebkit].every(result => result === 'success'));
+              assert.equal(
+                permitsPreview(
+                  () => true,
+                  { event_name: event },
+                  {
+                    check: { result: check, outputs: { full_ci: full } },
+                    test: { result: test },
+                    e2e: { result: e2e },
+                    'radix-e2e': { result: radix },
+                    'mobile-webkit-e2e': { result: mobileWebkit },
+                  }
+                ),
+                expected
+              );
+            }
           }
         }
       }
@@ -57,4 +63,4 @@ assert.ok(
 assert.ok(
   checkSteps.find(step => step.id === 'scope').env.PR_HEAD_SHA.includes('merge_group.head_sha')
 );
-console.log('CI scope workflow gate checks passed (1,536 preview states)');
+console.log('CI scope workflow gate checks passed (6,144 preview states)');
