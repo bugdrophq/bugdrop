@@ -4,7 +4,8 @@ import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import baseline from './fixtures/current-public-baseline.v2.json';
 import mobileBaseline from './fixtures/current-public-baseline.v3.json';
-import current from './fixtures/current-public-baseline.v4.json';
+import deferredBaseline from './fixtures/current-public-baseline.v4.json';
+import current from './fixtures/current-public-baseline.v5.json';
 
 function isPublicPath(path: string): boolean {
   return (
@@ -46,20 +47,28 @@ describe('current public plane remains unchanged through managed integration', (
   });
 
   it('pins the reviewed v3 mobile annotation baseline to PR #424', () => {
-    const paths = publicFilesAt('fb0c3e34a012c7827ccc34577651f799dce39621');
+    const commit = 'fb0c3e34a012c7827ccc34577651f799dce39621';
+    const paths = publicFilesAt(commit);
     expect(paths).toContain('src/widget/locales/zh-CN.ts');
     expect(paths.length).toBe(mobileBaseline.fileCount);
-    expect(
-      fingerprint(paths, path =>
-        execFileSync('git', ['show', `fb0c3e34a012c7827ccc34577651f799dce39621:${path}`])
-      )
-    ).toBe(mobileBaseline.sha256);
+    expect(fingerprint(paths, path => execFileSync('git', ['show', `${commit}:${path}`]))).toBe(
+      mobileBaseline.sha256
+    );
+  });
+
+  it('pins the reviewed v4 release deferral to PR #425', () => {
+    const commit = 'f6ca6a6cdba9704edf87a40cf6a4f15f814ba2fc';
+    const paths = publicFilesAt(commit);
+    expect(paths).not.toContain('src/widget/locales/zh-CN.ts');
+    expect(paths.length).toBe(deferredBaseline.fileCount);
+    expect(fingerprint(paths, path => execFileSync('git', ['show', `${commit}:${path}`]))).toBe(
+      deferredBaseline.sha256
+    );
   });
 
   it('matches the reviewed tracked runtime, assets and configuration byte for byte', () => {
     const paths = publicFiles();
-    expect(paths).not.toContain('src/widget/locales/zh-CN.ts');
-    expect(paths).toContain('src/widget/annotation-flow.ts');
+    expect(paths).toContain('src/widget/locales/zh-CN.ts');
     expect(paths.length).toBe(current.fileCount);
     expect(fingerprint(paths, readFileSync)).toBe(current.sha256);
   });
@@ -68,7 +77,7 @@ describe('current public plane remains unchanged through managed integration', (
     'src/index.ts',
     'wrangler.toml',
     'scripts/build-widget.js',
-    'src/widget/annotation-flow.ts',
+    'src/widget/locales/zh-CN.ts',
   ])('detects a public boundary mutation in %s', target => {
     const hash = fingerprint(publicFiles(), path => {
       const bytes = readFileSync(path);

@@ -1,9 +1,16 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { escapeWidgetText, resolveLocale, setLocale, t } from '../src/widget/i18n';
+import {
+  escapeWidgetText,
+  resolveLocale,
+  setLocale,
+  submissionErrorMessage,
+  t,
+} from '../src/widget/i18n';
 import { de } from '../src/widget/locales/de';
 import { en } from '../src/widget/locales/en';
 import { nl } from '../src/widget/locales/nl';
 import { pl } from '../src/widget/locales/pl';
+import { zhCN } from '../src/widget/locales/zh-CN';
 
 afterEach(() => {
   setLocale('en');
@@ -16,6 +23,7 @@ describe('resolveLocale', () => {
     expect(resolveLocale('de')).toBe('de');
     expect(resolveLocale('nl')).toBe('nl');
     expect(resolveLocale('pl')).toBe('pl');
+    expect(resolveLocale('zh-CN')).toBe('zh-CN');
   });
 
   it('resolves region subtags to the base language', () => {
@@ -38,6 +46,24 @@ describe('resolveLocale', () => {
     expect(resolveLocale('DE-de')).toBe('de');
   });
 
+  it.each(['zh-CN', 'ZH_cn', 'zh-CN-u-nu-hanidec', 'zh-Hans', 'ZH_hANS_tw', 'zh-Hans-CN'])(
+    'selects Simplified Chinese for %s',
+    tag => {
+      expect(resolveLocale(tag)).toBe('zh-CN');
+    }
+  );
+
+  it.each(['zh', 'zh-TW', 'zh-HK', 'zh-Hant', 'zh-Hant-CN', 'zh_Hant_cn', 'zh-CN-', 'zh-Hans-!'])(
+    'rejects unsupported Chinese tag %s',
+    tag => {
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+      expect(resolveLocale(tag)).toBe('en');
+      expect(warn).toHaveBeenCalledWith(
+        `[BugDrop] Unsupported data-locale "${tag}"; falling back to English.`
+      );
+    }
+  );
+
   it('falls back to English and warns for unsupported locales', () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
 
@@ -46,14 +72,6 @@ describe('resolveLocale', () => {
     expect(warn).toHaveBeenCalledWith(
       '[BugDrop] Unsupported data-locale "fr"; falling back to English.'
     );
-  });
-
-  it('keeps Simplified Chinese unavailable until its release', () => {
-    const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
-
-    expect(resolveLocale('zh-CN')).toBe('en');
-    expect(resolveLocale('zh-Hans')).toBe('en');
-    expect(warn).toHaveBeenCalledTimes(2);
   });
 
   it('falls back to English without warning when no locale is provided', () => {
@@ -81,6 +99,9 @@ describe('setLocale and t', () => {
 
     setLocale('pl');
     expect(t()).toBe(pl);
+
+    setLocale('zh-CN');
+    expect(t()).toBe(zhCN);
   });
 });
 
@@ -99,6 +120,7 @@ describe('locale dictionaries', () => {
     ['de', de],
     ['nl', nl],
     ['pl', pl],
+    ['zh-CN', zhCN],
   ] as const)('%s has exactly the same keys as en', (_name, dictionary) => {
     expect(Object.keys(dictionary).sort()).toEqual(enKeys);
   });
@@ -107,6 +129,7 @@ describe('locale dictionaries', () => {
     ['de', de],
     ['nl', nl],
     ['pl', pl],
+    ['zh-CN', zhCN],
   ] as const)('%s entries have the same type as their en counterparts', (_name, dictionary) => {
     for (const key of enKeys) {
       expect(typeof dictionary[key as keyof typeof en]).toBe(typeof en[key as keyof typeof en]);
@@ -121,11 +144,13 @@ describe('locale dictionaries', () => {
     expect(de.issueCreated(issueLink).match(/<strong>#1<\/strong>/g)).toHaveLength(1);
     expect(nl.issueCreated(issueLink).match(/<strong>#1<\/strong>/g)).toHaveLength(1);
     expect(pl.issueCreated(issueLink).match(/<strong>#1<\/strong>/g)).toHaveLength(1);
+    expect(zhCN.issueCreated(issueLink).match(/<strong>#1<\/strong>/g)).toHaveLength(1);
 
     expect(en.selectedElementNote(configLink).match(/<a href="#docs">/g)).toHaveLength(1);
     expect(de.selectedElementNote(configLink).match(/<a href="#docs">/g)).toHaveLength(1);
     expect(nl.selectedElementNote(configLink).match(/<a href="#docs">/g)).toHaveLength(1);
     expect(pl.selectedElementNote(configLink).match(/<a href="#docs">/g)).toHaveLength(1);
+    expect(zhCN.selectedElementNote(configLink).match(/<a href="#docs">/g)).toHaveLength(1);
   });
 
   it('formats count-sensitive messages for singular and plural boundaries', () => {
@@ -146,5 +171,66 @@ describe('locale dictionaries', () => {
     expect(pl.rateLimited(5)).toContain('5 minut');
     expect(pl.rateLimited(12)).toContain('12 minut');
     expect(pl.rateLimited(22)).toContain('22 minuty');
+
+    expect(zhCN.rateLimited(2)).toContain('2 分钟');
+    expect(zhCN.redactionCountNote(2)).toContain('2 处私密内容');
+  });
+
+  it('keeps privacy caveats explicit in Simplified Chinese', () => {
+    expect(zhCN.screenshotAutoNote).toContain('不会显示预览');
+    expect(zhCN.screenshotAutoRedactionNote).toContain('未标记的敏感信息');
+    expect(zhCN.viewportRedactionWarning).toContain('无法自动遮盖');
+    expect(zhCN.maskFailureMessage).toContain('已丢弃此截图');
+    expect(zhCN.redactionLimitationsNote).toContain('不会检查');
+    expect(zhCN.annotationInstruction).toContain('遮盖效果会永久保留在上传的图片中');
+    expect(zhCN.annotationInstruction).not.toContain('遮盖内容会永久写入');
+  });
+
+  it('uses the reviewed Chinese screenshot and authorization wording', () => {
+    expect(zhCN.submissionErrors.AUTH_REQUIRED).toBe('授权失败。请刷新页面，或联系网站管理员。');
+    expect(zhCN.captureScreenshotTitle).toBe('截图');
+    expect(zhCN.capturingScreenshot).toBe('正在截图…');
+    const link = '<a href="#docs">data-element-context-max-area</a>';
+    expect(zhCN.selectedElementNote(link)).toBe(
+      `需要在截图中包含更多周边内容？请调整 BugDrop 脚本标签中的 ${link}。`
+    );
+  });
+
+  it('has a localized message for every stable failure code', () => {
+    const codes = Object.keys(en.submissionErrors).sort();
+    for (const dictionary of [de, nl, pl, zhCN]) {
+      expect(Object.keys(dictionary.submissionErrors).sort()).toEqual(codes);
+      for (const code of codes) {
+        expect(dictionary.submissionErrors[code as keyof typeof en.submissionErrors]).toBeTruthy();
+      }
+    }
+  });
+});
+
+describe('submissionErrorMessage', () => {
+  it('uses localized actionable copy instead of raw server English', () => {
+    setLocale('zh-CN');
+    expect(submissionErrorMessage('AUTH_REQUIRED', 'BugDrop auth token required', 'zh-CN')).toBe(
+      zhCN.submissionErrors.AUTH_REQUIRED
+    );
+    expect(submissionErrorMessage('INVALID_SCREENSHOT', 'Invalid screenshot format', 'zh-CN')).toBe(
+      zhCN.submissionErrors.INVALID_SCREENSHOT
+    );
+  });
+
+  it('uses generic localized copy for unknown and legacy errors', () => {
+    setLocale('zh-CN');
+    expect(submissionErrorMessage('NEW_SERVER_CODE', 'Raw English backend failure', 'zh-CN')).toBe(
+      zhCN.submitFailedFallback
+    );
+    expect(submissionErrorMessage(undefined, 'Raw English backend failure', 'zh-CN')).toBe(
+      zhCN.submitFailedFallback
+    );
+  });
+
+  it('preserves existing English server error presentation', () => {
+    expect(submissionErrorMessage('ISSUE_CREATION_FAILED', 'GitHub rejected labels', 'en')).toBe(
+      'GitHub rejected labels'
+    );
   });
 });
