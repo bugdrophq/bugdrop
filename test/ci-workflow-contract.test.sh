@@ -343,7 +343,9 @@ grep -Fq 'name: Mobile WebKit E2E' <<< "$mobile_webkit_block" ||
   fail 'mobile WebKit CI job is missing'
 grep -Fq "if: needs.check.outputs.full_ci != 'false'" <<< "$mobile_webkit_block" ||
   fail 'mobile WebKit CI must run for runtime changes'
-grep -Fq 'run: make test-mobile-webkit-e2e' <<< "$mobile_webkit_block" ||
+grep -Fq 'npx playwright test e2e/annotation-zoom-pan.spec.ts' <<< "$mobile_webkit_block" ||
+  fail 'mobile WebKit CI must run the focused annotation suite'
+grep -Fq -- '--project=webkit-mobile --workers=1 --retries=0' <<< "$mobile_webkit_block" ||
   fail 'mobile WebKit CI must run the focused annotation suite'
 require_literal "$makefile" 'test-mobile-webkit-e2e:'
 require_literal "$makefile" '--project=webkit-mobile --workers=1 --retries=0'

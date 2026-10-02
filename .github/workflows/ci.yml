@@ -349,7 +349,9 @@ jobs:
         run: test "$(npx playwright --version)" = 'Version 1.63.0'
 
       - name: Run mobile WebKit E2E
-        run: make test-mobile-webkit-e2e
+        run: >-
+          npx playwright test e2e/annotation-zoom-pan.spec.ts
+          --project=webkit-mobile --workers=1 --retries=0
         env:
           CI: true
 
