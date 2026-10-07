@@ -93,7 +93,7 @@ token_step=$(awk '
 ' "$workflow")
 for required in \
   'id: heartbeat-monitor-token' \
-  "if: always() && steps.checkout.outcome == 'success'" \
+  "!cancelled() && steps.admission.outputs.admitted == 'true' && steps.checkout.outcome == 'success'" \
   'uses: actions/create-github-app-token@fee1f7d63c2ff003460e3d139729b119787bc349' \
   'app-id: ${{ vars.BUGDROP_HEARTBEAT_MONITOR_APP_ID }}' \
   'private-key: ${{ secrets.BUGDROP_HEARTBEAT_MONITOR_PRIVATE_KEY }}' \
