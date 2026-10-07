@@ -9,7 +9,9 @@ import current from './fixtures/current-public-baseline.v5.json';
 
 function isPublicPath(path: string): boolean {
   return (
-    (path.startsWith('src/') && !path.startsWith('src/managed/')) ||
+    (path.startsWith('src/') &&
+      !path.startsWith('src/managed/') &&
+      !path.startsWith('src/widget/managed/')) ||
     path.startsWith('public/') ||
     ['wrangler.toml', 'scripts/build-widget.js', 'tsconfig.widget.json'].includes(path)
   );
@@ -35,7 +37,7 @@ function fingerprint(paths: string[], read: (path: string) => Uint8Array): strin
   return hash.digest('hex');
 }
 
-describe('current public plane remains unchanged through managed integration', () => {
+describe('current legacy public plane remains unchanged through managed integration', () => {
   it('pins the reviewed v2 baseline to the exact merged public tree', () => {
     expect(baseline.baseCommit).toBe('73bb9db0a9ad69a508007bb39c5f23f174c338ef');
     const paths = publicFilesAt(baseline.baseCommit);
@@ -68,6 +70,9 @@ describe('current public plane remains unchanged through managed integration', (
 
   it('matches the reviewed tracked runtime, assets and configuration byte for byte', () => {
     const paths = publicFiles();
+    // The opt-in managed entry builds into dist/, outside the frozen public assets.
+    // Every legacy importer and its build script remain covered by the fingerprint.
+    expect(paths).not.toContain('src/widget/managed/index.ts');
     expect(paths).toContain('src/widget/locales/zh-CN.ts');
     expect(paths.length).toBe(current.fileCount);
     expect(fingerprint(paths, readFileSync)).toBe(current.sha256);

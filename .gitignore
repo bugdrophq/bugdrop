@@ -1,5 +1,6 @@
 # Dependencies
 node_modules/
+.managed-widget-sdk/
 
 # Build outputs
 dist/
