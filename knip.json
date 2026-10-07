@@ -18,7 +18,9 @@
     "src/managed/staging/delivery.ts",
     "src/managed/staging/github.ts",
     "src/managed/staging/reconciliation.ts",
-    "src/managed/uninstall/reconciliation.ts"
+    "src/managed/uninstall/reconciliation.ts",
+    "src/widget/managed/index.ts",
+    "scripts/managed-widget/*.mjs"
   ],
   "project": ["src/**/*.ts", "scripts/**/*.{js,mjs}"],
   "ignore": [],
@@ -41,6 +43,7 @@
     "lint-staged",
     "prettier",
     "wrangler",
-    "cloudflare"
+    "cloudflare",
+    "@bugdrop/browser"
   ]
 }
