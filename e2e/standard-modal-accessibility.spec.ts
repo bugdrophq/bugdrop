@@ -73,6 +73,70 @@ test('standard welcome to form transition keeps modal focus and closes from the 
   await expect(trigger).toBeFocused();
 });
 
+test('failed submission remains open until dismissed and supports host cleanup', async ({
+  page,
+}) => {
+  await page.route('**/api/feedback', route =>
+    route.fulfill({ status: 429, headers: { 'Retry-After': '60' } })
+  );
+  await page.goto('/test/welcome-disabled.html');
+  const trigger = page.locator('#bugdrop-host').locator('.bd-trigger');
+  await trigger.click();
+  const form = page.getByRole('dialog', { name: 'Send Feedback' });
+  await form.locator('#title').fill('Submission failure');
+  await form.locator('#include-screenshot').uncheck();
+  await form
+    .locator('#feedback-form')
+    .evaluate(element =>
+      element.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }))
+    );
+
+  await expect(page.getByRole('dialog', { name: 'Submission Failed' })).toBeVisible();
+  await expect.poll(() => page.evaluate(() => window.BugDrop?.isOpen())).toBe(true);
+  await page.evaluate(() => window.BugDrop?.open());
+  await expect(page.locator('#bugdrop-host').locator('.bd-overlay')).toHaveCount(1);
+  await page.evaluate(() => window.BugDrop?.close());
+  await expect(page.locator('#bugdrop-host').locator('.bd-overlay')).toHaveCount(0);
+  await expect.poll(() => page.evaluate(() => document.body.style.overflow)).toBe('');
+  await expect(trigger).toBeFocused();
+});
+
+test('programmatic close during retry prevents a late response from reopening the dialog', async ({
+  page,
+}) => {
+  let attempts = 0;
+  await page.route('**/api/feedback', async route => {
+    attempts += 1;
+    if (attempts === 1) {
+      await route.fulfill({ status: 429, headers: { 'Retry-After': '60' } });
+      return;
+    }
+    await new Promise(resolve => setTimeout(resolve, 700));
+    await route.fulfill({ status: 500, contentType: 'application/json', body: '{}' });
+  });
+  await page.goto('/test/welcome-disabled.html');
+  const trigger = page.locator('#bugdrop-host').locator('.bd-trigger');
+  await trigger.click();
+  const form = page.getByRole('dialog', { name: 'Send Feedback' });
+  await form.locator('#title').fill('Retry close');
+  await form.locator('#include-screenshot').uncheck();
+  await form
+    .locator('#feedback-form')
+    .evaluate(element =>
+      element.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }))
+    );
+  const error = page.getByRole('dialog', { name: 'Submission Failed' });
+  await expect(error).toBeVisible();
+  await error.getByRole('button', { name: 'Try Again' }).click();
+  await expect(page.getByRole('dialog', { name: 'Submitting...' })).toBeVisible();
+  await page.evaluate(() => window.BugDrop?.close());
+  await expect.poll(() => attempts).toBe(2);
+  await page.waitForTimeout(850);
+  await expect(page.locator('#bugdrop-host').locator('.bd-overlay')).toHaveCount(0);
+  await expect.poll(() => page.evaluate(() => document.body.style.overflow)).toBe('');
+  await expect(trigger).toBeFocused();
+});
+
 test('programmatic close removes the standard backdrop and restores focus', async ({ page }) => {
   await page.goto('/test/welcome-disabled.html');
   const trigger = page.locator('#bugdrop-host').locator('.bd-trigger');

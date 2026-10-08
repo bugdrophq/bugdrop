@@ -1909,7 +1909,9 @@ async function submitFeedback(
     if (response.status === 429) {
       const retryAfter = response.headers.get('Retry-After');
       const minutes = retryAfter ? Math.ceil(parseInt(retryAfter, 10) / 60) : 15;
-      showSubmitError(root, config, data, t().rateLimited(minutes));
+      if (await showSubmitError(root, t().rateLimited(minutes))) {
+        await submitFeedback(root, config, data, signal);
+      }
       return;
     }
 
@@ -1925,30 +1927,30 @@ async function submitFeedback(
         config.issueLinkVisibility
       );
     } else {
-      showSubmitError(
-        root,
-        config,
-        data,
-        submissionErrorMessage(result.code, result.error, config.locale)
-      );
+      if (
+        await showSubmitError(
+          root,
+          submissionErrorMessage(result.code, result.error, config.locale)
+        )
+      ) {
+        await submitFeedback(root, config, data, signal);
+      }
     }
   } catch (_error) {
     modal.remove();
     if (signal?.aborted) return;
-    showSubmitError(root, config, data, t().networkError);
+    if (await showSubmitError(root, t().networkError)) {
+      await submitFeedback(root, config, data, signal);
+    }
   }
 }
 
-function showSubmitError(
-  root: HTMLElement,
-  config: WidgetConfig,
-  data: FeedbackData,
-  errorMessage: string
-) {
-  const modal = createModal(
-    root,
-    t().submissionFailedTitle,
-    `
+function showSubmitError(root: HTMLElement, errorMessage: string): Promise<boolean> {
+  return new Promise(resolve => {
+    const modal = createModal(
+      root,
+      t().submissionFailedTitle,
+      `
       <div class="bd-error-message">
         <svg class="bd-error-message__icon" viewBox="0 0 16 16" fill="currentColor">
           <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0-9.5a.75.75 0 0 0-.75.75v2.5a.75.75 0 0 0 1.5 0v-2.5A.75.75 0 0 0 8 5.5zm0 6a1 1 0 1 0 0-2 1 1 0 0 0 0 2z"/>
@@ -1960,18 +1962,20 @@ function showSubmitError(
         <button class="bd-btn bd-btn-primary" data-action="retry">${escapeWidgetText(t().tryAgain)}</button>
       </div>
     `,
-    true
-  );
+      true
+    );
 
-  const closeBtn = modal.querySelector('.bd-close') as HTMLElement;
-  const cancelBtn = modal.querySelector('[data-action="cancel"]') as HTMLElement;
-  const retryBtn = modal.querySelector('[data-action="retry"]') as HTMLElement;
+    const closeBtn = modal.querySelector('.bd-close') as HTMLElement;
+    const cancelBtn = modal.querySelector('[data-action="cancel"]') as HTMLElement;
+    const retryBtn = modal.querySelector('[data-action="retry"]') as HTMLElement;
 
-  closeBtn?.addEventListener('click', () => modal.remove());
-  cancelBtn?.addEventListener('click', () => modal.remove());
+    const finish = (retry: boolean) => {
+      modal.remove();
+      resolve(retry);
+    };
 
-  retryBtn?.addEventListener('click', async () => {
-    modal.remove();
-    await submitFeedback(root, config, data);
+    closeBtn?.addEventListener('click', () => finish(false));
+    cancelBtn?.addEventListener('click', () => finish(false));
+    retryBtn?.addEventListener('click', () => finish(true));
   });
 }
