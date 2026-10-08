@@ -107,7 +107,7 @@ test('Bug Report completes its exact candidate preview journey', async ({ page }
   await expect(host.getByLabel('Include a screenshot')).toHaveCount(0);
   await host.getByRole('button', { name: 'Submit' }).click();
 
-  const capture = page.locator('#bugdrop-host');
+  const capture = host.locator('[data-flow-capture="true"]');
   await expect(capture.getByRole('heading', { name: 'Capture Screenshot' })).toBeVisible();
   await expect(capture.getByRole('button', { name: /skip screenshot/i })).toHaveCount(0);
   await capture.locator('[data-action="capture"]').focus();

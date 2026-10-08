@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 7,
+  "description": "Reviewed Flow screenshot shell integration. Tracked public src (excluding src/managed), public assets, wrangler.toml, widget build script and widget tsconfig. SHA-256 of sorted path + NUL + exact bytes + NUL.",
+  "fileCount": 150,
+  "sha256": "d518027940104b2ca553f68c23ddf135fae0d442ec4dd2f36b7af1d61e81c8ee",
+  "approvedDelta": {
+    "previousBaseline": "current-public-baseline.v6.json",
+    "previousSha256": "6387f07f71d762ff6e9287a803a38055bd0e7c96982036e5732ffa6c83bc61ce",
+    "baseCommit": "daf7e5da",
+    "changedPublicSources": [
+      "src/widget/flows/capture-view.ts",
+      "src/widget/flows/modal.ts",
+      "src/widget/flows/modal-view.ts",
+      "src/widget/flows/styles.ts",
+      "src/widget/index.ts",
+      "src/widget/ui.ts"
+    ],
+    "reason": "Keep Flow screenshot selection and review inside the Flow shadow host with matching theme and modal geometry. Label capture as Screenshot instead of repeating the Flow step count, and center capture headings, choices and readable annotation guidance. Reuse the existing capture and annotation engine; legacy feedback continues through its original root. Browser checks cover submission progress, color isolation, area and element selection, retake, mobile review, close and focus restoration. Production release remains a separate operator action."
+  }
+}

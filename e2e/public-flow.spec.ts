@@ -182,15 +182,33 @@ test.describe('public modal FlowConfig V1 representative recipes', () => {
     await host.getByLabel('Email').fill(' ada@example.com ');
     await host.getByRole('button', { name: 'Continue' }).click();
     await expect(host.getByRole('heading', { name: 'Show us the problem' })).toBeVisible();
+    await expect(host.locator('.bdf-screenshot-prompt .bdv-header')).toHaveCSS(
+      'text-align',
+      'center'
+    );
+    await expect(host.locator('.bdf-screenshot-prompt .bdv-actions')).toHaveCSS(
+      'justify-content',
+      'center'
+    );
     await expect(host.getByLabel('Include a screenshot')).toHaveCount(0);
     await host.getByRole('button', { name: 'Submit' }).click();
 
-    const capture = page.locator('#bugdrop-host');
+    const capture = host.locator('[data-flow-capture="true"]');
     await expect(capture.getByRole('heading', { name: 'Capture Screenshot' })).toBeVisible();
+    await expect(capture.getByText('Screenshot', { exact: true })).toBeVisible();
+    await expect(capture.getByText('Step 4 of 4')).toHaveCount(0);
+    await expect(capture.locator('.bd-header')).toHaveCSS('text-align', 'center');
+    await expect(capture.locator('.bd-body')).toHaveCSS('text-align', 'center');
+    await expect(capture.locator('.bd-screenshot-actions')).toHaveCSS('justify-content', 'center');
+    await expect(page.locator('#bugdrop-host .bd-overlay')).toHaveCount(0);
     await expect(capture.getByRole('button', { name: /skip screenshot/i })).toHaveCount(0);
     await capture.locator('[data-action="capture"]').focus();
     await page.keyboard.press('Enter');
     await expect(capture.locator('#annotation-canvas canvas')).toBeVisible();
+    await expect(capture.getByText('Screenshot', { exact: true })).toBeVisible();
+    await expect(capture.locator('.bd-annotation-notes')).toHaveCSS('text-align', 'center');
+    await expect(capture.locator('.bd-tools')).toHaveCSS('justify-content', 'center');
+    await expect(capture.locator('[data-action="done"]')).toBeInViewport();
     await capture.locator('[data-action="done"]').focus();
     await page.keyboard.press('Enter');
     await expect(host.getByText('Temporary failure')).toBeVisible();
@@ -747,6 +765,144 @@ test.describe('public modal FlowConfig V1 representative recipes', () => {
     expect(payloads[0]).toMatchObject({ title: 'Automatic proof', screenshot: stubPng });
   });
 
+  test('area and element capture return to the same Flow dialog', async ({ page }) => {
+    const payloads = await mockFeedback(page, 57);
+    await ready(page, true);
+    const host = await openRecipe(page, 'product-triage');
+    await host.getByRole('button', { name: 'Continue' }).click();
+    await host.getByLabel('Bug').click();
+    await host.getByRole('radio', { name: '4 stars' }).click();
+    await host.getByLabel('Summary').fill('Selection capture');
+    await host.getByRole('button', { name: 'Continue' }).click();
+    await host.getByRole('button', { name: 'Submit' }).click();
+
+    const capture = host.locator('[data-flow-capture="true"]');
+    await capture.locator('[data-action="area"]').click();
+    await expect(page.locator('#bugdrop-area-picker-overlay')).toBeVisible();
+    await page.mouse.move(200, 200);
+    await page.mouse.down();
+    await page.mouse.move(420, 340);
+    await page.mouse.up();
+    await expect(capture.locator('#annotation-canvas canvas')).toBeVisible();
+    await capture.locator('[data-action="retake"]').click();
+
+    await expect(capture.getByRole('heading', { name: 'Capture Screenshot' })).toBeVisible();
+    await capture.locator('[data-action="element"]').click();
+    await expect(page.locator('#bugdrop-element-picker-overlay')).toBeVisible();
+    await page.mouse.click(250, 60);
+    await expect(capture.locator('#annotation-canvas canvas')).toBeVisible();
+    await capture.locator('[data-action="done"]').click();
+    await expect(host.getByRole('heading', { name: 'Thanks for your feedback!' })).toBeVisible();
+    expect(payloads).toHaveLength(1);
+    expectValidPngDataUrl(payloads[0]?.screenshot);
+    expect(payloads[0]?.metadata.elementSelector).toBeTruthy();
+  });
+
+  test('Flow capture stays usable on a narrow viewport', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await mockFeedback(page, 58);
+    await ready(page, true);
+    const host = await openRecipe(page, 'product-triage');
+    await host.getByRole('button', { name: 'Continue' }).click();
+    await host.getByLabel('Bug').click();
+    await host.getByRole('radio', { name: '4 stars' }).click();
+    await host.getByLabel('Summary').fill('Mobile capture');
+    await host.getByRole('button', { name: 'Continue' }).click();
+    await host.getByRole('button', { name: 'Submit' }).click();
+
+    const capture = host.locator('[data-flow-capture="true"]');
+    await expect(capture.getByRole('heading', { name: 'Capture Screenshot' })).toBeVisible();
+    await capture.locator('[data-action="capture"]').click();
+    await expect(capture.locator('#annotation-canvas canvas')).toBeVisible();
+    await expect(capture.locator('[data-action="review"]')).toBeInViewport();
+    await capture.locator('[data-action="review"]').click();
+    await expect(capture.locator('[data-action="send-reviewed"]')).toBeInViewport();
+    await expect(capture.locator('.bd-annotation-review-instruction')).toHaveCSS(
+      'color',
+      'rgb(203, 213, 225)'
+    );
+    await capture.locator('[data-action="send-reviewed"]').click();
+    await expect(host.getByRole('heading', { name: 'Thanks for your feedback!' })).toBeVisible();
+  });
+
+  test('Flow capture colors ignore classic widget overrides', async ({ page }) => {
+    await page.route('**/test/welcome-disabled.html*', async route => {
+      const response = await route.fetch();
+      const body = await response.text();
+      const original = "dataset: { theme: 'dark', welcome: 'false' }";
+      expect(body).toContain(original);
+      await route.fulfill({
+        response,
+        body: body.replace(
+          original,
+          "dataset: { theme: 'light', bg: '#ffffff', text: '#111111', welcome: 'false' }"
+        ),
+      });
+    });
+    await mockFeedback(page, 59);
+    await ready(page);
+    const host = await openRecipe(page, 'product-triage');
+    await host.getByRole('button', { name: 'Continue' }).click();
+    await host.getByLabel('Bug').click();
+    await host.getByRole('radio', { name: '4 stars' }).click();
+    await host.getByLabel('Summary').fill('Theme contrast');
+    await host.getByRole('button', { name: 'Continue' }).click();
+    await host.getByRole('button', { name: 'Submit' }).click();
+
+    const capture = host.locator('[data-flow-capture="true"]');
+    await expect(capture.getByRole('heading', { name: 'Capture Screenshot' })).toBeVisible();
+    expect(
+      await capture
+        .locator('.bd-modal')
+        .evaluate(element => getComputedStyle(element).backgroundColor)
+    ).toBe('rgb(15, 23, 42)');
+    expect(
+      await capture.locator('.bd-title').evaluate(element => getComputedStyle(element).color)
+    ).toBe('rgb(248, 250, 252)');
+    expect(
+      await capture.locator('.bd-btn-primary').evaluate(element => getComputedStyle(element).color)
+    ).toBe('rgb(255, 255, 255)');
+  });
+
+  test('final screenshot shows submission progress while the request is pending', async ({
+    page,
+  }) => {
+    let releaseRequest = () => {};
+    const requestGate = new Promise<void>(resolve => {
+      releaseRequest = resolve;
+    });
+    await page.route('**/api/feedback', async route => {
+      await requestGate;
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          success: true,
+          issueNumber: 60,
+          issueUrl: 'https://github.com/mean-weasel/bugdrop-widget-test/issues/60',
+          isPublic: false,
+        }),
+      });
+    });
+    await ready(page, true);
+    const host = await openRecipe(page, 'product-triage');
+    await host.getByRole('button', { name: 'Continue' }).click();
+    await host.getByLabel('Bug').click();
+    await host.getByRole('radio', { name: '4 stars' }).click();
+    await host.getByLabel('Summary').fill('Pending submission');
+    await host.getByRole('button', { name: 'Continue' }).click();
+    await host.getByRole('button', { name: 'Submit' }).click();
+    const capture = host.locator('[data-flow-capture="true"]');
+    await capture.locator('[data-action="capture"]').click();
+    await capture.locator('[data-action="done"]').click();
+    try {
+      await expect(host.getByRole('heading', { name: 'Submitting feedback' })).toBeVisible();
+    } finally {
+      releaseRequest();
+    }
+    await expect(host.getByRole('heading', { name: 'Thanks for your feedback!' })).toBeVisible();
+  });
+
   test('close tears down an in-progress screenshot chooser', async ({ page }) => {
     await mockFeedback(page, 55);
     await ready(page);
@@ -764,7 +920,7 @@ test.describe('public modal FlowConfig V1 representative recipes', () => {
     await host.getByLabel('Summary').fill('Close capture');
     await host.getByRole('button', { name: 'Continue' }).click();
     await host.getByRole('button', { name: 'Submit' }).click();
-    const chooser = page.locator('#bugdrop-host .bd-overlay');
+    const chooser = host.locator('[data-flow-capture="true"] .bd-overlay');
     await expect(chooser.getByRole('heading', { name: 'Capture Screenshot' })).toBeVisible();
     await page.evaluate(() =>
       (window as Window & { __publicFlow?: { close(): void } }).__publicFlow?.close()
@@ -794,7 +950,7 @@ test.describe('public modal FlowConfig V1 representative recipes', () => {
     await host.getByLabel('Summary').fill('Return focus');
     await host.getByRole('button', { name: 'Continue' }).click();
     await host.getByRole('button', { name: 'Submit' }).click();
-    const chooser = page.locator('#bugdrop-host .bd-overlay');
+    const chooser = host.locator('[data-flow-capture="true"] .bd-overlay');
     await expect(chooser.getByRole('heading', { name: 'Capture Screenshot' })).toBeVisible();
     await chooser.locator('.bd-close').click();
     await expect(chooser).toHaveCount(0);

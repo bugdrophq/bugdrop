@@ -2,15 +2,26 @@
 
 The current public system remains supported. This harness compares its tracked
 runtime, assets, widget build inputs and Wrangler configuration to the reviewed
-feature commit recorded in `test/cross-plane/fixtures/current-public-baseline.v6.json`.
-The test verifies that the v2, v3, v4 and v5 fixtures' commits produce their exact
+feature commit recorded in `test/cross-plane/fixtures/current-public-baseline.v7.json`.
+The test verifies that the v2 through v6 fixtures' commits produce their exact
 file counts and fingerprints, then compares the working tree against the reviewed
-v6 fingerprint. Public fingerprint mutations and changed/skipped/retried browser evidence must fail.
+v7 fingerprint. Public fingerprint mutations and changed/skipped/retried browser evidence must fail.
 An intentional future public change requires explicit baseline review; do not
 refresh the fingerprint merely to make a failure disappear. The v1 fixture is
 pre-localization history; v2 records Chinese localization; v3 records the mobile
 annotation change; v4 records the temporary deferral; v5 restores Chinese
-localization for issuer QA; and v6 adds standard-widget modal accessibility.
+localization for issuer QA; v6 adds standard-widget modal accessibility; and v7 keeps
+Flow screenshot selection and review in the same visual host as the preceding screens.
+
+## Reviewed v7 Flow screenshot integration
+
+The v7 fixture includes the Flow capture view, shared picker and annotation UI,
+and the bridge from the public Flow runtime. The v6 tree remains pinned to main
+commit `daf7e5da`. Browser checks cover the full-page journey, area and element
+selection, retake, color isolation, visible submission progress, mobile review,
+close, and focus restoration. The standard
+feedback widget still uses its existing root. Publishing requires a separate
+operator release.
 
 ## Reviewed v6 standard-modal accessibility change
 
