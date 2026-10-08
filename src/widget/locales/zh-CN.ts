@@ -51,6 +51,7 @@ export const zhCN: WidgetStrings = {
   uploadReadError: '无法读取此文件。请尝试其他文件。',
   removeAttachmentAriaLabel: (name: string) => `移除 ${name}`,
   // Common buttons
+  closeDialog: '关闭',
   cancel: '取消',
   continueButton: '继续',
   submit: '提交',

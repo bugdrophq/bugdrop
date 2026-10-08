@@ -2,15 +2,26 @@
 
 The current public system remains supported. This harness compares its tracked
 runtime, assets, widget build inputs and Wrangler configuration to the reviewed
-feature commit recorded in `test/cross-plane/fixtures/current-public-baseline.v5.json`.
-The test verifies that the v2, v3 and v4 fixtures' commits produce their exact
+feature commit recorded in `test/cross-plane/fixtures/current-public-baseline.v6.json`.
+The test verifies that the v2, v3, v4 and v5 fixtures' commits produce their exact
 file counts and fingerprints, then compares the working tree against the reviewed
-v5 fingerprint. Public fingerprint mutations and changed/skipped/retried browser evidence must fail.
+v6 fingerprint. Public fingerprint mutations and changed/skipped/retried browser evidence must fail.
 An intentional future public change requires explicit baseline review; do not
 refresh the fingerprint merely to make a failure disappear. The v1 fixture is
 pre-localization history; v2 records Chinese localization; v3 records the mobile
-annotation change; v4 records the temporary deferral; and v5 restores Chinese
-localization for issuer QA.
+annotation change; v4 records the temporary deferral; v5 restores Chinese
+localization for issuer QA; and v6 adds standard-widget modal accessibility.
+
+## Reviewed v6 standard-modal accessibility change
+
+The v6 fixture includes the shared standard-modal lifecycle, localized close
+labels, and annotation subdialog Escape handling. It preserves the v5 tree at
+main commit `5f302286f1c1831910fc6038881ac8bcc77c621c`. Focused browser
+checks cover the Bleep-style external trigger, keyboard containment, background
+accessibility isolation, welcome-to-form transitions, and programmatic close.
+The paired default-flow screenshot oracle and Radix host checks cover the
+strongest integration risks. Publishing this widget requires a separate
+operator release.
 
 ## Reviewed v5 localization restoration
 

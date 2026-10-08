@@ -26,9 +26,11 @@ export interface DefaultJourneyPorts<Details, Capture> {
 
 export async function runDefaultJourney<Details, Capture>(
   definition: DefaultDefinition,
-  ports: DefaultJourneyPorts<Details, Capture>
+  ports: DefaultJourneyPorts<Details, Capture>,
+  signal?: AbortSignal
 ): Promise<'finished' | 'preflight-blocked'> {
   const preflight = await ports.preflight(definition.system.preflight);
+  if (signal?.aborted) return 'finished';
   if (preflight.status !== 'installed') {
     ports.showPreflightFailure(preflight);
     return 'preflight-blocked';
@@ -37,7 +39,8 @@ export async function runDefaultJourney<Details, Capture>(
   const welcome = definition.steps[0];
   const runtime = new FlowRuntime(definition.flow, { 'show-welcome': welcome.enabled });
   if (runtime.current()?.id === 'welcome') {
-    if (!(await ports.showWelcome(welcome))) return 'finished';
+    const continued = await ports.showWelcome(welcome);
+    if (signal?.aborted || !continued) return 'finished';
     if (welcome.remember) ports.rememberWelcome(welcome);
     runtime.next();
   }
@@ -49,12 +52,13 @@ export async function runDefaultJourney<Details, Capture>(
     if (runtime.current()?.id !== 'details')
       throw new Error('Default flow expected details screen');
     details = await ports.showDetails(detailsStep, details);
-    if (!details) return 'finished';
+    if (signal?.aborted || !details) return 'finished';
 
     runtime.next();
     if (runtime.current()?.id !== 'screenshot')
       throw new Error('Default flow expected screenshot screen');
     const capture = await ports.capture(screenshotStep, details);
+    if (signal?.aborted) return 'finished';
     if (capture.returnToDetails) {
       runtime.back();
       continue;

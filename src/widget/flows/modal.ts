@@ -7,6 +7,7 @@ import { normalizeFlowOpenOptions } from './field-validation';
 import { createFlowFormScreen, type FlowFormController } from './form-screen';
 import { createMessageScreen } from './message-screen';
 import { createFlowModalState, type FlowModalState } from './modal-state';
+import { releaseLegacyModalIsolationForFlow } from '../legacy-modal-accessibility';
 import {
   addNavigation,
   createErrorSurface,
@@ -226,6 +227,7 @@ class FlowModalController {
     let direction: FlowScreenDirection;
     try {
       const capture = await this.ports.capture(screen, include, abortController.signal);
+      releaseLegacyModalIsolationForFlow();
       if (this.closed) return;
       direction = capture.returnToForm ? 'backward' : 'forward';
       if (capture.returnToForm) this.runtime.back();
@@ -294,6 +296,7 @@ class FlowModalController {
     this.preflightVersion += 1;
     this.captureAbortController?.abort();
     this.captureAbortController = null;
+    releaseLegacyModalIsolationForFlow();
     if (settleClosed) this.settle({ status: 'closed' });
     this.disposeForm();
     this.screenTransition.dispose();

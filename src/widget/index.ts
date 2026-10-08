@@ -238,6 +238,7 @@ let _widgetRoot: HTMLElement | null = null;
 let _triggerButton: HTMLElement | null = null;
 let _pullTab: HTMLElement | null = null;
 let _isModalOpen = false;
+let _activeDefaultJourneyController: AbortController | null = null;
 let _widgetConfig: WidgetConfig | null = null;
 let _triggerDragMoved = false;
 
@@ -930,11 +931,12 @@ function exposeBugDropAPI(root: HTMLElement, config: WidgetConfig) {
     // Close the current modal
     close: () => {
       if (_isModalOpen) {
-        // Find and remove any open modal
-        const modal = root.querySelector('.bd-modal');
-        if (modal) {
-          modal.remove();
-        }
+        _activeDefaultJourneyController?.abort();
+        _activeDefaultJourneyController = null;
+        // Use the screen's close action so its pending result settles, then
+        // remove any non-dismissible loading screen with its full overlay.
+        root.querySelector<HTMLButtonElement>('.bd-overlay .bd-close')?.click();
+        root.querySelector('.bd-overlay')?.remove();
         _isModalOpen = false;
       }
     },
@@ -1123,17 +1125,22 @@ async function openFeedbackFlow(
 
   // Mark modal as open
   _isModalOpen = true;
+  const controller = new AbortController();
+  _activeDefaultJourneyController = controller;
+  const { signal } = controller;
 
   const testRuntime = __BUGDROP_ENABLE_TEST_HOOKS__ ? requestedDefaultJourney() : undefined;
   const useFlowRuntime =
     testRuntime === 'private' ||
     (testRuntime !== 'fixed' && __BUGDROP_DEFAULT_FLOW_RUNTIME__ === 'private');
   if (useFlowRuntime) {
-    const outcome = await runPrivateDefaultJourney(root, config, opts);
+    const outcome = await runPrivateDefaultJourney(root, config, opts, signal);
+    if (signal.aborted) return;
     if (outcome === 'preflight-blocked') return;
   } else {
     // Check if app is installed
     const { status: installStatus, appName } = await checkInstallation(config);
+    if (signal.aborted) return;
     if (installStatus === 'not_installed') {
       showInstallPrompt(root, config, undefined, appName);
       return;
@@ -1143,11 +1150,14 @@ async function openFeedbackFlow(
       return;
     }
 
-    await runFixedDefaultJourney(root, config, opts);
+    await runFixedDefaultJourney(root, config, opts, signal);
   }
 
   // Flow complete
-  _isModalOpen = false;
+  if (_activeDefaultJourneyController === controller) {
+    _activeDefaultJourneyController = null;
+    _isModalOpen = false;
+  }
 }
 
 function requestedDefaultJourney(): 'fixed' | 'private' | undefined {
@@ -1159,7 +1169,8 @@ function requestedDefaultJourney(): 'fixed' | 'private' | undefined {
 async function runFixedDefaultJourney(
   root: HTMLElement,
   config: WidgetConfig,
-  opts?: { skipWelcome?: boolean }
+  opts: { skipWelcome?: boolean } | undefined,
+  signal: AbortSignal
 ) {
   // Step 1: Welcome screen (conditional)
   const skipWelcome =
@@ -1169,6 +1180,7 @@ async function runFixedDefaultJourney(
 
   if (!skipWelcome) {
     const continueFlow = await showWelcomeScreen(root);
+    if (signal.aborted) return;
     if (!continueFlow) {
       _isModalOpen = false;
       return;
@@ -1182,6 +1194,7 @@ async function runFixedDefaultJourney(
   while (true) {
     // Step 2: Feedback form (with optional screenshot checkbox)
     formResult = await showFeedbackFormWithScreenshotOption(root, config, formResult);
+    if (signal.aborted) return;
     if (!formResult) {
       // User cancelled
       _isModalOpen = false;
@@ -1193,27 +1206,34 @@ async function runFixedDefaultJourney(
       root,
       config,
       submittedFormResult.includeScreenshot,
-      () => rememberComplexScreenshotSkip(config, submittedFormResult)
+      () => rememberComplexScreenshotSkip(config, submittedFormResult),
+      signal
     );
+    if (signal.aborted) return;
 
     if (screenshotResult.returnToForm) continue;
 
     // Submit
-    await submitFeedback(root, config, {
-      title: formResult.title,
-      description: formResult.description,
-      category: formResult.category,
-      name: formResult.name,
-      email: formResult.email,
-      screenshot: screenshotResult.screenshot,
-      attachments: formResult.attachments,
-      elementSelector: screenshotResult.elementSelector,
-      fullElementSelector: screenshotResult.fullElementSelector,
-      selectedElementHighlightColor: screenshotResult.elementSelector
-        ? resolveAccentColor(config.accentColor)
-        : null,
-      sendConsoleLogs: formResult.sendConsoleLogs,
-    });
+    await submitFeedback(
+      root,
+      config,
+      {
+        title: formResult.title,
+        description: formResult.description,
+        category: formResult.category,
+        name: formResult.name,
+        email: formResult.email,
+        screenshot: screenshotResult.screenshot,
+        attachments: formResult.attachments,
+        elementSelector: screenshotResult.elementSelector,
+        fullElementSelector: screenshotResult.fullElementSelector,
+        selectedElementHighlightColor: screenshotResult.elementSelector
+          ? resolveAccentColor(config.accentColor)
+          : null,
+        sendConsoleLogs: formResult.sendConsoleLogs,
+      },
+      signal
+    );
     break;
   }
 }
@@ -1221,7 +1241,8 @@ async function runFixedDefaultJourney(
 async function runPrivateDefaultJourney(
   root: HTMLElement,
   config: WidgetConfig,
-  opts?: { skipWelcome?: boolean }
+  opts: { skipWelcome?: boolean } | undefined,
+  signal: AbortSignal
 ) {
   const definition = normalizeDefaultDefinition({
     repo: config.repo,
@@ -1246,82 +1267,88 @@ async function runPrivateDefaultJourney(
   return runDefaultJourney<
     FeedbackFormResult,
     Awaited<ReturnType<typeof runScreenshotCaptureFlow>>
-  >(definition, {
-    preflight: recipe =>
-      checkInstallation(config, {
-        repo: recipe.repo,
-        apiUrl: recipe.apiUrl,
-        authTokenProvider: recipe.authTokenProvider,
-      }),
-    showPreflightFailure: result =>
-      showInstallPrompt(
-        root,
-        config,
-        result.status === 'unreachable' ? t().apiUnreachableMessage : undefined,
-        result.appName
-      ),
-    showWelcome: () => showWelcomeScreen(root),
-    rememberWelcome: () => markWelcomeSeen(definition.steps[1].repo),
-    showDetails: (step, previous) =>
-      showFeedbackFormWithScreenshotOption(
-        root,
-        {
-          ...config,
-          repo: step.repo,
-          showName: step.showName,
-          requireName: step.requireName,
-          showEmail: step.showEmail,
-          requireEmail: step.requireEmail,
-          sendConsoleLogs: step.sendConsoleLogs,
-          screenshotMode: definition.steps[2].mode,
-        },
-        previous
-      ),
-    capture: async (step, details) => {
-      const captureConfig: WidgetConfig = {
-        ...config,
-        repo: step.repo,
-        screenshotMode: step.mode,
-        screenshotScale: step.screenshotScale,
-        elementContextMaxArea: step.elementContextMaxArea,
-        accentColor: step.accentColor,
-      };
-      const result = await runScreenshotCaptureFlow(
-        root,
-        captureConfig,
-        details.includeScreenshot,
-        () => rememberComplexScreenshotSkip(captureConfig, details)
-      );
-      return { ...result, returnToDetails: result.returnToForm };
-    },
-    submit: (recipe, details, capture) =>
-      submitFeedback(
-        root,
-        {
-          ...config,
+  >(
+    definition,
+    {
+      preflight: recipe =>
+        checkInstallation(config, {
           repo: recipe.repo,
           apiUrl: recipe.apiUrl,
           authTokenProvider: recipe.authTokenProvider,
-          categoryLabels: recipe.categoryLabels as CategoryLabelConfig | undefined,
-          issueLinkVisibility: recipe.issueLinkVisibility,
-        },
-        {
-          title: details.title,
-          description: details.description,
-          category: details.category,
-          name: details.name,
-          email: details.email,
-          screenshot: capture.screenshot,
-          attachments: details.attachments,
-          elementSelector: capture.elementSelector,
-          fullElementSelector: capture.fullElementSelector,
-          selectedElementHighlightColor: capture.elementSelector
-            ? resolveAccentColor(config.accentColor)
-            : null,
-          sendConsoleLogs: details.sendConsoleLogs,
-        }
-      ),
-  });
+        }),
+      showPreflightFailure: result =>
+        showInstallPrompt(
+          root,
+          config,
+          result.status === 'unreachable' ? t().apiUnreachableMessage : undefined,
+          result.appName
+        ),
+      showWelcome: () => showWelcomeScreen(root),
+      rememberWelcome: () => markWelcomeSeen(definition.steps[1].repo),
+      showDetails: (step, previous) =>
+        showFeedbackFormWithScreenshotOption(
+          root,
+          {
+            ...config,
+            repo: step.repo,
+            showName: step.showName,
+            requireName: step.requireName,
+            showEmail: step.showEmail,
+            requireEmail: step.requireEmail,
+            sendConsoleLogs: step.sendConsoleLogs,
+            screenshotMode: definition.steps[2].mode,
+          },
+          previous
+        ),
+      capture: async (step, details) => {
+        const captureConfig: WidgetConfig = {
+          ...config,
+          repo: step.repo,
+          screenshotMode: step.mode,
+          screenshotScale: step.screenshotScale,
+          elementContextMaxArea: step.elementContextMaxArea,
+          accentColor: step.accentColor,
+        };
+        const result = await runScreenshotCaptureFlow(
+          root,
+          captureConfig,
+          details.includeScreenshot,
+          () => rememberComplexScreenshotSkip(captureConfig, details),
+          signal
+        );
+        return { ...result, returnToDetails: result.returnToForm };
+      },
+      submit: (recipe, details, capture) =>
+        submitFeedback(
+          root,
+          {
+            ...config,
+            repo: recipe.repo,
+            apiUrl: recipe.apiUrl,
+            authTokenProvider: recipe.authTokenProvider,
+            categoryLabels: recipe.categoryLabels as CategoryLabelConfig | undefined,
+            issueLinkVisibility: recipe.issueLinkVisibility,
+          },
+          {
+            title: details.title,
+            description: details.description,
+            category: details.category,
+            name: details.name,
+            email: details.email,
+            screenshot: capture.screenshot,
+            attachments: details.attachments,
+            elementSelector: capture.elementSelector,
+            fullElementSelector: capture.fullElementSelector,
+            selectedElementHighlightColor: capture.elementSelector
+              ? resolveAccentColor(config.accentColor)
+              : null,
+            sendConsoleLogs: details.sendConsoleLogs,
+          },
+          signal
+        ),
+    },
+    signal
+  );
 }
 
 async function checkInstallation(
@@ -1807,7 +1834,13 @@ function getCategoryChecked(
   return (initialValues?.category || 'bug') === category ? 'checked' : '';
 }
 
-async function submitFeedback(root: HTMLElement, config: WidgetConfig, data: FeedbackData) {
+async function submitFeedback(
+  root: HTMLElement,
+  config: WidgetConfig,
+  data: FeedbackData,
+  signal?: AbortSignal
+) {
+  if (signal?.aborted) return;
   // Show submitting modal with loading state
   const modal = createModal(
     root,
@@ -1871,6 +1904,7 @@ async function submitFeedback(root: HTMLElement, config: WidgetConfig, data: Fee
     });
 
     modal.remove();
+    if (signal?.aborted) return;
 
     if (response.status === 429) {
       const retryAfter = response.headers.get('Retry-After');
@@ -1880,6 +1914,7 @@ async function submitFeedback(root: HTMLElement, config: WidgetConfig, data: Fee
     }
 
     const result = await response.json();
+    if (signal?.aborted) return;
 
     if (result.success) {
       await showSuccessModal(
@@ -1899,6 +1934,7 @@ async function submitFeedback(root: HTMLElement, config: WidgetConfig, data: Fee
     }
   } catch (_error) {
     modal.remove();
+    if (signal?.aborted) return;
     showSubmitError(root, config, data, t().networkError);
   }
 }

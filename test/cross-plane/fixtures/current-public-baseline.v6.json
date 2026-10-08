@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 6,
+  "description": "Reviewed standard-widget modal accessibility change. Tracked public src (excluding src/managed), public assets, wrangler.toml, widget build script and widget tsconfig. SHA-256 of sorted path + NUL + exact bytes + NUL.",
+  "fileCount": 149,
+  "sha256": "04ff1304dd865560d61ef5c7062f5642599bc1b64f439235381594a90c23c865",
+  "approvedDelta": {
+    "previousBaseline": "current-public-baseline.v5.json",
+    "previousSha256": "9ec7da0bd17fd7f2343c8d1b1789daf018a1de2b3a76038d1ad4adb3a4850bda",
+    "baseCommit": "5f302286f1c1831910fc6038881ac8bcc77c621c",
+    "changedPublicSources": [
+      "src/widget/annotation-flow.ts",
+      "src/widget/flows/modal.ts",
+      "src/widget/i18n.ts",
+      "src/widget/index.ts",
+      "src/widget/legacy-modal-accessibility.ts",
+      "src/widget/locales/de.ts",
+      "src/widget/locales/en.ts",
+      "src/widget/locales/nl.ts",
+      "src/widget/locales/pl.ts",
+      "src/widget/locales/zh-CN.ts",
+      "src/widget/ui.ts"
+    ],
+    "reason": "Give every standard feedback screen dialog semantics, localized close naming, focus containment and restoration, Escape dismissal, and inert background; browser checks cover host integration and legacy screen transitions. No release is part of this source change."
+  }
+}

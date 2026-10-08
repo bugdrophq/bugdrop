@@ -711,6 +711,13 @@ test.describe('public modal FlowConfig V1 representative recipes', () => {
   test('close tears down an in-progress screenshot chooser', async ({ page }) => {
     await mockFeedback(page, 55);
     await ready(page);
+    await page.evaluate(() => {
+      const opener = document.createElement('button');
+      opener.id = 'flow-opener';
+      opener.textContent = 'Open feedback';
+      document.body.appendChild(opener);
+      opener.focus();
+    });
     const host = await openRecipe(page, 'product-triage');
     await host.getByRole('button', { name: 'Continue' }).click();
     await host.getByLabel('Bug').click();
@@ -725,6 +732,8 @@ test.describe('public modal FlowConfig V1 representative recipes', () => {
     );
     await expect(host).toHaveCount(0);
     await expect(chooser).toHaveCount(0);
+    await expect.poll(() => page.evaluate(() => document.body.style.overflow)).toBe('');
+    await expect(page.locator('#flow-opener')).toBeFocused();
     await expect
       .poll(() =>
         page.evaluate(
@@ -734,5 +743,23 @@ test.describe('public modal FlowConfig V1 representative recipes', () => {
         )
       )
       .toEqual({ status: 'closed' });
+  });
+
+  test('returning from screenshot selection restores focus to the flow', async ({ page }) => {
+    await mockFeedback(page, 56);
+    await ready(page);
+    const host = await openRecipe(page, 'product-triage');
+    await host.getByRole('button', { name: 'Continue' }).click();
+    await host.getByLabel('Bug').click();
+    await host.getByRole('radio', { name: '4 stars' }).click();
+    await host.getByLabel('Summary').fill('Return focus');
+    await host.getByRole('button', { name: 'Continue' }).click();
+    await host.getByRole('button', { name: 'Submit' }).click();
+    const chooser = page.locator('#bugdrop-host .bd-overlay');
+    await expect(chooser.getByRole('heading', { name: 'Capture Screenshot' })).toBeVisible();
+    await chooser.locator('.bd-close').click();
+    await expect(chooser).toHaveCount(0);
+    await expect(host.getByRole('dialog')).toBeVisible();
+    await expect(host.getByRole('dialog').getByRole('button').first()).toBeFocused();
   });
 });

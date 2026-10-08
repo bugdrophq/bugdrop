@@ -121,6 +121,21 @@ describe('private default journey runtime', () => {
     });
   });
 
+  it('does not revisit details or submit when capture is aborted by the host', async () => {
+    const controller = new AbortController();
+    const ports = createPorts({
+      capture: vi.fn(async () => {
+        controller.abort();
+        return { screenshot: null, returnToDetails: true };
+      }),
+    });
+
+    await runDefaultJourney(definition('never'), ports, controller.signal);
+
+    expect(ports.showDetails).toHaveBeenCalledTimes(1);
+    expect(ports.submit).not.toHaveBeenCalled();
+  });
+
   it.each(['not_installed', 'unreachable'] as const)(
     'owns %s preflight and stops before user steps',
     async status => {

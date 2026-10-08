@@ -199,7 +199,9 @@ test.describe('Radix dialog compatibility', () => {
     await expect.poll(() => page.evaluate(() => window.__hostFocusOutTrapEvents)).toEqual([]);
   });
 
-  test('host dialog can receive focus again after editing BugDrop fields', async ({ page }) => {
+  test('host dialog remains inert until BugDrop closes, then receives focus again', async ({
+    page,
+  }) => {
     await mockInstalledRepo(page);
 
     await page.goto('/test/welcome-disabled.html');
@@ -234,10 +236,17 @@ test.describe('Radix dialog compatibility', () => {
     await expect(titleInput).toHaveValue('Radix title');
 
     await page.locator('#host-second').focus();
+    await expect(titleInput).toBeFocused();
+    await expect.poll(() => page.evaluate(() => window.__hostFocusTrapEvents)).toEqual([]);
+
+    await page.keyboard.press('Escape');
+    await expect(host.locator('css=.bd-overlay')).toHaveCount(0);
+    await expect(page.locator('#host-first')).toBeFocused();
+    await page.locator('#host-second').focus();
     await expect(page.locator('#host-second')).toBeFocused();
     await expect
       .poll(() => page.evaluate(() => window.__hostFocusTrapEvents))
-      .toEqual(['host-second']);
+      .toEqual(['host-first', 'host-second']);
   });
 
   test('keyboard focus into BugDrop fields stays editable inside focusout traps', async ({

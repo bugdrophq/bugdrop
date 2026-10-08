@@ -6,6 +6,7 @@ import baseline from './fixtures/current-public-baseline.v2.json';
 import mobileBaseline from './fixtures/current-public-baseline.v3.json';
 import deferredBaseline from './fixtures/current-public-baseline.v4.json';
 import current from './fixtures/current-public-baseline.v5.json';
+import accessible from './fixtures/current-public-baseline.v6.json';
 
 function isPublicPath(path: string): boolean {
   return (
@@ -46,7 +47,7 @@ describe('current legacy public plane remains unchanged through managed integrat
     expect(
       fingerprint(paths, path => execFileSync('git', ['show', `${baseline.baseCommit}:${path}`]))
     ).toBe(baseline.sha256);
-  });
+  }, 30_000);
 
   it('pins the reviewed v3 mobile annotation baseline to PR #424', () => {
     const commit = 'fb0c3e34a012c7827ccc34577651f799dce39621';
@@ -56,7 +57,7 @@ describe('current legacy public plane remains unchanged through managed integrat
     expect(fingerprint(paths, path => execFileSync('git', ['show', `${commit}:${path}`]))).toBe(
       mobileBaseline.sha256
     );
-  });
+  }, 30_000);
 
   it('pins the reviewed v4 release deferral to PR #425', () => {
     const commit = 'f6ca6a6cdba9704edf87a40cf6a4f15f814ba2fc';
@@ -66,16 +67,25 @@ describe('current legacy public plane remains unchanged through managed integrat
     expect(fingerprint(paths, path => execFileSync('git', ['show', `${commit}:${path}`]))).toBe(
       deferredBaseline.sha256
     );
-  });
+  }, 30_000);
 
-  it('matches the reviewed tracked runtime, assets and configuration byte for byte', () => {
+  it('pins the reviewed v5 public tree before the standard-modal accessibility change', () => {
+    const commit = '5f302286f1c1831910fc6038881ac8bcc77c621c';
+    const paths = publicFilesAt(commit);
+    expect(paths.length).toBe(current.fileCount);
+    expect(fingerprint(paths, path => execFileSync('git', ['show', `${commit}:${path}`]))).toBe(
+      current.sha256
+    );
+  }, 30_000);
+
+  it('matches the reviewed accessible tracked runtime, assets and configuration byte for byte', () => {
     const paths = publicFiles();
     // The opt-in managed entry builds into dist/, outside the frozen public assets.
     // Every legacy importer and its build script remain covered by the fingerprint.
     expect(paths).not.toContain('src/widget/managed/index.ts');
     expect(paths).toContain('src/widget/locales/zh-CN.ts');
-    expect(paths.length).toBe(current.fileCount);
-    expect(fingerprint(paths, readFileSync)).toBe(current.sha256);
+    expect(paths.length).toBe(accessible.fileCount);
+    expect(fingerprint(paths, readFileSync)).toBe(accessible.sha256);
   });
 
   it.each([
@@ -88,6 +98,6 @@ describe('current legacy public plane remains unchanged through managed integrat
       const bytes = readFileSync(path);
       return path === target ? Buffer.concat([bytes, Buffer.from('\nMANAGED_MUTATION')]) : bytes;
     });
-    expect(hash).not.toBe(current.sha256);
+    expect(hash).not.toBe(accessible.sha256);
   });
 });
