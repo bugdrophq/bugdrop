@@ -56,6 +56,7 @@ export function createScreenshotPrompt(screen: Readonly<ScreenshotScreen>): HTML
         ? 'A screenshot is required before submitting.'
         : 'Include a screenshot to help explain your feedback.')
   );
+  surface.classList.add('bdf-screenshot-prompt');
   if (screen.mode === 'optional') {
     const row = document.createElement('label');
     row.className = 'bdf-checkbox';

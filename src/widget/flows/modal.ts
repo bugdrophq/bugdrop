@@ -240,10 +240,9 @@ class FlowModalController {
     this.captureAbortController = abortController;
     let direction: FlowScreenDirection;
     try {
-      const route = this.runtime.route();
       const capture = await this.ports.capture(screen, include, abortController.signal, {
         shadow: this.state.shadow,
-        progress: `Step ${route.position} of ${route.total}`,
+        progress: 'Screenshot',
         size: this.definition.config.presentation.size ?? 'default',
         appearance: this.definition.config.appearance,
       });

@@ -20,6 +20,12 @@ export function createStyledFlowRoot(shadow: ShadowRoot, config: Readonly<FlowCo
     .bdf-attachment { display: grid; gap: 7px; }
     .bdf-checkbox { display: flex; min-height: 44px; align-items: center; gap: 10px; }
     .bdf-checkbox input { width: 20px; height: 20px; accent-color: var(--bdv-accent); }
+    .bdv-root[data-presentation="modal"] .bdf-screenshot-prompt .bdv-header {
+      text-align: center;
+      padding: 0 36px;
+    }
+    .bdf-screenshot-prompt .bdf-checkbox,
+    .bdf-screenshot-prompt .bdv-actions { justify-content: center; }
     .bdf-file-list { margin: 0; padding-left: 20px; color: var(--bdv-text-muted); }
     .bdf-back { order: -1; }
     .bdf-transitioning { overflow: hidden; }

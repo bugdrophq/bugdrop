@@ -182,17 +182,32 @@ test.describe('public modal FlowConfig V1 representative recipes', () => {
     await host.getByLabel('Email').fill(' ada@example.com ');
     await host.getByRole('button', { name: 'Continue' }).click();
     await expect(host.getByRole('heading', { name: 'Show us the problem' })).toBeVisible();
+    await expect(host.locator('.bdf-screenshot-prompt .bdv-header')).toHaveCSS(
+      'text-align',
+      'center'
+    );
+    await expect(host.locator('.bdf-screenshot-prompt .bdv-actions')).toHaveCSS(
+      'justify-content',
+      'center'
+    );
     await expect(host.getByLabel('Include a screenshot')).toHaveCount(0);
     await host.getByRole('button', { name: 'Submit' }).click();
 
     const capture = host.locator('[data-flow-capture="true"]');
     await expect(capture.getByRole('heading', { name: 'Capture Screenshot' })).toBeVisible();
-    await expect(capture.getByText('Step 4 of 4')).toBeVisible();
+    await expect(capture.getByText('Screenshot', { exact: true })).toBeVisible();
+    await expect(capture.getByText('Step 4 of 4')).toHaveCount(0);
+    await expect(capture.locator('.bd-header')).toHaveCSS('text-align', 'center');
+    await expect(capture.locator('.bd-body')).toHaveCSS('text-align', 'center');
+    await expect(capture.locator('.bd-screenshot-actions')).toHaveCSS('justify-content', 'center');
     await expect(page.locator('#bugdrop-host .bd-overlay')).toHaveCount(0);
     await expect(capture.getByRole('button', { name: /skip screenshot/i })).toHaveCount(0);
     await capture.locator('[data-action="capture"]').focus();
     await page.keyboard.press('Enter');
     await expect(capture.locator('#annotation-canvas canvas')).toBeVisible();
+    await expect(capture.getByText('Screenshot', { exact: true })).toBeVisible();
+    await expect(capture.locator('.bd-annotation-notes')).toHaveCSS('text-align', 'center');
+    await expect(capture.locator('.bd-tools')).toHaveCSS('justify-content', 'center');
     await expect(capture.locator('[data-action="done"]')).toBeInViewport();
     await capture.locator('[data-action="done"]').focus();
     await page.keyboard.press('Enter');

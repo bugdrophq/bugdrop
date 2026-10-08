@@ -79,11 +79,12 @@ export function createFlowCaptureView(
     .bd-root[data-flow-capture] .bd-modal--annotator { max-width: min(1100px, 96vw); }
     .bd-root[data-flow-capture] .bd-header {
       display: block;
-      padding: 24px 60px 0 24px;
+      padding: 24px 60px 0;
       border: 0;
       cursor: default;
       touch-action: auto;
       animation: none;
+      text-align: center;
     }
     .bd-root[data-flow-capture] .bd-flow-progress {
       margin: 0 0 12px;
@@ -100,6 +101,10 @@ export function createFlowCaptureView(
       border-radius: 999px;
     }
     .bd-root[data-flow-capture] .bd-body { padding: 16px 24px 24px; }
+    .bd-root[data-flow-capture] .bd-screenshot-actions { justify-content: center; }
+    .bd-root[data-flow-capture] .bd-modal:not(.bd-modal--annotator) .bd-body,
+    .bd-root[data-flow-capture] .bd-annotation-notes { text-align: center; }
+    .bd-root[data-flow-capture] .bd-tools { justify-content: center; }
     .bd-root[data-flow-density="compact"] .bd-header { padding: 16px 56px 0 16px; }
     .bd-root[data-flow-density="compact"] .bd-body { padding: 14px 16px 16px; }
     .bd-root[data-flow-capture] .bd-body > * { animation: none; }
@@ -112,7 +117,7 @@ export function createFlowCaptureView(
     }
     @media (max-width: 640px) {
       .bd-root[data-flow-capture] .bd-modal { max-width: none; }
-      .bd-root[data-flow-capture] .bd-header { padding: 18px 60px 0 18px; }
+      .bd-root[data-flow-capture] .bd-header { padding: 18px 60px 0; }
       .bd-root[data-flow-capture] .bd-body { padding: 14px 18px 18px; }
     }
   `;
