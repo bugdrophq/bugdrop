@@ -204,3 +204,39 @@ npx playwright test e2e/widget.issue-canary.spec.ts --project=chromium-issue-can
 ```
 
 Never run the Issue canary locally: listing it is nonmutating; executing it is not.
+
+## Independent watchdog admission
+
+The canonical watchdog runs in the `bugdrop-web` Vercel deployment with D1 coordination. GitHub
+Actions still performs the real canary. Its implementation and operator commands are documented in
+[the watchdog runbook](https://github.com/bugdrophq/bugdrop-web/blob/main/docs/heartbeat-watchdog.md).
+The watchdog defaults to off; deploying this workflow does not enable automatic dispatch.
+
+Operator and scheduled runs leave `recovery_id` empty and keep their existing behavior. Watchdog
+runs use `wd-` followed by 32 lowercase hex characters, a recognizable run name, and a live admission
+check before Node/dependency/browser setup. They need `WATCHDOG_ADMISSION_SECRET`, shared only with
+the production web admission endpoint and distinct from all other monitoring secrets. The workflow
+exposes it only to the admission step. The privileged dispatch App key belongs only in Vercel.
+
+A denied or unavailable admission fails the job before credentials, setup, or submission. It creates
+no Issue and sends no verified outcome. Only the same reserved run on attempt 1 can be admitted;
+rerunning a watchdog run requires a new intent. Manual investigation should use a fresh operator
+run with an empty recovery ID. Pausing in D1 invalidates queued admissions even after resume;
+an already admitted transaction may finish verification, cleanup, and reporting.
+
+All setup and submission conditions require `!cancelled()`. After admission, verification, cleanup,
+and reporting retain `always()` so cancellation does not deliberately skip cleanup. This cannot
+promise cleanup after runner loss or GitHub's hard cancellation/timeout; such evidence remains
+unsafe for replay and needs operator reconciliation.
+
+Transaction stages have explicit timeouts: npm installation 2 minutes, Chromium setup 3 minutes,
+canary 4 minutes, and verification/evidence/each cleanup pass 2 minutes. Normal step maxima total
+28 minutes inside the existing 30-minute job limit, leaving 2 minutes for runner/action overhead.
+The optional controlled-failure step adds one minute. The separate conclusion job has a 5-minute
+limit. Admission allows 45 seconds for the bounded server-side inspection within its 1-minute step.
+
+The watchdog recognizes contract `Watchdog admission v1` and requires complete terminal job/step
+metadata. A zero-job startup failure or entirely skipped inactive schedule is safe to reconsider;
+missing metadata, cancellation, failed cleanup, or possibly started submission is not. A green run
+also needs its exact authenticated receipt before it can resolve a recovery intent. Keep stage and
+job names synchronized with the web adapter when changing this workflow.

@@ -1,8 +1,14 @@
 name: Production Heartbeat
+run-name: ${{ inputs.recovery_id && format('Production Heartbeat watchdog v1 {0}', inputs.recovery_id) || 'Production Heartbeat' }}
 
 on:
   workflow_dispatch:
     inputs:
+      recovery_id:
+        description: Reserved watchdog recovery ID (leave empty for operator runs)
+        required: false
+        type: string
+        default: ''
       controlled_failure:
         description: Fail after verified cleanup to exercise incident handling
         required: false
@@ -34,6 +40,7 @@ jobs:
     permissions:
       contents: read
     outputs:
+      admitted: ${{ steps.admission.outputs.admitted }}
       heartbeat_ok: ${{ steps.summarize.outputs.heartbeat_ok }}
       evidence_outcome: ${{ steps.summarize.outputs.evidence_outcome }}
       evidence_reason: ${{ steps.summarize.outputs.evidence_reason }}
@@ -55,14 +62,25 @@ jobs:
     steps:
       - name: Check out heartbeat code
         id: checkout
+        timeout-minutes: 1
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        continue-on-error: true
         with:
           persist-credentials: false
 
+      - name: Watchdog admission v1
+        id: admission
+        if: ${{ !cancelled() && steps.checkout.outcome == 'success' }}
+        timeout-minutes: 1
+        env:
+          BUGDROP_RECOVERY_ID: ${{ inputs.recovery_id }}
+          BUGDROP_CONTROLLED_FAILURE: ${{ inputs.controlled_failure || false }}
+          WATCHDOG_ADMISSION_SECRET: ${{ secrets.WATCHDOG_ADMISSION_SECRET }}
+        run: node scripts/production-heartbeat-admission.mjs
+
       - name: Set up Node
         id: node
-        if: always()
+        timeout-minutes: 1
+        if: ${{ !cancelled() && steps.admission.outputs.admitted == 'true' }}
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         continue-on-error: true
         with:
@@ -71,13 +89,15 @@ jobs:
 
       - name: Install dependencies
         id: install
-        if: always() && steps.checkout.outcome == 'success' && steps.node.outcome == 'success'
+        timeout-minutes: 2
+        if: ${{ !cancelled() && steps.admission.outputs.admitted == 'true' && steps.checkout.outcome == 'success' && steps.node.outcome == 'success' }}
         continue-on-error: true
         run: npm ci
 
       - name: Validate production heartbeat configuration
         id: config
-        if: always() && steps.install.outcome == 'success'
+        timeout-minutes: 1
+        if: ${{ !cancelled() && steps.admission.outputs.admitted == 'true' && steps.install.outcome == 'success' }}
         continue-on-error: true
         env:
           BUGDROP_HEARTBEAT_WIDGET_ORIGIN: ${{ vars.BUGDROP_HEARTBEAT_WIDGET_ORIGIN }}
@@ -90,16 +110,18 @@ jobs:
 
       - name: Install Chromium
         id: browser
+        timeout-minutes: 3
         if: >-
-          always() && steps.install.outcome == 'success' &&
+          !cancelled() && steps.admission.outputs.admitted == 'true' && steps.install.outcome == 'success' &&
           steps.config.outcome == 'success'
         continue-on-error: true
         run: npx playwright install --with-deps chromium
 
       - name: Observe strict production identity
         id: identity
+        timeout-minutes: 1
         if: >-
-          always() && steps.install.outcome == 'success' &&
+          !cancelled() && steps.admission.outputs.admitted == 'true' && steps.install.outcome == 'success' &&
           steps.config.outcome == 'success'
         continue-on-error: true
         run: |
@@ -124,7 +146,8 @@ jobs:
 
       - name: Mint monitoring-only GitHub App token
         id: heartbeat-monitor-token
-        if: always() && steps.checkout.outcome == 'success'
+        timeout-minutes: 1
+        if: ${{ !cancelled() && steps.admission.outputs.admitted == 'true' && steps.checkout.outcome == 'success' }}
         continue-on-error: true
         uses: actions/create-github-app-token@fee1f7d63c2ff003460e3d139729b119787bc349 # v2.2.2
         with:
@@ -136,7 +159,8 @@ jobs:
 
       - name: Preflight production heartbeat cleanup
         id: preflight
-        if: always() && steps.identity.outcome == 'success'
+        timeout-minutes: 1
+        if: ${{ !cancelled() && steps.admission.outputs.admitted == 'true' && steps.identity.outcome == 'success' }}
         continue-on-error: true
         run: >-
           node scripts/github-issue-canary.mjs preflight
@@ -148,7 +172,8 @@ jobs:
 
       - name: Verify fixed production venue
         id: venue
-        if: always() && steps.identity.outcome == 'success'
+        timeout-minutes: 1
+        if: ${{ !cancelled() && steps.admission.outputs.admitted == 'true' && steps.identity.outcome == 'success' }}
         continue-on-error: true
         env:
           VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
@@ -162,8 +187,9 @@ jobs:
 
       - name: Run one production Issue canary
         id: canary
+        timeout-minutes: 4
         if: >-
-          always() && steps.browser.outcome == 'success' &&
+          !cancelled() && steps.admission.outputs.admitted == 'true' && steps.browser.outcome == 'success' &&
           steps.identity.outcome == 'success' && steps.preflight.outcome == 'success' &&
           steps.venue.outcome == 'success'
         continue-on-error: true
@@ -175,7 +201,8 @@ jobs:
 
       - name: Verify production canary independently
         id: verify
-        if: always() && steps.canary.outcome == 'success'
+        timeout-minutes: 2
+        if: always() && steps.admission.outputs.admitted == 'true' && steps.canary.outcome == 'success'
         continue-on-error: true
         run: >-
           node scripts/github-issue-canary.mjs verify
@@ -189,7 +216,8 @@ jobs:
 
       - name: Classify sanitized authoritative delivery evidence
         id: evidence
-        if: always() && steps.identity.outcome == 'success'
+        timeout-minutes: 2
+        if: always() && steps.identity.outcome == 'success' && steps.admission.outputs.admitted == 'true'
         continue-on-error: true
         run: >-
           node scripts/github-issue-canary.mjs evidence
@@ -207,7 +235,8 @@ jobs:
 
       - name: Cleanup current production marker
         id: cleanup
-        if: always() && steps.identity.outcome == 'success'
+        timeout-minutes: 2
+        if: always() && steps.identity.outcome == 'success' && steps.admission.outputs.admitted == 'true'
         continue-on-error: true
         run: |
           if [ ! -f "$BUGDROP_CANARY_ATTEMPT_FILE" ]; then
@@ -223,7 +252,8 @@ jobs:
 
       - name: Final production-prefix sweep
         id: sweep
-        if: always() && steps.checkout.outcome == 'success'
+        timeout-minutes: 2
+        if: always() && steps.checkout.outcome == 'success' && steps.admission.outputs.admitted == 'true'
         continue-on-error: true
         run: >-
           node scripts/github-issue-canary.mjs sweep
@@ -235,7 +265,8 @@ jobs:
 
       - name: Controlled post-cleanup failure
         id: controlled
-        if: always() && github.event_name == 'workflow_dispatch' && inputs.controlled_failure
+        timeout-minutes: 1
+        if: always() && steps.admission.outputs.admitted == 'true' && github.event_name == 'workflow_dispatch' && inputs.controlled_failure
         continue-on-error: true
         run: |
           echo 'Controlled failure requested after cleanup and sweep.'
@@ -243,7 +274,8 @@ jobs:
 
       - name: Summarize heartbeat stages
         id: summarize
-        if: always()
+        timeout-minutes: 1
+        if: always() && steps.admission.outputs.admitted == 'true'
         continue-on-error: true
         env:
           CHECKOUT: ${{ steps.checkout.outcome }}
@@ -342,7 +374,8 @@ jobs:
 
       - name: Prepare heartbeat diagnostics artifact
         id: prepare-artifact
-        if: always()
+        timeout-minutes: 1
+        if: always() && steps.admission.outputs.admitted == 'true'
         continue-on-error: true
         run: |
           diagnostics_path="$RUNNER_TEMP/production-heartbeat-diagnostics.json"
@@ -362,7 +395,8 @@ jobs:
 
       - name: Upload heartbeat diagnostics
         id: artifact
-        if: always()
+        timeout-minutes: 1
+        if: always() && steps.admission.outputs.admitted == 'true'
         continue-on-error: true
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
@@ -374,7 +408,7 @@ jobs:
   incident:
     name: Reconcile heartbeat incident
     needs: heartbeat
-    if: always() && needs.heartbeat.result != 'skipped'
+    if: always() && needs.heartbeat.result != 'skipped' && (!inputs.recovery_id || needs.heartbeat.outputs.admitted == 'true')
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
@@ -424,14 +458,16 @@ jobs:
 
   conclusion:
     name: Production Heartbeat Conclusion
+    timeout-minutes: 5
     needs: [heartbeat, incident]
-    if: always() && needs.heartbeat.result != 'skipped'
+    if: always() && needs.heartbeat.result != 'skipped' && (!inputs.recovery_id || needs.heartbeat.outputs.admitted == 'true')
     runs-on: ubuntu-latest
     permissions:
       contents: read
     steps:
       - name: Check out outcome sender
         id: checkout
+        timeout-minutes: 1
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         continue-on-error: true
         with:
@@ -439,6 +475,7 @@ jobs:
 
       - name: Classify final sanitized outcome
         id: classify
+        timeout-minutes: 1
         if: always()
         continue-on-error: true
         env:
@@ -462,6 +499,7 @@ jobs:
         run: node scripts/production-heartbeat-outcome.mjs classify
 
       - name: Fail closed on every required outcome
+        timeout-minutes: 1
         env:
           HEARTBEAT_JOB: ${{ needs.heartbeat.result }}
           HEARTBEAT_OK: ${{ needs.heartbeat.outputs.heartbeat_ok }}
@@ -479,6 +517,7 @@ jobs:
           fi
 
       - name: Send sanitized production heartbeat outcome
+        timeout-minutes: 1
         if: always()
         continue-on-error: true
         env:
