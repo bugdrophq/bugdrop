@@ -98,6 +98,45 @@ async function mockFeedback(page: Page, issueNumber: number, failFirst = false) 
 }
 
 test.describe('public modal FlowConfig V1 representative recipes', () => {
+  for (const overflow of ['', 'auto']) {
+    test(`same-task default-to-flow handoff restores overflow ${JSON.stringify(overflow)}`, async ({
+      page,
+    }) => {
+      await ready(page);
+      await page.evaluate(value => {
+        document.body.style.setProperty('overflow', value, value ? 'important' : '');
+        const opener = document.createElement('button');
+        opener.id = 'handoff-opener';
+        opener.textContent = 'Open feedback';
+        document.body.appendChild(opener);
+        opener.focus();
+        window.BugDrop!.open();
+      }, overflow);
+      await expect(page.getByRole('dialog', { name: 'Send Feedback' })).toBeVisible();
+
+      await page.evaluate(config => {
+        const handle = window.BugDrop!.registerFlow(config);
+        window.BugDrop!.close();
+        const opened = handle.open();
+        (window as Window & { __publicFlow?: typeof opened }).__publicFlow = opened;
+      }, flowRecipes['bug-report'].config);
+      const flow = page.locator('[data-bugdrop-flow="bug-report"]');
+      await expect(flow.getByRole('dialog')).toBeVisible();
+      await expect.poll(() => page.evaluate(() => document.body.style.overflow)).toBe('hidden');
+      await expect(flow.getByRole('dialog').getByRole('button').first()).toBeFocused();
+
+      await page.evaluate(() =>
+        (window as Window & { __publicFlow?: { close(): void } }).__publicFlow!.close()
+      );
+      await expect(flow).toHaveCount(0);
+      await expect.poll(() => page.evaluate(() => document.body.style.overflow)).toBe(overflow);
+      expect(await page.evaluate(() => document.body.style.getPropertyPriority('overflow'))).toBe(
+        overflow ? 'important' : ''
+      );
+      await expect(page.locator('#handoff-opener')).toBeFocused();
+    });
+  }
+
   test('bug-report completes its natural composable journey', async ({ page }) => {
     const payloads = await mockFeedback(page, 51, true);
     await ready(page, true);

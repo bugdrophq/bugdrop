@@ -87,6 +87,15 @@ export function releaseLegacyModalIsolationForFlow(): void {
   }
 }
 
+// Explicit close must finish before a new dialog snapshots page styles and focus.
+// Internal screen transitions still use the deferred cleanup below.
+export function finishLegacyModalClose(container: HTMLElement): void {
+  const state = modalStates.get(container);
+  if (!state) return;
+  state.overlays = state.overlays.filter(overlay => overlay.isConnected);
+  if (state.overlays.length === 0) finish(state, true);
+}
+
 function updateBackground(state: ModalState): void {
   const owner = topLevelOwner(state.container);
   if (owner !== state.owner) {

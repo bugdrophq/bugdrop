@@ -38,6 +38,7 @@ import {
   type SupportedLocale,
 } from './i18n';
 import { installRadixDialogCompatibility } from './radix-compat';
+import { finishLegacyModalClose } from './legacy-modal-accessibility';
 import { closeActiveVariantModal } from './variants/modal-coordinator';
 import { resolveAccentColor } from '../defaults';
 import type { BugDropPublicAPI } from './variants/public-types';
@@ -937,6 +938,7 @@ function exposeBugDropAPI(root: HTMLElement, config: WidgetConfig) {
         // remove any non-dismissible loading screen with its full overlay.
         root.querySelector<HTMLButtonElement>('.bd-overlay .bd-close')?.click();
         root.querySelector('.bd-overlay')?.remove();
+        finishLegacyModalClose(root);
         _isModalOpen = false;
       }
     },

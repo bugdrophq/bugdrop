@@ -2,7 +2,7 @@
   "schemaVersion": 6,
   "description": "Reviewed standard-widget modal accessibility change. Tracked public src (excluding src/managed), public assets, wrangler.toml, widget build script and widget tsconfig. SHA-256 of sorted path + NUL + exact bytes + NUL.",
   "fileCount": 149,
-  "sha256": "12c9b06a2bfa944ab226514b3b7f5d20ce036c264e82a07f22ff01c353de6652",
+  "sha256": "6387f07f71d762ff6e9287a803a38055bd0e7c96982036e5732ffa6c83bc61ce",
   "approvedDelta": {
     "previousBaseline": "current-public-baseline.v5.json",
     "previousSha256": "9ec7da0bd17fd7f2343c8d1b1789daf018a1de2b3a76038d1ad4adb3a4850bda",
@@ -20,6 +20,6 @@
       "src/widget/locales/zh-CN.ts",
       "src/widget/ui.ts"
     ],
-    "reason": "Give every standard feedback screen dialog semantics, localized close naming, focus containment and restoration, Escape dismissal, and inert background; browser checks cover host integration and legacy screen transitions. No release is part of this source change."
+    "reason": "Give every standard feedback screen dialog semantics, localized close naming, focus containment and restoration, Escape dismissal, and inert background; browser checks cover host integration and legacy screen transitions. No release is part of this source change. Review fix: explicit close synchronously restores page state before a registered flow can snapshot focus and scrolling."
   }
 }
