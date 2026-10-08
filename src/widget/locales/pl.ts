@@ -63,6 +63,7 @@ export const pl: WidgetStrings = {
   uploadReadError: 'Nie udało się odczytać pliku. Spróbuj z innym.',
   removeAttachmentAriaLabel: (name: string) => `Usuń ${name}`,
   // Common buttons
+  closeDialog: 'Zamknij',
   cancel: 'Anuluj',
   continueButton: 'Dalej',
   submit: 'Wyślij',

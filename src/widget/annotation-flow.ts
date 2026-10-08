@@ -104,6 +104,7 @@ export function showAnnotationStep(
     confirmation.addEventListener('keydown', event => {
       if (event.key === 'Escape') {
         event.preventDefault();
+        event.stopPropagation();
         dismissRetake();
       } else if (event.key === 'Tab') {
         if (event.shiftKey && event.target === keepEditing) {
@@ -175,6 +176,7 @@ function wireViewControls(modal: HTMLElement, annotator: ReturnType<typeof creat
   modal.addEventListener('keydown', event => {
     if (event.key === 'Escape' && viewToggle.getAttribute('aria-expanded') === 'true') {
       event.preventDefault();
+      event.stopPropagation();
       setOpen(false);
       viewToggle.focus();
     }

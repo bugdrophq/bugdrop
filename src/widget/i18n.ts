@@ -71,6 +71,7 @@ export interface WidgetStrings {
   uploadReadError: string;
   removeAttachmentAriaLabel: (name: string) => string;
   // Common buttons
+  closeDialog: string;
   cancel: string;
   continueButton: string;
   submit: string;

@@ -64,7 +64,10 @@ async function readBorder(locator: Locator): Promise<BorderSnapshot> {
   });
 }
 
-async function openFormAndReadBorders(page: Page): Promise<FormBorderSnapshot> {
+async function openFormAndReadBorders(
+  page: Page,
+  expectedInputColor: string
+): Promise<FormBorderSnapshot> {
   const host = page.locator('#bugdrop-host');
   await host.locator('css=.bd-trigger').click();
 
@@ -72,6 +75,11 @@ async function openFormAndReadBorders(page: Page): Promise<FormBorderSnapshot> {
   const titleInput = host.locator('css=#title');
   await expect(modal).toBeVisible();
   await expect(titleInput).toBeVisible();
+  // The accessible dialog intentionally focuses the title on open. Measure
+  // the theme border after moving focus away and its transition has settled.
+  await modal.focus();
+  await expect(titleInput).not.toBeFocused();
+  await expect(titleInput).toHaveCSS('border-top-color', expectedInputColor);
 
   return {
     input: await readBorder(titleInput),
@@ -89,7 +97,7 @@ test.describe('widget border styles', () => {
       width: '1px',
     };
 
-    await expect(openFormAndReadBorders(page)).resolves.toEqual({
+    await expect(openFormAndReadBorders(page, expectedBorder.color)).resolves.toEqual({
       input: expectedBorder,
       modal: expectedBorder,
     });
@@ -107,7 +115,7 @@ test.describe('widget border styles', () => {
       width: '4px',
     };
 
-    await expect(openFormAndReadBorders(page)).resolves.toEqual({
+    await expect(openFormAndReadBorders(page, expectedBorder.color)).resolves.toEqual({
       input: expectedBorder,
       modal: expectedBorder,
     });
@@ -125,7 +133,7 @@ test.describe('widget border styles', () => {
       width: '2px',
     };
 
-    await expect(openFormAndReadBorders(page)).resolves.toEqual({
+    await expect(openFormAndReadBorders(page, expectedBorder.color)).resolves.toEqual({
       input: expectedBorder,
       modal: expectedBorder,
     });

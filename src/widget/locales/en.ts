@@ -53,6 +53,7 @@ export const en: WidgetStrings = {
   uploadReadError: 'Could not read that file. Try another one.',
   removeAttachmentAriaLabel: (name: string) => `Remove ${name}`,
   // Common buttons
+  closeDialog: 'Close',
   cancel: 'Cancel',
   continueButton: 'Continue',
   submit: 'Submit',

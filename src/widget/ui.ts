@@ -7,12 +7,14 @@ import {
 } from './sanitize';
 import { DEFAULT_ACCENT_COLOR, getAccentHoverColor } from '../defaults';
 import { escapeWidgetText, t } from './i18n';
+import { manageLegacyModal } from './legacy-modal-accessibility';
 
 declare const __BUGDROP_VERSION__: string;
 
 const MODAL_VIEWPORT_MARGIN_PX = 8;
 const DISABLE_MODAL_DRAG_MEDIA_QUERY = '(hover: none), (pointer: coarse)';
 const MOBILE_MODAL_MEDIA_QUERY = '(max-width: 640px)';
+let modalTitleSequence = 0;
 
 interface WidgetConfig {
   repo: string;
@@ -1633,16 +1635,17 @@ export function createModal(
   const versionBadge = showVersion
     ? `<div class="bd-version">BugDrop v${typeof __BUGDROP_VERSION__ !== 'undefined' ? __BUGDROP_VERSION__ : 'dev'}</div>`
     : '';
+  const titleId = `bd-modal-title-${++modalTitleSequence}`;
 
   overlay.innerHTML = `
-    <div class="${modalClasses}">
+    <div class="${modalClasses}" role="dialog" aria-modal="true" aria-labelledby="${titleId}" tabindex="-1">
       <div class="bd-header">
         <span class="bd-modal-drag-indicator" aria-hidden="true">
           <span></span><span></span><span></span>
           <span></span><span></span><span></span>
         </span>
-        <h2 class="bd-title">${escapeHtml(title)}</h2>
-        <button class="bd-close">&times;</button>
+        <h2 class="bd-title" id="${titleId}">${escapeHtml(title)}</h2>
+        <button class="bd-close" type="button" aria-label="${escapeHtml(t().closeDialog)}">&times;</button>
       </div>
       <div class="bd-body">
         ${content}
@@ -1652,6 +1655,7 @@ export function createModal(
   `;
 
   container.appendChild(overlay);
+  manageLegacyModal(container, overlay);
   attachModalDragBehavior(overlay);
   return overlay;
 }

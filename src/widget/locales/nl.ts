@@ -56,6 +56,7 @@ export const nl: WidgetStrings = {
   uploadReadError: 'Kan dat bestand niet lezen. Probeer een ander bestand.',
   removeAttachmentAriaLabel: (name: string) => `${name} verwijderen`,
   // Common buttons
+  closeDialog: 'Sluiten',
   cancel: 'Annuleren',
   continueButton: 'Doorgaan',
   submit: 'Versturen',
