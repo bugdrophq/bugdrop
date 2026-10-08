@@ -14,6 +14,7 @@ export function createStyledFlowRoot(shadow: ShadowRoot, config: Readonly<FlowCo
   const styled = createStyledVariantRoot(shadow, adapter, 'modal');
   const extra = document.createElement('style');
   extra.textContent = `
+    .bdv-overlay[hidden] { display: none; }
     .bdf-progress { margin: 0 0 12px; color: var(--bdv-text-muted); font-size: .8rem; }
     .bdf-message { min-height: 180px; display: grid; align-content: center; }
     .bdf-attachment { display: grid; gap: 7px; }

@@ -1636,14 +1636,23 @@ export function createModal(
     ? `<div class="bd-version">BugDrop v${typeof __BUGDROP_VERSION__ !== 'undefined' ? __BUGDROP_VERSION__ : 'dev'}</div>`
     : '';
   const titleId = `bd-modal-title-${++modalTitleSequence}`;
+  const flowCapture = container.dataset.flowCapture === 'true';
+  const progress = flowCapture
+    ? `<p class="bd-flow-progress">${escapeHtml(container.dataset.flowProgress ?? '')}</p>`
+    : '';
 
   overlay.innerHTML = `
     <div class="${modalClasses}" role="dialog" aria-modal="true" aria-labelledby="${titleId}" tabindex="-1">
       <div class="bd-header">
-        <span class="bd-modal-drag-indicator" aria-hidden="true">
+        ${
+          flowCapture
+            ? ''
+            : `<span class="bd-modal-drag-indicator" aria-hidden="true">
           <span></span><span></span><span></span>
           <span></span><span></span><span></span>
-        </span>
+        </span>`
+        }
+        ${progress}
         <h2 class="bd-title" id="${titleId}">${escapeHtml(title)}</h2>
         <button class="bd-close" type="button" aria-label="${escapeHtml(t().closeDialog)}">&times;</button>
       </div>
@@ -1656,7 +1665,7 @@ export function createModal(
 
   container.appendChild(overlay);
   manageLegacyModal(container, overlay);
-  attachModalDragBehavior(overlay);
+  if (!flowCapture) attachModalDragBehavior(overlay);
   return overlay;
 }
 

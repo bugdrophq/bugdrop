@@ -1,5 +1,6 @@
 import { getDomNodeCount, getRedactionCount, isFullPageDisabled } from './screenshot';
 import { runScreenshotCaptureFlow } from './capture-flow';
+import { createFlowCaptureView } from './flows/capture-view';
 import { injectStyles, createModal, showSuccessModal, type IssueLinkVisibility } from './ui';
 import {
   resolveTheme,
@@ -1029,15 +1030,19 @@ function exposeBugDropAPI(root: HTMLElement, config: WidgetConfig) {
         },
         {
           preflight: () => checkInstallation(config),
-          capture: async (screen, includeScreenshot, signal) => {
-            const result = await runScreenshotCaptureFlow(
-              root,
-              { ...config, screenshotMode: screen.mode },
-              includeScreenshot,
-              () => {},
-              signal
-            );
-            return result;
+          capture: async (screen, includeScreenshot, signal, view) => {
+            const captureView = createFlowCaptureView(view, config);
+            try {
+              return await runScreenshotCaptureFlow(
+                captureView.root,
+                { ...config, screenshotMode: screen.mode },
+                includeScreenshot,
+                () => {},
+                signal
+              );
+            } finally {
+              captureView.dispose();
+            }
           },
         },
         { isLegacyModalOpen: () => _isModalOpen }

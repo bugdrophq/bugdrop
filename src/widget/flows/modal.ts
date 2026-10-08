@@ -19,7 +19,13 @@ import {
   focusable,
   prepareDialog,
 } from './modal-view';
-import type { FlowOpenOptions, FlowOutcome, OpenedFlow, ScreenshotScreen } from './public-types';
+import type {
+  FlowConfig,
+  FlowOpenOptions,
+  FlowOutcome,
+  OpenedFlow,
+  ScreenshotScreen,
+} from './public-types';
 import { FlowRuntime, type CaptureEvidence } from './runtime';
 import {
   createFlowScreenTransition,
@@ -32,7 +38,13 @@ export interface FlowModalPorts {
   capture(
     screen: Readonly<ScreenshotScreen>,
     include: boolean,
-    signal: AbortSignal
+    signal: AbortSignal,
+    view: {
+      shadow: ShadowRoot;
+      progress: string;
+      size: NonNullable<FlowConfig['presentation']['size']>;
+      appearance: FlowConfig['appearance'];
+    }
   ): Promise<CaptureEvidence & { returnToForm: boolean }>;
   submit(runtime: FlowRuntime): Promise<SubmissionResult>;
 }
@@ -61,6 +73,7 @@ class FlowModalController {
   private routePreviewVersion = 0;
   private preflightVersion = 0;
   private captureAbortController: AbortController | null = null;
+  private captureActive = false;
 
   constructor(
     private readonly definition: FlowDefinition,
@@ -221,28 +234,39 @@ class FlowModalController {
       screen.mode !== 'optional' ||
       Boolean(surface.querySelector<HTMLInputElement>('[data-screenshot]')?.checked);
     this.busy = true;
-    this.state.host.hidden = true;
+    this.captureActive = true;
+    this.state.overlay.hidden = true;
     const abortController = new AbortController();
     this.captureAbortController = abortController;
     let direction: FlowScreenDirection;
     try {
-      const capture = await this.ports.capture(screen, include, abortController.signal);
-      releaseLegacyModalIsolationForFlow();
+      const route = this.runtime.route();
+      const capture = await this.ports.capture(screen, include, abortController.signal, {
+        shadow: this.state.shadow,
+        progress: `Step ${route.position} of ${route.total}`,
+        size: this.definition.config.presentation.size ?? 'default',
+        appearance: this.definition.config.appearance,
+      });
       if (this.closed) return;
       direction = capture.returnToForm ? 'backward' : 'forward';
       if (capture.returnToForm) this.runtime.back();
       else {
         this.runtime.capture = capture;
         if (!this.runtime.next()) {
+          releaseLegacyModalIsolationForFlow();
           this.busy = false;
+          this.captureActive = false;
+          this.state.overlay.hidden = false;
           await this.finish();
           return;
         }
       }
     } finally {
+      releaseLegacyModalIsolationForFlow();
       if (this.captureAbortController === abortController) this.captureAbortController = null;
       this.busy = false;
-      this.state.host.hidden = false;
+      this.captureActive = false;
+      this.state.overlay.hidden = false;
     }
     if (!this.closed) this.render(direction);
   }
@@ -318,6 +342,7 @@ class FlowModalController {
 
   private onKeydown(event: Event): void {
     if (!(event instanceof KeyboardEvent)) return;
+    if (this.captureActive || event.defaultPrevented) return;
     if (event.key === 'Escape') {
       event.preventDefault();
       this.close();
