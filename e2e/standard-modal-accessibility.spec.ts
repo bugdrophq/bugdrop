@@ -22,6 +22,7 @@ test('standard feedback form owns focus and restores the host page on Escape', a
   });
 
   const opener = page.locator('#host-feedback');
+  await expect.poll(() => page.evaluate(() => typeof window.BugDrop?.open)).toBe('function');
   await opener.click();
   const dialog = page.getByRole('dialog', { name: 'Send Feedback' });
   await expect(dialog).toBeVisible();
