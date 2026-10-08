@@ -817,6 +817,10 @@ test.describe('public modal FlowConfig V1 representative recipes', () => {
     await expect(capture.locator('[data-action="review"]')).toBeInViewport();
     await capture.locator('[data-action="review"]').click();
     await expect(capture.locator('[data-action="send-reviewed"]')).toBeInViewport();
+    await expect(capture.locator('.bd-annotation-review-instruction')).toHaveCSS(
+      'color',
+      'rgb(203, 213, 225)'
+    );
     await capture.locator('[data-action="send-reviewed"]').click();
     await expect(host.getByRole('heading', { name: 'Thanks for your feedback!' })).toBeVisible();
   });

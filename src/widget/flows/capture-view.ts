@@ -104,6 +104,9 @@ export function createFlowCaptureView(
     .bd-root[data-flow-capture] .bd-screenshot-actions { justify-content: center; }
     .bd-root[data-flow-capture] .bd-modal:not(.bd-modal--annotator) .bd-body,
     .bd-root[data-flow-capture] .bd-annotation-notes { text-align: center; }
+    .bd-root[data-flow-capture] .bd-annotation-review-instruction {
+      color: var(--bd-text-secondary);
+    }
     .bd-root[data-flow-capture] .bd-tools { justify-content: center; }
     .bd-root[data-flow-density="compact"] .bd-header { padding: 16px 56px 0 16px; }
     .bd-root[data-flow-density="compact"] .bd-body { padding: 14px 16px 16px; }
