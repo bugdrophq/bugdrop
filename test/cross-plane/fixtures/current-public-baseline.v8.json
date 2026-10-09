@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 8,
+  "description": "Reviewed opt-in daily installation acquisition counting. Tracked public src (excluding managed), public assets and build/config inputs; sorted path + NUL + exact bytes + NUL.",
+  "fileCount": 152,
+  "sha256": "b9a44475ba2ca330ad3004aeb9d5a6a3eed4dd66e243ca710b09f7ec49032af2",
+  "approvedDelta": {
+    "previousBaseline": "current-public-baseline.v7.json",
+    "previousSha256": "d518027940104b2ca553f68c23ddf135fae0d442ec4dd2f36b7af1d61e81c8ee",
+    "baseCommit": "aaf71e8d306e7736d8badcc3842fd9ecd6a6f435",
+    "changedPublicSources": [
+      "src/lib/feedback-counter.ts",
+      "src/lib/installation-acquisition-counter.ts",
+      "src/lib/installation-acquisition.ts",
+      "src/routes/github-webhook.ts",
+      "src/types.ts"
+    ],
+    "reason": "Add default-off signed installation.created daily counts with atomic opaque receipt deduplication and independent aggregate retention. No widget, managed runtime, assets or deployment configuration changes. Activation remains a separate protected release step."
+  }
+}
