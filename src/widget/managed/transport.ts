@@ -8,7 +8,8 @@ import {
   type TokenProvider,
 } from './protocol';
 
-const timeoutMs = 10_000;
+const authorizationTimeoutMs = 10_000;
+const deliveryTimeoutMs = 10_000;
 const responseLimit = 2048;
 
 function bounded<T>(operation: Promise<T>, signal: AbortSignal): Promise<T> {
@@ -73,7 +74,7 @@ export async function createSubmission(
 
   async function send(): Promise<Outcome> {
     const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), timeoutMs);
+    let timer = setTimeout(() => controller.abort(), authorizationTimeoutMs);
     try {
       let token: string;
       try {
@@ -83,10 +84,15 @@ export async function createSubmission(
           ),
           controller.signal
         );
-        if (!isSubmissionToken(token)) return { status: 'authorization_failed' };
+        if (controller.signal.aborted || !isSubmissionToken(token))
+          return { status: 'authorization_failed' };
       } catch {
         return { status: 'authorization_failed' };
       }
+      // Authorization may consume most of its budget. Give delivery and body
+      // reading their own bounded window without retrying either operation.
+      clearTimeout(timer);
+      timer = setTimeout(() => controller.abort(), deliveryTimeoutMs);
       const response = await bounded(
         fetch(target, {
           method: 'POST',
