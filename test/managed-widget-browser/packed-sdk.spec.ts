@@ -19,7 +19,12 @@ type FixtureWindow = Window & {
   bindings: Binding[];
 };
 
-async function boot(page: Page, submit: (route: Route) => Promise<void>, button = true) {
+async function boot(
+  page: Page,
+  submit: (route: Route) => Promise<void>,
+  button = true,
+  providerDelayMs = 0
+) {
   const widget = await readFile('dist/managed-widget/widget.managed.v1.js', 'utf8');
   const sdk = await readFile('dist/managed-widget/packed-sdk.js', 'utf8');
   await page.route('**/*', async route => {
@@ -49,7 +54,7 @@ async function boot(page: Page, submit: (route: Route) => Promise<void>, button 
   await page.goto(appOrigin);
   await page.addScriptTag({ content: sdk });
   await page.evaluate(
-    async ({ origin, button }) => {
+    async ({ origin, button, providerDelayMs }) => {
       const fixture = window as unknown as FixtureWindow;
       fixture.bindings = [];
       fixture.controller = fixture.PackedBugDrop.init({
@@ -58,8 +63,9 @@ async function boot(page: Page, submit: (route: Route) => Promise<void>, button 
         button,
         theme: 'dark',
         position: 'bottom-left',
-        tokenProvider: (binding: Binding) => {
+        tokenProvider: async (binding: Binding) => {
           fixture.bindings.push({ ...binding });
+          if (providerDelayMs) await new Promise(resolve => setTimeout(resolve, providerDelayMs));
           return {
             schemaVersion: 1,
             token: `fixture-token-${fixture.bindings.length}+/=`,
@@ -69,10 +75,38 @@ async function boot(page: Page, submit: (route: Route) => Promise<void>, button 
       });
       await fixture.controller.ready;
     },
-    { origin, button }
+    { origin, button, providerDelayMs }
   );
   return page.locator('#bugdrop-managed-host');
 }
+
+test('slow authorization leaves time to confirm the first delivery', async ({ page }) => {
+  let submissions = 0;
+  const host = await boot(
+    page,
+    async route => {
+      submissions++;
+      await new Promise(resolve => setTimeout(resolve, 3000));
+      await route.fulfill({
+        status: 200,
+        headers: { 'Access-Control-Allow-Origin': appOrigin },
+        contentType: 'application/json',
+        body: JSON.stringify({ schemaVersion: 1, status: 'delivered', receiptId }),
+      });
+    },
+    true,
+    8000
+  );
+  await host.locator('[data-action="open"]').click();
+  await host.locator('input[name="title"]').fill('Slow authorization');
+  await host.locator('textarea[name="description"]').fill('Confirm the first delivery.');
+  await host.locator('[data-action="submit"]').click();
+  await expect(host.locator('[data-role="receipt"]')).toContainText(receiptId, { timeout: 20000 });
+  await expect(host.locator('[data-role="status"]')).toHaveText('Feedback delivered.');
+  await expect(host.locator('[data-action="check-result"]')).toBeHidden();
+  expect(submissions).toBe(1);
+  expect(await page.evaluate(() => (window as unknown as FixtureWindow).bindings.length)).toBe(1);
+});
 
 test('lost response retries one frozen submission through the packed SDK', async ({ page }) => {
   const requests: { body: string; id: string; authorization: string }[] = [];

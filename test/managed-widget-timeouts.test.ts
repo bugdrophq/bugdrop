@@ -8,6 +8,36 @@ afterEach(() => {
 });
 
 describe('bounded managed transport', () => {
+  it('allows delivery its own deadline after slow authorization', async () => {
+    const receiptId = '00000000-0000-4000-8000-000000000001';
+    const fetcher = vi.fn(
+      () =>
+        new Promise<Response>(resolve =>
+          setTimeout(
+            () =>
+              resolve(
+                Response.json({
+                  schemaVersion: 1,
+                  status: 'delivered',
+                  receiptId,
+                })
+              ),
+            3000
+          )
+        )
+    );
+    vi.stubGlobal('fetch', fetcher);
+    const submission = await createSubmission(
+      feedback,
+      endpoint,
+      () => new Promise(resolve => setTimeout(() => resolve('token'), 8000))
+    );
+    vi.useFakeTimers();
+    const pending = submission.submit();
+    await vi.advanceTimersByTimeAsync(11000);
+    expect(await pending).toEqual({ status: 'delivered', receiptId });
+    expect(fetcher).toHaveBeenCalledTimes(1);
+  });
   it('times out a never-settling provider and cannot send after a late token arrives', async () => {
     let resolve: (value: string) => void = () => {};
     const token = new Promise<string>(finish => {
@@ -37,7 +67,7 @@ describe('bounded managed transport', () => {
       true
     );
   });
-  it('shares the 10-second deadline across provider, fetch and a stalled body', async () => {
+  it('bounds delivery and a stalled body independently of authorization', async () => {
     const cancel = vi.fn();
     vi.stubGlobal(
       'fetch',
@@ -58,8 +88,11 @@ describe('bounded managed transport', () => {
     vi.useFakeTimers();
     const pending = submission.submit();
     await vi.advanceTimersByTimeAsync(10000);
+    expect(cancel).not.toHaveBeenCalled();
+    await vi.advanceTimersByTimeAsync(9000);
     expect(await pending).toEqual({ status: 'indeterminate' });
     expect(cancel).toHaveBeenCalledTimes(1);
+    expect(vi.getTimerCount()).toBe(0);
   });
   it.each([
     new Response('not JSON', { headers: { 'Content-Type': 'application/json' } }),
