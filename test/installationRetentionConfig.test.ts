@@ -25,7 +25,7 @@ describe('installation retention configuration', () => {
     const policy = readFileSync('PRIVACY.md', 'utf8');
 
     expect(policy).toContain('best-effort, unrounded per-installation count');
-    expect(policy).toContain('each\ninstallation counter retain up to 1,024');
+    expect(policy).toContain('each installation feedback counter retain up to 1,024');
     expect(policy).toContain('deletion guard derived from the GitHub App installation');
     expect(policy).not.toContain('does not currently retain per-installation feedback counts');
   });
