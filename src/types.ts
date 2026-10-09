@@ -29,6 +29,9 @@ export interface Env {
   FEEDBACK_COUNT_BASELINE?: string; // Anonymous external-Issue count before live counting
   FEEDBACK_COUNT_EXCLUDED_OWNERS?: string; // Comma-separated first-party/test owners
   INSTALLATION_USAGE_ENABLED?: string; // Exact "true" enables private per-install successful-Issue counts
+  INSTALLATION_ACQUISITION_STARTED_AT?: string; // Immutable UTC ISO start; unset disables collection
+  INSTALLATION_ACQUISITION_HMAC_SECRET?: string; // Stable dedicated secret for temporary opaque receipts
+  INSTALLATION_ACQUISITION_EXCLUDED_OWNERS?: string; // Comma-separated owned/test accounts
 
   // Bindings
   ASSETS: Fetcher;

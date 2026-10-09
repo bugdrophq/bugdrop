@@ -1,5 +1,6 @@
 import { Hono } from 'hono';
 import type { Env } from '../types';
+import { countInstallationCreated } from '../lib/installation-acquisition';
 import {
   confirmGitHubInstallationIsInactive,
   deleteInstallationData,
@@ -60,6 +61,11 @@ export function createGitHubWebhook(dependencies: GitHubWebhookDependencies = {}
     }
 
     if (payload.kind === 'created') {
+      try {
+        await countInstallationCreated(c.env, payload.installation);
+      } catch {
+        return c.json({ error: 'Installation acquisition is unavailable' }, 503);
+      }
       if (await confirmInstallationIsInactive(c.env, payload.installation.installationId)) {
         return c.json({ accepted: true }, 202);
       }

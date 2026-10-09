@@ -1,6 +1,6 @@
 # Privacy Policy
 
-**Last updated:** September 6, 2026
+**Last updated:** October 9, 2026
 
 BugDrop is an open-source feedback widget that creates GitHub Issues. This policy covers
 the hosted BugDrop widget and service, as well as the BugDrop website at
@@ -50,6 +50,26 @@ use, and invite app owners to participate voluntarily in product research or soc
 The installation record and count do not retain repository names, issue content,
 screenshots, page URLs, reporter identities, IP addresses, feedback timestamps, or
 last-active dates for product analytics.
+
+## Installation Completion Counts
+
+When enabled, BugDrop counts completed installations of the public GitHub App by their
+UTC creation date. These daily totals help us understand adoption across acquisition
+sources. They are not joined to website visitor identifiers and do not establish which
+visit, page, or campaign led to an installation.
+
+To avoid counting a redelivered GitHub webhook twice, BugDrop temporarily stores an opaque
+receipt generated with a secret key from the GitHub App and installation IDs. These
+receipts are pseudonymous, not anonymous. The daily counter does not store the underlying
+IDs, account names, repository names, URLs, IP addresses, or webhook bodies. Daily reporting
+contains only the date, count, collection start time, and reporting update time.
+
+Receipts remain eligible for deduplication until 30 days after the end of the installation's
+UTC creation day. Cleanup is scheduled when that window closes; service outages may delay
+erasure. Later redeliveries cannot reopen the window. Uninstalling the app deletes the
+separate installation record and usage count, but does not immediately remove these
+short-lived receipts or the aggregate daily total. Daily aggregate totals may be retained
+indefinitely after receipts are erased.
 
 ## Public Statistics
 
@@ -138,8 +158,9 @@ The hosted service temporarily stores rate-limit counters to prevent abuse:
 - A counter keyed by the destination repository name expires one hour after its most
   recent update.
 
-To prevent retries from being counted twice, the anonymous aggregate counter and each
-installation counter retain up to 1,024 recent random identifiers. The random deduplication
+To prevent successful feedback retries from being counted twice, the anonymous aggregate
+feedback counter and each installation feedback counter retain up to 1,024 recent random
+identifiers. The random deduplication
 identifiers contain no account, repository, Issue, reporter, feedback content, or timestamp
 information. Older identifiers are replaced as newer ones arrive. Aggregate identifiers may
 remain until replaced; per-installation identifiers are deleted with the installation
@@ -161,6 +182,9 @@ including request paths, for service delivery, security, and operational logs.
   ID for up to seven days solely to prevent delayed submissions from recreating a usage
   count. The guard contains only an expiry time—no account, repository, Issue, reporter, or
   feedback content—and expires automatically.
+- Installation-completion deduplication receipts are scheduled for erasure 30 days after
+  the end of the installation's UTC creation day, independently of uninstall. Service
+  outages may delay cleanup. Daily aggregate completion totals may be retained indefinitely.
 - Anonymous aggregate totals may be retained indefinitely.
 - Testimonial and contact information provided with explicit permission is retained until
   that permission is withdrawn or the information is no longer needed.

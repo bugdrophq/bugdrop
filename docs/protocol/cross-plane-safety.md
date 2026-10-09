@@ -2,16 +2,26 @@
 
 The current public system remains supported. This harness compares its tracked
 runtime, assets, widget build inputs and Wrangler configuration to the reviewed
-feature commit recorded in `test/cross-plane/fixtures/current-public-baseline.v7.json`.
-The test verifies that the v2 through v6 fixtures' commits produce their exact
+feature delta recorded in `test/cross-plane/fixtures/current-public-baseline.v8.json`.
+The test verifies that the v2 through v7 fixtures' commits produce their exact
 file counts and fingerprints, then compares the working tree against the reviewed
-v7 fingerprint. Public fingerprint mutations and changed/skipped/retried browser evidence must fail.
+v8 fingerprint. Public fingerprint mutations and changed/skipped/retried browser evidence must fail.
 An intentional future public change requires explicit baseline review; do not
 refresh the fingerprint merely to make a failure disappear. The v1 fixture is
 pre-localization history; v2 records Chinese localization; v3 records the mobile
 annotation change; v4 records the temporary deferral; v5 restores Chinese
 localization for issuer QA; v6 adds standard-widget modal accessibility; and v7 keeps
 Flow screenshot selection and review in the same visual host as the preceding screens.
+
+## Reviewed v8 installation acquisition counting
+
+The v8 fixture changes only the public webhook, counter dispatch, environment types,
+and two new acquisition modules. Collection is off by default. The v7 tree remains
+pinned to `aaf71e8d306e7736d8badcc3842fd9ecd6a6f435`; widget, asset, build and
+Wrangler inputs are unchanged. The focused tests verify signed deliveries, retries,
+receipt erasure, aggregate survival and 30 concurrent requests for 10 distinct
+receipts in Workers storage. See [installation acquisition](../installation-acquisition.md)
+for the coverage limitations and separate activation procedure.
 
 ## Reviewed v7 Flow screenshot integration
 

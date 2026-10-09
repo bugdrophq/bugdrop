@@ -8,6 +8,7 @@ import deferredBaseline from './fixtures/current-public-baseline.v4.json';
 import current from './fixtures/current-public-baseline.v5.json';
 import accessible from './fixtures/current-public-baseline.v6.json';
 import flowCapture from './fixtures/current-public-baseline.v7.json';
+import acquisition from './fixtures/current-public-baseline.v8.json';
 
 function isPublicPath(path: string): boolean {
   return (
@@ -88,14 +89,23 @@ describe('current legacy public plane remains unchanged through managed integrat
     );
   }, 30_000);
 
-  it('matches the reviewed Flow capture tracked runtime, assets and configuration byte for byte', () => {
+  it('pins the reviewed v7 Flow capture tree before acquisition counting', () => {
+    const commit = 'aaf71e8d306e7736d8badcc3842fd9ecd6a6f435';
+    const paths = publicFilesAt(commit);
+    expect(paths.length).toBe(flowCapture.fileCount);
+    expect(fingerprint(paths, path => execFileSync('git', ['show', `${commit}:${path}`]))).toBe(
+      flowCapture.sha256
+    );
+  }, 30_000);
+
+  it('matches the reviewed acquisition tracked runtime, assets and configuration byte for byte', () => {
     const paths = publicFiles();
     // The opt-in managed entry builds into dist/, outside the frozen public assets.
     // Every legacy importer and its build script remain covered by the fingerprint.
     expect(paths).not.toContain('src/widget/managed/index.ts');
     expect(paths).toContain('src/widget/locales/zh-CN.ts');
-    expect(paths.length).toBe(flowCapture.fileCount);
-    expect(fingerprint(paths, readFileSync)).toBe(flowCapture.sha256);
+    expect(paths.length).toBe(acquisition.fileCount);
+    expect(fingerprint(paths, readFileSync)).toBe(acquisition.sha256);
   });
 
   it.each([
@@ -108,6 +118,6 @@ describe('current legacy public plane remains unchanged through managed integrat
       const bytes = readFileSync(path);
       return path === target ? Buffer.concat([bytes, Buffer.from('\nMANAGED_MUTATION')]) : bytes;
     });
-    expect(hash).not.toBe(flowCapture.sha256);
+    expect(hash).not.toBe(acquisition.sha256);
   });
 });

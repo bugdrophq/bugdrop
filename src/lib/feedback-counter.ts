@@ -1,4 +1,8 @@
 import type { Env } from '../types';
+import {
+  handleAcquisitionAlarm,
+  handleAcquisitionIncrement,
+} from './installation-acquisition-counter';
 import { installationUsageEnabled } from './installation-usage';
 import {
   handleInstallationAlarm,
@@ -27,6 +31,9 @@ export class FeedbackCounter {
 
   async fetch(request: Request): Promise<Response> {
     const pathname = new URL(request.url).pathname;
+    if (request.method === 'POST' && pathname === '/acquisition/increment') {
+      return handleAcquisitionIncrement(this.state, this.env, request);
+    }
     if (request.method === 'POST' && pathname === '/increment') {
       const eventId = await parseEventId(request);
       if (!eventId) return Response.json({ error: 'Invalid event ID' }, { status: 400 });
@@ -73,6 +80,7 @@ export class FeedbackCounter {
   }
 
   async alarm(): Promise<void> {
+    if (await handleAcquisitionAlarm(this.state, this.env)) return;
     await handleInstallationAlarm(this.state, this.env);
   }
 }
