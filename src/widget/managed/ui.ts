@@ -1,3 +1,5 @@
+import { createManagedController } from './controller';
+import type { RecoveryGuard } from './recovery';
 import { managedMarkup } from './styles';
 import type { Feedback, Outcome } from './protocol';
 
@@ -22,6 +24,7 @@ export interface ManagedUIOptions {
   theme: 'light' | 'dark' | 'auto';
   position: 'bottom-right' | 'bottom-left';
   buttonVisible: boolean;
+  guard?: RecoveryGuard;
   createSubmission(feedback: ManagedFeedback): Promise<PreparedSubmission>;
 }
 
@@ -78,27 +81,6 @@ function feedbackFrom(form: HTMLFormElement): ManagedFeedback | string {
   });
 }
 
-function trapTab(event: KeyboardEvent, dialog: HTMLElement, shadow: ShadowRoot): void {
-  if (event.key !== 'Tab') return;
-  const focusable = Array.from(
-    dialog.querySelectorAll<HTMLElement>('button, input, textarea, select')
-  ).filter(element => !element.hasAttribute('disabled') && !element.closest('[hidden]'));
-  if (focusable.length === 0) return;
-  const first = focusable[0];
-  const last = focusable[focusable.length - 1];
-  const active = shadow.activeElement;
-  if (!focusable.includes(active as HTMLElement)) {
-    event.preventDefault();
-    (event.shiftKey ? last : first)?.focus();
-  } else if (event.shiftKey && active === first) {
-    event.preventDefault();
-    last?.focus();
-  } else if (!event.shiftKey && shadow.activeElement === last) {
-    event.preventDefault();
-    first?.focus();
-  }
-}
-
 function statusText(
   phase: ManagedOutcome['status'] | 'submitting',
   hasSubmission: boolean,
@@ -125,8 +107,6 @@ export function createManagedUI(host: HTMLElement, options: ManagedUIOptions): M
   const root = required<HTMLElement>(shadow, '.root');
   const launcher = required<HTMLButtonElement>(shadow, '[data-action="open"]');
   const backdrop = required<HTMLElement>(shadow, '.backdrop');
-  const dialog = required<HTMLElement>(shadow, '[data-role="dialog"]');
-  const closeButton = required<HTMLButtonElement>(shadow, '[data-action="close"]');
   const form = required<HTMLFormElement>(shadow, '[data-role="feedback"]');
   const titleInput = required<HTMLInputElement>(form, 'input[name="title"]');
   const error = required<HTMLElement>(shadow, '[data-role="error"]');
@@ -135,16 +115,21 @@ export function createManagedUI(host: HTMLElement, options: ManagedUIOptions): M
   const receipt = required<HTMLElement>(shadow, '[data-role="receipt"]');
   const checkButton = required<HTMLButtonElement>(shadow, '[data-action="check-result"]');
   const newReportButton = required<HTMLButtonElement>(shadow, '[data-action="new-report"]');
-  let phase: 'draft' | 'submitting' | ManagedOutcome['status'] = 'draft';
+  let recoveryBlocked = options.guard?.isBlocked() ?? false;
+  let phase: 'draft' | 'submitting' | ManagedOutcome['status'] = recoveryBlocked
+    ? 'indeterminate'
+    : 'draft';
   let submission: PreparedSubmission | undefined;
   let hadUncertainResult = false;
   let lastCode: string | undefined;
-  let focusReturn: HTMLElement | null = null;
 
   function render(): void {
     form.hidden = phase !== 'draft';
     result.hidden = phase === 'draft';
-    if (phase !== 'draft') status.textContent = statusText(phase, !!submission, lastCode);
+    if (phase !== 'draft')
+      status.textContent = recoveryBlocked
+        ? 'Feedback is locked because an earlier report may be unresolved or recovery storage is unavailable. Contact the site owner before sending another report.'
+        : statusText(phase, !!submission, lastCode);
     const retryable =
       phase === 'authorization_failed' ||
       (phase === 'rejected' && retryableCodes.has(lastCode ?? ''));
@@ -158,12 +143,24 @@ export function createManagedUI(host: HTMLElement, options: ManagedUIOptions): M
 
   async function runSubmission(): Promise<void> {
     if (!submission) return;
+    if (options.guard && !(await options.guard.acquire())) {
+      recoveryBlocked = true;
+      submission = undefined;
+      phase = 'indeterminate';
+      render();
+      return;
+    }
     try {
       const outcome = await submission.submit();
       lastCode = outcome.status === 'rejected' ? outcome.code : undefined;
       if (outcome.status === 'indeterminate') hadUncertainResult = true;
       phase =
         hadUncertainResult && outcome.status !== 'delivered' ? 'indeterminate' : outcome.status;
+      if (
+        outcome.status === 'delivered' ||
+        (outcome.status === 'rejected' && editableCodes.has(outcome.code) && !hadUncertainResult)
+      )
+        await options.guard?.release();
       if ('receiptId' in outcome && outcome.receiptId)
         receipt.textContent = `Receipt: ${outcome.receiptId}`;
     } catch {
@@ -189,47 +186,11 @@ export function createManagedUI(host: HTMLElement, options: ManagedUIOptions): M
     }
   }
 
-  const api: ManagedWidgetAPI = {
-    open() {
-      if (!backdrop.hidden) return;
-      focusReturn = (shadow.activeElement ?? document.activeElement) as HTMLElement | null;
-      backdrop.hidden = false;
-      (phase === 'draft' ? titleInput : closeButton).focus();
-    },
-    close() {
-      if (backdrop.hidden) return;
-      backdrop.hidden = true;
-      if (focusReturn?.isConnected) focusReturn.focus();
-      else if (!launcher.hidden) launcher.focus();
-    },
-    hide() {
-      launcher.hidden = true;
-    },
-    show() {
-      launcher.hidden = false;
-    },
-    isOpen() {
-      return !backdrop.hidden;
-    },
-    isButtonVisible() {
-      return !launcher.hidden;
-    },
-    setTheme(theme) {
-      if (theme === 'light' || theme === 'dark' || theme === 'auto') root.dataset.theme = theme;
-    },
-  };
+  const api = createManagedController(shadow, () => phase === 'draft');
 
   root.dataset.theme = options.theme;
   root.dataset.position = options.position;
   launcher.hidden = !options.buttonVisible;
-  launcher.addEventListener('click', () => api.open());
-  closeButton.addEventListener('click', () => api.close());
-  dialog.addEventListener('keydown', event => {
-    if (event.key === 'Escape') {
-      event.preventDefault();
-      api.close();
-    } else trapTab(event, dialog, shadow);
-  });
   for (const field of Array.from(form.querySelectorAll('input, textarea, select'))) {
     field.addEventListener('input', () => {
       if (phase === 'draft') {
@@ -261,6 +222,13 @@ export function createManagedUI(host: HTMLElement, options: ManagedUIOptions): M
   newReportButton.addEventListener('click', () => {
     const editable = phase === 'rejected' && editableCodes.has(lastCode ?? '');
     if (phase !== 'delivered' && !editable) return;
+    if (options.guard?.isBlocked()) {
+      recoveryBlocked = true;
+      submission = undefined;
+      phase = 'indeterminate';
+      render();
+      return;
+    }
     if (!editable) form.reset();
     submission = undefined;
     hadUncertainResult = false;
@@ -272,5 +240,6 @@ export function createManagedUI(host: HTMLElement, options: ManagedUIOptions): M
     render();
     titleInput.focus();
   });
+  render();
   return api;
 }

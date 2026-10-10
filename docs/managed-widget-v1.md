@@ -42,9 +42,33 @@ An uncertain result keeps the draft locked. **Check result** submits the same
 logical submission again, allowing the service to return its existing receipt.
 An initial definitive request, size, or access rejection offers **Edit feedback**
 without discarding the draft. Any earlier uncertain result keeps editing locked.
-Closing and reopening the dialog preserves this state in memory. Reloading or
-leaving the page loses this in-memory state; the widget does not persist feedback
-or tokens. Resolve an uncertain result before reloading or submitting it anew.
+Closing and reopening preserves the frozen submission in memory. Before any
+capability request or delivery attempt, the widget durably claims an unresolved
+marker in localStorage under a Web Lock. Reloading loses the frozen report but
+retains that marker: the new document blocks feedback and asks the reporter to
+contact the site owner. It does not offer Check result without the original
+bytes/identity, reconstruct a report, or automatically resend.
+
+The marker stores only a random ownership nonce. It contains no title, description,
+digest, submission ID, receipt, capability or customer identity. Browser origin
+storage plus public Application ID and exact managed destination scope the lock.
+Concurrent tabs in that scope cannot start competing reports. Because V1 has no
+customer session identity, the lock deliberately spans sign-out/sign-in and other
+sessions in that browser; it never exposes a previous reporter's content. Another
+Application or destination has a separate lock. A fresh browser/profile, explicit
+storage deletion, or browser eviction cannot retain this client-side protection;
+this is not cross-device duplicate detection or full report recovery.
+
+Only a confirmed delivered outcome or an initial definitive editable rejection
+clears an owned marker. A denial following uncertainty cannot clear it. Missing
+Web Locks, unreadable/unwritable storage, corrupt or foreign markers fail closed
+with a visible locked state and no new capability/delivery request. A failed clear
+also prevents another report. There is no automatic expiry or reporter-facing
+force-reset button. For an unresolved reload, the site owner must first reconcile
+authoritative delivery/receipt evidence, then assist the reporter in removing only
+this Application/destination's localStorage marker; never advise blanket storage
+clearing or retyping the report as a retry. This manual beta procedure does not
+claim an automated reconciliation API.
 
 Only the versioned delivered response with the expected HTTP status and a valid
 receipt ID produces a delivered confirmation. A verifier-only response, malformed
@@ -65,11 +89,15 @@ npm run build --prefix /path/to/bugdrop-sdk-typescript
 BUGDROP_MANAGED_SDK_ROOT=/path/to/bugdrop-sdk-typescript npm run test:widget:managed
 ```
 
-CI pins SDK commit `2fe487d319ffbee0fc85ae80c06b5f549c2bcd80`, builds and packs it,
+CI pins SDK commit `bab479314914dad3372b043b3dbcf17f132fff3a`, builds and packs it,
 and runs this browser qualification as part of **Unit Tests & Build**. The strongest
 failure case drops the first response, then verifies that retry preserves the
 exact body, submission ID, and digest while obtaining a fresh token. It also
-rejects verifier-only success and checks keyboard dialog access.
+rejects verifier-only success and checks keyboard dialog access. Reload regressions
+prove that a lost response followed by a real page reload cannot start a replacement
+report, including after a subsequent denial. Concurrent tabs, corrupt storage,
+unavailable locks/storage and failed durable writes also fail closed. These checks
+intercept network responses and do not constitute live GitHub acceptance.
 
 This qualifies the browser boundary. Real dogfooding still requires the separately
 reviewed managed delivery host, current destination resolution, fixture Issue
