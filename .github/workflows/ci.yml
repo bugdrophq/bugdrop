@@ -168,7 +168,7 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: bugdrophq/bugdrop-sdk-typescript
-          ref: 2fe487d319ffbee0fc85ae80c06b5f549c2bcd80
+          ref: bab479314914dad3372b043b3dbcf17f132fff3a
           path: .managed-widget-sdk
           persist-credentials: false
 

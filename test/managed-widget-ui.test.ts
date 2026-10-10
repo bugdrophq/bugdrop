@@ -45,6 +45,8 @@ afterEach(() => {
   delete (window as unknown as { BugDrop?: unknown }).BugDrop;
   delete (window as unknown as Record<string, unknown>).__bugdropSdkTokenProvider_test;
   vi.restoreAllMocks();
+  vi.unstubAllGlobals();
+  localStorage.clear();
   transport.createSubmission.mockReset();
 });
 
@@ -202,6 +204,9 @@ describe('managed SDK bootstrap', () => {
   it.each(['A'.repeat(16_384), 'abc+/='])(
     'boots with the actual SDK attributes and opaque token %#',
     async token => {
+      vi.stubGlobal('navigator', {
+        locks: { request: async (_name: string, callback: () => unknown) => callback() },
+      });
       script({ button: 'false', theme: 'dark', position: 'bottom-left' });
       const binding: Binding = { submissionId: receiptId, payloadDigest: 'a'.repeat(64) };
       const provider = vi.fn(async (_binding: Binding) => token);

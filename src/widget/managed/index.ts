@@ -1,3 +1,4 @@
+import { createRecoveryGuard } from './recovery';
 import { createSubmission } from './transport';
 import { isSubmissionToken, type Binding, type TokenProvider } from './protocol';
 import { createManagedUI, type ManagedWidgetAPI } from './ui';
@@ -91,6 +92,7 @@ export function bootstrapManagedWidget(): ManagedWidgetAPI | null {
       theme,
       position,
       buttonVisible: button !== 'false',
+      guard: createRecoveryGuard(script.dataset.applicationId!, endpoint),
       createSubmission: feedback => createSubmission(feedback, endpoint, tokenProvider),
     });
     parent.append(host);
