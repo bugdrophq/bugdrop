@@ -8,8 +8,10 @@ import {
   type TokenProvider,
 } from './protocol';
 
-const authorizationTimeoutMs = 10_000;
-const deliveryTimeoutMs = 10_000;
+// Customer policy and private issuance complete before the independent delivery window.
+const authorizationTimeoutMs = 30_000;
+// Delivery includes fresh authority checks, GitHub I/O and durable receipt finalization.
+const deliveryTimeoutMs = 60_000;
 const responseLimit = 2048;
 
 function bounded<T>(operation: Promise<T>, signal: AbortSignal): Promise<T> {
