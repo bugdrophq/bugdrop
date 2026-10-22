@@ -91,7 +91,7 @@ expect_failure "$broad_job" \
   'cloudflare-capability.yml:prove: permissions must be an explicit permission map'
 
 missing_job_boundary=$(make_fixture missing-job-boundary)
-perl -0pi -e 's/(  e2e:\n(?:.*\n){0,4}?    needs: check\n)    permissions:\n      contents: read\n/$1/' \
+perl -0pi -e 's/(  e2e:\n.*?    needs: check\n)    permissions:\n      contents: read\n/$1/s or die "E2E permission fixture mutation did not match\n"' \
   "$missing_job_boundary/ci.yml"
 expect_failure "$missing_job_boundary" \
   'ci.yml:e2e: effective permissions must be {"contents":"read"}'

@@ -8,6 +8,31 @@ afterEach(() => {
 });
 
 describe('bounded managed transport', () => {
+  it('accepts slow authorization followed by a fifteen-second confirmed delivery without retry', async () => {
+    const receiptId = '00000000-0000-4000-8000-000000000001';
+    const provider = vi.fn(
+      () => new Promise<string>(resolve => setTimeout(() => resolve('token'), 12000))
+    );
+    const fetcher = vi.fn(
+      () =>
+        new Promise<Response>(resolve =>
+          setTimeout(
+            () => resolve(Response.json({ schemaVersion: 1, status: 'delivered', receiptId })),
+            15000
+          )
+        )
+    );
+    vi.stubGlobal('fetch', fetcher);
+    const submission = await createSubmission(feedback, endpoint, provider);
+    vi.useFakeTimers();
+    const pending = submission.submit();
+    await vi.advanceTimersByTimeAsync(27000);
+    expect(await pending).toEqual({ status: 'delivered', receiptId });
+    expect(provider).toHaveBeenCalledOnce();
+    expect(fetcher).toHaveBeenCalledOnce();
+    expect(vi.getTimerCount()).toBe(0);
+  });
+
   it('allows delivery its own deadline after slow authorization', async () => {
     const receiptId = '00000000-0000-4000-8000-000000000001';
     const fetcher = vi.fn(
@@ -48,7 +73,7 @@ describe('bounded managed transport', () => {
     const submission = await createSubmission(feedback, endpoint, () => token);
     vi.useFakeTimers();
     const pending = submission.submit();
-    await vi.advanceTimersByTimeAsync(10000);
+    await vi.advanceTimersByTimeAsync(30000);
     expect(await pending).toEqual({ status: 'authorization_failed' });
     resolve('late-private-token');
     await Promise.resolve();
@@ -60,7 +85,7 @@ describe('bounded managed transport', () => {
     const submission = await createSubmission(feedback, endpoint, () => 'token');
     vi.useFakeTimers();
     const pending = submission.submit();
-    await vi.advanceTimersByTimeAsync(10000);
+    await vi.advanceTimersByTimeAsync(60000);
     expect(await pending).toEqual({ status: 'indeterminate' });
     expect(fetcher).toHaveBeenCalledTimes(1);
     expect((fetcher.mock.calls[0] as unknown as [string, RequestInit])[1].signal?.aborted).toBe(
@@ -89,7 +114,7 @@ describe('bounded managed transport', () => {
     const pending = submission.submit();
     await vi.advanceTimersByTimeAsync(10000);
     expect(cancel).not.toHaveBeenCalled();
-    await vi.advanceTimersByTimeAsync(9000);
+    await vi.advanceTimersByTimeAsync(59000);
     expect(await pending).toEqual({ status: 'indeterminate' });
     expect(cancel).toHaveBeenCalledTimes(1);
     expect(vi.getTimerCount()).toBe(0);

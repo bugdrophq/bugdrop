@@ -32,7 +32,7 @@ the base64url SHA-256 digest of the exact UTF-8 request bytes. Each manual attem
 obtains a fresh capability for the same submission ID and digest. There is no
 automatic retry and no fallback to legacy `/feedback`.
 
-Each attempt allows up to 10 seconds for authorization, then up to 10 seconds
+Each attempt allows up to 30 seconds for authorization, then up to 60 seconds
 for the submission response, including its bounded body read. Slow authorization
 does not consume the delivery window. A provider that settles after its deadline
 cannot trigger a submission. Either timeout still requires the existing manual
