@@ -53,6 +53,23 @@ async function mockInstalledRepo(page: Page) {
   });
 }
 
+async function openWidgetAfterInstallationCheck(page: Page) {
+  await page.goto('/');
+  const button = page.locator('#bugdrop-host').locator('css=.bd-trigger');
+  await expect(button).toBeVisible({ timeout: 10_000 });
+  const [response] = await Promise.all([
+    page.waitForResponse(
+      response =>
+        response.request().method() === 'GET' &&
+        new URL(response.url()).pathname.startsWith('/api/check/'),
+      { timeout: 15_000 }
+    ),
+    button.click(),
+  ]);
+  expect(response.ok()).toBe(true);
+  expect(await response.json()).toMatchObject({ installed: true });
+}
+
 async function loadDeployedWidgetFixture(
   page: Page,
   dataset: Record<string, string>,
@@ -636,11 +653,7 @@ test.describe('Feedback Button (Live)', () => {
 
 test.describe('Welcome Flow (Live)', () => {
   test('welcome screen shows on first visit', async ({ page }) => {
-    await page.goto('/');
-
-    const button = page.locator('#bugdrop-host').locator('css=.bd-trigger');
-    await expect(button).toBeVisible({ timeout: 10_000 });
-    await button.click();
+    await openWidgetAfterInstallationCheck(page);
 
     const modal = page.locator('#bugdrop-host').locator('css=.bd-modal');
     await expect(modal).toBeVisible({ timeout: 5_000 });
@@ -651,11 +664,7 @@ test.describe('Welcome Flow (Live)', () => {
   });
 
   test('can proceed past welcome screen to feedback form', async ({ page }) => {
-    await page.goto('/');
-
-    const button = page.locator('#bugdrop-host').locator('css=.bd-trigger');
-    await expect(button).toBeVisible({ timeout: 10_000 });
-    await button.click();
+    await openWidgetAfterInstallationCheck(page);
 
     // Click "Get Started" on welcome screen
     const getStartedBtn = page.locator('#bugdrop-host').locator('css=[data-action="continue"]');
