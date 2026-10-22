@@ -227,6 +227,9 @@ jobs:
   e2e:
     name: E2E Tests (Shard ${{ matrix.shard }}/2)
     runs-on: ubuntu-latest
+    container:
+      image: mcr.microsoft.com/playwright:v1.63.0-noble@sha256:eff16c30e6f3f4af0a03fa4b706120d5e9b0891c344a27d64559aff5900a4a27
+      options: --user 1001
     needs: check
     permissions:
       contents: read
@@ -258,28 +261,9 @@ jobs:
         if: needs.check.outputs.full_ci != 'false'
         run: make build-widget
 
-      - name: Get Playwright version
+      - name: Verify Playwright image version
         if: needs.check.outputs.full_ci != 'false'
-        id: pw-version
-        run: echo "version=$(npx playwright --version | awk '{print $2}')" >> "$GITHUB_OUTPUT"
-
-      - name: Cache Playwright browsers
-        if: needs.check.outputs.full_ci != 'false'
-        id: pw-cache
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        with:
-          path: ~/.cache/ms-playwright
-          key: pw-${{ runner.os }}-${{ steps.pw-version.outputs.version }}
-
-      - name: Install Playwright browsers
-        timeout-minutes: 5
-        if: needs.check.outputs.full_ci != 'false' && steps.pw-cache.outputs.cache-hit != 'true'
-        run: npx playwright install --with-deps chromium
-
-      - name: Install Playwright system deps
-        timeout-minutes: 5
-        if: needs.check.outputs.full_ci != 'false' && steps.pw-cache.outputs.cache-hit == 'true'
-        run: npx playwright install-deps chromium
+        run: test "$(npx playwright --version)" = 'Version 1.63.0'
 
       - name: Run E2E Tests (Shard ${{ matrix.shard }}/2)
         if: needs.check.outputs.full_ci != 'false'
