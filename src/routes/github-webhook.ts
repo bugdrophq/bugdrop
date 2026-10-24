@@ -29,13 +29,25 @@ export function createGitHubWebhook(dependencies: GitHubWebhookDependencies = {}
       return c.json({ error: 'GitHub webhook is not configured' }, 503);
     }
 
+    const next = c.env.GITHUB_WEBHOOK_SECRET_NEXT;
+    if (
+      next !== undefined &&
+      (new TextEncoder().encode(next).length < 32 ||
+        new TextEncoder().encode(next).length > 1024 ||
+        next.includes('\0'))
+    ) {
+      return c.json({ error: 'GitHub webhook rotation is not configured' }, 503);
+    }
     const body = await c.req.text();
     const signatureIsValid = await verifyGitHubWebhookSignature(
       secret,
       c.req.header('x-hub-signature-256'),
       body
     );
-    if (!signatureIsValid) {
+    const nextSignatureIsValid = next
+      ? await verifyGitHubWebhookSignature(next, c.req.header('x-hub-signature-256'), body)
+      : false;
+    if (!signatureIsValid && !nextSignatureIsValid) {
       return c.json({ error: 'Invalid webhook signature' }, 401);
     }
 

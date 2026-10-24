@@ -9,6 +9,7 @@ import current from './fixtures/current-public-baseline.v5.json';
 import accessible from './fixtures/current-public-baseline.v6.json';
 import flowCapture from './fixtures/current-public-baseline.v7.json';
 import acquisition from './fixtures/current-public-baseline.v8.json';
+import productionCanary from './fixtures/current-public-baseline.v9.json';
 
 function isPublicPath(path: string): boolean {
   return (
@@ -21,7 +22,9 @@ function isPublicPath(path: string): boolean {
 }
 
 function publicFiles(): string[] {
-  return execFileSync('git', ['ls-files', '-z'], { encoding: 'utf8' })
+  return execFileSync('git', ['ls-files', '--cached', '--others', '--exclude-standard', '-z'], {
+    encoding: 'utf8',
+  })
     .split('\0')
     .filter(isPublicPath)
     .sort();
@@ -40,7 +43,7 @@ function fingerprint(paths: string[], read: (path: string) => Uint8Array): strin
   return hash.digest('hex');
 }
 
-describe('current legacy public plane remains unchanged through managed integration', () => {
+describe('legacy public plane preserves its explicit compatibility boundary', () => {
   it('pins the reviewed v2 baseline to the exact merged public tree', () => {
     expect(baseline.baseCommit).toBe('73bb9db0a9ad69a508007bb39c5f23f174c338ef');
     const paths = publicFilesAt(baseline.baseCommit);
@@ -98,15 +101,29 @@ describe('current legacy public plane remains unchanged through managed integrat
     );
   }, 30_000);
 
-  it('matches the reviewed acquisition tracked runtime, assets and configuration byte for byte', () => {
-    const paths = publicFiles();
-    // The opt-in managed entry builds into dist/, outside the frozen public assets.
-    // Every legacy importer and its build script remain covered by the fingerprint.
-    expect(paths).not.toContain('src/widget/managed/index.ts');
-    expect(paths).toContain('src/widget/locales/zh-CN.ts');
+  it('pins the acquisition baseline before the production canary compatibility change', () => {
+    const commit = productionCanary.approvedDelta.baseCommit;
+    const paths = publicFilesAt(commit);
     expect(paths.length).toBe(acquisition.fileCount);
-    expect(fingerprint(paths, readFileSync)).toBe(acquisition.sha256);
-  });
+    expect(fingerprint(paths, path => execFileSync('git', ['show', `${commit}:${path}`]))).toBe(
+      acquisition.sha256
+    );
+  }, 30_000);
+
+  it('matches the new public baseline with only the four declared compatibility sources changed', () => {
+    const paths = publicFiles();
+    const base = productionCanary.approvedDelta.baseCommit;
+    const prior = publicFilesAt(base);
+    const changed = paths.filter(
+      path =>
+        !prior.includes(path) ||
+        !Buffer.from(readFileSync(path)).equals(execFileSync('git', ['show', `${base}:${path}`]))
+    );
+    expect(changed).toEqual(productionCanary.approvedDelta.changedPublicSources);
+    expect(prior.filter(path => !paths.includes(path))).toEqual([]);
+    expect(paths.length).toBe(productionCanary.fileCount);
+    expect(fingerprint(paths, readFileSync)).toBe(productionCanary.sha256);
+  }, 30_000);
 
   it.each([
     'src/index.ts',
@@ -118,6 +135,6 @@ describe('current legacy public plane remains unchanged through managed integrat
       const bytes = readFileSync(path);
       return path === target ? Buffer.concat([bytes, Buffer.from('\nMANAGED_MUTATION')]) : bytes;
     });
-    expect(hash).not.toBe(acquisition.sha256);
+    expect(hash).not.toBe(productionCanary.sha256);
   });
 });
