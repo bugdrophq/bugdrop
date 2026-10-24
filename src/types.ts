@@ -2,6 +2,8 @@ export interface Env {
   // Secrets (from .dev.vars locally, wrangler secret in production)
   GITHUB_APP_ID: string;
   GITHUB_PRIVATE_KEY: string;
+  GITHUB_WEBHOOK_SECRET_NEXT?: string; // Optional overlapping credential during webhook rotation
+  MANAGED_CANARY_EXCLUSION_ENABLED?: string; // Exact "1" excludes the hosted managed canary
   GITHUB_WEBHOOK_SECRET?: string; // HMAC secret for authenticated GitHub App webhooks
 
   // Variables (from wrangler.toml)

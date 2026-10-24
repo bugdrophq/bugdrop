@@ -1,3 +1,4 @@
+import { managedCanaryBlocked } from './managed-canary-exclusion';
 import { generateGitHubAppJWT } from './jwt';
 import type { Env, FeedbackAttachment, GitHubIssue } from '../types';
 
@@ -30,6 +31,7 @@ export const githubHeaders = (token: string) => ({
  * Get installation ID for a repository
  */
 async function getInstallationId(env: Env, owner: string, repo: string): Promise<number | null> {
+  if (managedCanaryBlocked(env, owner)) return null;
   if (!env.GITHUB_APP_ID || !env.GITHUB_PRIVATE_KEY) {
     console.error('Missing GITHUB_APP_ID or GITHUB_PRIVATE_KEY');
     return null;
@@ -47,6 +49,7 @@ async function getInstallationId(env: Env, owner: string, repo: string): Promise
   }
 
   const data = (await response.json()) as { id?: unknown };
+  if (managedCanaryBlocked(env, owner, data)) return null;
   return typeof data.id === 'number' && Number.isSafeInteger(data.id) && data.id > 0
     ? data.id
     : null;

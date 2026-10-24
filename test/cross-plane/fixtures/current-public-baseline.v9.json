@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 9,
+  "description": "Production canary exclusion and webhook credential overlap; all other public bytes preserved. Sorted path + NUL + bytes + NUL.",
+  "fileCount": 153,
+  "sha256": "0ab1a515ca2f6a75a4a5ff9ebf62927bbebe5696db68e44debb02226872a470c",
+  "approvedDelta": {
+    "previousBaseline": "current-public-baseline.v8.json",
+    "previousSha256": "b9a44475ba2ca330ad3004aeb9d5a6a3eed4dd66e243ca710b09f7ec49032af2",
+    "baseCommit": "c2ebc9d4f83b7a2a932736708edb6e0da3cf15a1",
+    "changedPublicSources": [
+      "src/lib/github.ts",
+      "src/lib/managed-canary-exclusion.ts",
+      "src/routes/github-webhook.ts",
+      "src/types.ts"
+    ],
+    "reason": "Explicit production-App canary cutover: deny legacy token access for the exact canary and allow overlapping webhook verification credentials. No widget, assets, storage identity or deployment configuration changes."
+  }
+}
