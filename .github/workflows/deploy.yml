@@ -106,7 +106,7 @@ jobs:
           fetch-depth: 0
           fetch-tags: true
 
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: '22'
           cache: npm
@@ -181,7 +181,7 @@ jobs:
           fi
 
       - name: Upload immutable request plan
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: request-plan-${{ steps.plan.outputs.request_key }}
           path: |
@@ -217,7 +217,7 @@ jobs:
           persist-credentials: false
           fetch-depth: 0
 
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: '22'
 
@@ -233,7 +233,7 @@ jobs:
           npm run build
 
       - name: Download authenticated request plan
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           name: request-plan-${{ needs.guard-and-plan.outputs.request_key }}
           path: request
@@ -295,7 +295,7 @@ jobs:
 
       - name: Upload immutable candidate and State 2 evidence
         id: upload
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: release-plan-${{ steps.bundle.outputs.plan_key }}
           path: ${{ runner.temp }}/release-plan/
@@ -317,7 +317,7 @@ jobs:
           persist-credentials: false
 
       - name: Download exact State 2 artifact
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           artifact-ids: ${{ needs.verify-candidate.outputs.artifact_id }}
           path: approved
@@ -421,7 +421,7 @@ jobs:
           path: candidate
           persist-credentials: false
 
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: '22'
 
@@ -431,7 +431,7 @@ jobs:
           npm --prefix candidate ci --ignore-scripts
 
       - name: Download exact approved State 2 artifact
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           artifact-ids: ${{ needs.verify-candidate.outputs.artifact_id }}
           path: approved
@@ -552,7 +552,7 @@ jobs:
       - name: Upload exact approval and baseline evidence
         if: steps.revalidate.outputs.proceed == 'true'
         id: upload
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: release-baseline-${{ needs.verify-candidate.outputs.plan_key }}
           path: |
@@ -587,7 +587,7 @@ jobs:
           path: candidate
           persist-credentials: false
 
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: '22'
 
@@ -597,7 +597,7 @@ jobs:
           npm --prefix candidate ci --ignore-scripts
 
       - name: Download exact State 2 and approved baseline artifacts
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           artifact-ids: ${{ needs.verify-candidate.outputs.artifact_id }},${{ needs.approval-baseline.outputs.artifact_id }}
           path: release-state
@@ -638,7 +638,7 @@ jobs:
       - name: Upload authoritative deployment outcome
         if: always()
         id: upload
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: release-deployment-${{ needs.verify-candidate.outputs.plan_key }}
           path: deployment.json
@@ -685,7 +685,7 @@ jobs:
           path: controller
           persist-credentials: false
 
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: '22'
 
@@ -693,7 +693,7 @@ jobs:
         run: npm --prefix controller ci --ignore-scripts
 
       - name: Download exact approved State 2 artifact
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           artifact-ids: ${{ needs.verify-candidate.outputs.artifact_id }}
           path: approved
@@ -738,7 +738,7 @@ jobs:
 
       - name: Upload exact portable attestation evidence
         id: upload
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: release-attestation-${{ needs.verify-candidate.outputs.plan_key }}
           path: attestation-evidence/
@@ -772,7 +772,7 @@ jobs:
           path: controller
           persist-credentials: false
 
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: '22'
 
@@ -780,7 +780,7 @@ jobs:
         run: npm --prefix controller ci --ignore-scripts
 
       - name: Download exact State 2, authorization, and attestation evidence
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           artifact-ids: ${{ needs.verify-candidate.outputs.artifact_id }},${{ needs.approval-baseline.outputs.artifact_id }},${{ needs.attest-release.outputs.artifact_id }}
           path: release-state
@@ -811,7 +811,7 @@ jobs:
       - name: Upload authoritative publication outcome
         if: always()
         id: upload
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: release-publication-${{ needs.verify-candidate.outputs.plan_key }}
           path: publication.json
@@ -871,7 +871,7 @@ jobs:
           path: candidate
           persist-credentials: false
 
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         if: ${{ needs.deploy-candidate.result != 'skipped' }}
         with:
           node-version: '22'
@@ -884,7 +884,7 @@ jobs:
 
       - name: Download exact State 2 and baseline evidence
         if: ${{ needs.deploy-candidate.result != 'skipped' }}
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           artifact-ids: ${{ needs.verify-candidate.outputs.artifact_id }},${{ needs.approval-baseline.outputs.artifact_id }}
           path: release-state
@@ -893,14 +893,14 @@ jobs:
       - name: Download deployment evidence when available
         if: ${{ needs.deploy-candidate.result != 'skipped' }}
         continue-on-error: true
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           name: release-deployment-${{ needs.verify-candidate.outputs.plan_key }}
           path: release-state
 
       - name: Download exact attestation evidence when created
         if: ${{ needs.deploy-candidate.result != 'skipped' && needs.attest-release.result == 'success' }}
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           artifact-ids: ${{ needs.attest-release.outputs.artifact_id }}
           path: release-state
@@ -972,7 +972,7 @@ jobs:
 
       - name: Upload authoritative finalization outcome
         if: ${{ always() }}
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: release-finalization-${{ needs.verify-candidate.outputs.plan_key }}-${{ github.run_attempt }}
           path: finalization.json
