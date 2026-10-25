@@ -8,7 +8,7 @@ import { fileURLToPath } from 'node:url';
 import { canonicalize } from './canonical-json.mjs';
 
 const CLOUDFLARE_ADAPTER_PROTOCOL = 'bugdrop.cloudflare-adapter/v1';
-export const CAPABILITY_WRANGLER_VERSION = '4.98.0';
+export const CAPABILITY_WRANGLER_VERSION = '4.151.1';
 
 const SAFE_NAME = /^[a-z0-9](?:[a-z0-9-]{0,62})$/;
 const SAFE_ID = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,255}$/;
