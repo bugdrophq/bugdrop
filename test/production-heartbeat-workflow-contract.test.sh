@@ -72,7 +72,7 @@ require 'npx playwright test e2e/widget.issue-canary.spec.ts --project=chromium-
 
 [[ $(grep -Fc -- '--profile production' "$workflow") -eq 5 ]] ||
   fail 'exactly five production GitHub operations must select the production profile'
-require 'uses: actions/create-github-app-token@fee1f7d63c2ff003460e3d139729b119787bc349'
+require 'uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510'
 require 'app-id: ${{ vars.BUGDROP_HEARTBEAT_MONITOR_APP_ID }}'
 require_absent 'client-id:'
 require_absent 'BUGDROP_HEARTBEAT_MONITOR_CLIENT_ID'
@@ -94,7 +94,7 @@ token_step=$(awk '
 for required in \
   'id: heartbeat-monitor-token' \
   "!cancelled() && steps.admission.outputs.admitted == 'true' && steps.checkout.outcome == 'success'" \
-  'uses: actions/create-github-app-token@fee1f7d63c2ff003460e3d139729b119787bc349' \
+  'uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510' \
   'app-id: ${{ vars.BUGDROP_HEARTBEAT_MONITOR_APP_ID }}' \
   'private-key: ${{ secrets.BUGDROP_HEARTBEAT_MONITOR_PRIVATE_KEY }}' \
   'owner: ${{ env.BUGDROP_CANARY_REPO_OWNER }}' \
