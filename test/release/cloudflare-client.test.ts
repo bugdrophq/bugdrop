@@ -20,7 +20,7 @@ function input(overrides: Record<string, unknown> = {}) {
     candidateAssets: '/approved/candidate/public',
     controllerConfigBytes: Buffer.from('[env.production]\nname="bugdrop"\n'),
     controllerLockBytes: Buffer.from(
-      JSON.stringify({ packages: { 'node_modules/wrangler': { version: '4.98.0' } } })
+      JSON.stringify({ packages: { 'node_modules/wrangler': { version: '4.151.1' } } })
     ),
     targetSha: SHA,
     ...overrides,
@@ -47,7 +47,7 @@ describe('production Cloudflare client', () => {
     expect(client).toMatchObject({
       environment: 'production',
       target: 'bugdrop',
-      wranglerVersion: '4.98.0',
+      wranglerVersion: '4.151.1',
     });
     expect(client.inspectStatus()).toEqual({
       status: 'succeeded',
