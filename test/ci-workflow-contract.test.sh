@@ -129,7 +129,7 @@ grep -Fq 'run: npm test -- --coverage' <<< "$unit_block" ||
   fail 'the required unit job must generate coverage'
 grep -Fq 'path: coverage/lcov.info' <<< "$unit_block" ||
   fail 'the required unit job must preserve the LCOV report'
-grep -Fq 'uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1' <<< "$unit_block" ||
+grep -Fq 'uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2' <<< "$unit_block" ||
   fail 'coverage artifact upload must use the reviewed immutable Node 24 action'
 grep -Fq 'if-no-files-found: error' <<< "$unit_block" ||
   fail 'a missing LCOV report must fail the required unit job'
@@ -149,7 +149,7 @@ grep -Fq 'contents: read' <<< "$coverage_block" || fail 'coverage upload needs r
 grep -Fq 'id-token: write' <<< "$coverage_block" || fail 'coverage upload lacks OIDC permission'
 grep -Fq 'persist-credentials: false' <<< "$coverage_block" ||
   fail 'coverage checkout must not persist repository credentials'
-grep -Fq 'uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1' <<< "$coverage_block" ||
+grep -Fq 'uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2' <<< "$coverage_block" ||
   fail 'coverage artifact download must use the reviewed immutable Node 24 action'
 grep -Fq 'codecov/codecov-action@303a32d7a59b442fa8d48b6a1cc6825c09c847a5 # v7.1.1' <<< "$coverage_block" ||
   fail 'Codecov action must use the reviewed immutable v7.1.1 commit'
