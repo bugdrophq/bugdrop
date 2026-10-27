@@ -752,6 +752,18 @@ export function injectStyles(shadow: ShadowRoot, config: WidgetConfig) {
       border-radius: var(--bd-radius-sm);
     }
 
+    .bd-upload-item--image {
+      grid-template-columns: 40px minmax(0, 1fr) auto 28px;
+    }
+
+    .bd-upload-item__preview {
+      display: block;
+      width: 40px;
+      height: 40px;
+      object-fit: contain;
+      border-radius: var(--bd-radius-sm);
+    }
+
     .bd-upload-item__name {
       min-width: 0;
       overflow: hidden;

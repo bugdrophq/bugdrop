@@ -1748,6 +1748,25 @@ function renderUploadList(
     )
     .join('');
 
+  target.querySelectorAll<HTMLElement>('.bd-upload-item').forEach((item, index) => {
+    const attachment = attachments[index];
+    if (!attachment.type.startsWith('image/') || !attachment.dataUrl.startsWith('data:image/')) {
+      return;
+    }
+    const preview = document.createElement('img');
+    preview.className = 'bd-upload-item__preview';
+    preview.addEventListener('error', () => {
+      preview.remove();
+      item.classList.remove('bd-upload-item--image');
+    });
+    preview.src = attachment.dataUrl;
+    preview.alt = '';
+    preview.width = 40;
+    preview.height = 40;
+    item.classList.add('bd-upload-item--image');
+    item.prepend(preview);
+  });
+
   target.querySelectorAll('.bd-upload-remove').forEach(button => {
     button.addEventListener('click', () => {
       const index = Number((button as HTMLElement).dataset.index);

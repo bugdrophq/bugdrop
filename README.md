@@ -48,6 +48,8 @@ That's it! Users can now click the bug button to submit feedback as GitHub Issue
 
 - 🔒 **Privacy masking** — tag sensitive elements with `data-bugdrop-mask` and BugDrop visually covers them in supported screenshot modes before submission. Passwords and credit-card inputs are masked automatically.
 
+- **Uploaded evidence** — the default feedback form shows small thumbnails for image attachments; unreadable images fall back to their filename and size.
+
 ## Widget Options
 
 | Attribute                       | Values                                               | Default               |
