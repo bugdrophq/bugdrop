@@ -5,7 +5,7 @@ import { createHmac } from 'node:crypto';
 export const webhookSecret = 'synthetic-local-webhook-secret-32-bytes';
 export const acquisitionSecret = 'synthetic-local-acquisition-secret-32-bytes';
 export const origin = 'https://webhook-retry.bugdrop.localhost';
-export const sourceRevision = '4fb8c1766533d76b039fae8b85ee008854f96a9e';
+export const sourceRevision = 'ec4aec36cef708a018e9a14a1cea1f1fc56bb75a';
 export function payload(action: 'created' | 'deleted', id: number, at: string): string {
   return JSON.stringify({
     action,
