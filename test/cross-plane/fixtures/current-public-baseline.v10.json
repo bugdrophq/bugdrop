@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 10,
+  "description": "Hourly aggregate installation total and shorter feedback caching; all widget and managed-plane bytes preserved. Sorted path + NUL + bytes + NUL.",
+  "fileCount": 154,
+  "sha256": "524331e58e6d919520cc97f549f43327baff6fc11224a8801c6501e55aafb520",
+  "approvedDelta": {
+    "previousBaseline": "current-public-baseline.v9.json",
+    "previousSha256": "0ab1a515ca2f6a75a4a5ff9ebf62927bbebe5696db68e44debb02226872a470c",
+    "baseCommit": "4fb8c1766533d76b039fae8b85ee008854f96a9e",
+    "changedPublicSources": [
+      "src/index.ts",
+      "src/lib/public-installation-count.ts",
+      "src/routes/api.ts",
+      "src/types.ts",
+      "wrangler.toml"
+    ],
+    "reason": "User-requested automatic updates for the existing two homepage totals. Independent correctness and public-boundary review confirmed only these five protected paths; no recent activity collection, widget or managed-plane changes."
+  }
+}
