@@ -10,6 +10,7 @@ import accessible from './fixtures/current-public-baseline.v6.json';
 import flowCapture from './fixtures/current-public-baseline.v7.json';
 import acquisition from './fixtures/current-public-baseline.v8.json';
 import productionCanary from './fixtures/current-public-baseline.v9.json';
+import totals from './fixtures/current-public-baseline.v10.json';
 
 function isPublicPath(path: string): boolean {
   return (
@@ -110,19 +111,28 @@ describe('legacy public plane preserves its explicit compatibility boundary', ()
     );
   }, 30_000);
 
-  it('matches the new public baseline with only the four declared compatibility sources changed', () => {
+  it('pins the reviewed v9 production canary tree before public total publication', () => {
+    const commit = totals.approvedDelta.baseCommit;
+    const paths = publicFilesAt(commit);
+    expect(paths.length).toBe(productionCanary.fileCount);
+    expect(fingerprint(paths, path => execFileSync('git', ['show', `${commit}:${path}`]))).toBe(
+      productionCanary.sha256
+    );
+  }, 30_000);
+
+  it('matches the reviewed totals baseline with only its five declared public sources changed', () => {
     const paths = publicFiles();
-    const base = productionCanary.approvedDelta.baseCommit;
+    const base = totals.approvedDelta.baseCommit;
     const prior = publicFilesAt(base);
     const changed = paths.filter(
       path =>
         !prior.includes(path) ||
         !Buffer.from(readFileSync(path)).equals(execFileSync('git', ['show', `${base}:${path}`]))
     );
-    expect(changed).toEqual(productionCanary.approvedDelta.changedPublicSources);
+    expect(changed).toEqual(totals.approvedDelta.changedPublicSources);
     expect(prior.filter(path => !paths.includes(path))).toEqual([]);
-    expect(paths.length).toBe(productionCanary.fileCount);
-    expect(fingerprint(paths, readFileSync)).toBe(productionCanary.sha256);
+    expect(paths.length).toBe(totals.fileCount);
+    expect(fingerprint(paths, readFileSync)).toBe(totals.sha256);
   }, 30_000);
 
   it.each([
@@ -135,6 +145,6 @@ describe('legacy public plane preserves its explicit compatibility boundary', ()
       const bytes = readFileSync(path);
       return path === target ? Buffer.concat([bytes, Buffer.from('\nMANAGED_MUTATION')]) : bytes;
     });
-    expect(hash).not.toBe(productionCanary.sha256);
+    expect(hash).not.toBe(totals.sha256);
   });
 });
