@@ -58,6 +58,13 @@ function plan(overrides: Record<string, unknown> = {}) {
 }
 
 describe('controller-owned Cloudflare command plan', () => {
+  it('accepts the repository lockfile as the release controller', async () => {
+    const controllerLockBytes = await readFile(
+      resolve(import.meta.dirname, '../../package-lock.json')
+    );
+    expect(plan({ controllerLockBytes }).wranglerVersion).toBe(CAPABILITY_WRANGLER_VERSION);
+  });
+
   it('pins the named environment and omits the unsafe name override', () => {
     const result = plan();
     expect(result).toMatchObject({
