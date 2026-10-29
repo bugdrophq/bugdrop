@@ -9,10 +9,11 @@ routes = [
   { pattern = "bugdrop.dev/api/bugdrop-board-token*", zone_name = "bugdrop.dev" },
   { pattern = "bugdrop.dev/api/github/webhook*", zone_name = "bugdrop.dev" },
   { pattern = "bugdrop.dev/api/stats/feedback-issues*", zone_name = "bugdrop.dev" },
+  { pattern = "bugdrop.dev/api/stats/installations*", zone_name = "bugdrop.dev" },
 ]
 
 [triggers]
-crons = ["17 3 * * *"]
+crons = ["17 3 * * *", "7 * * * *"]
 
 # Static assets directory (for widget.js)
 [assets]
@@ -30,7 +31,8 @@ MAX_SCREENSHOT_SIZE_MB = "5"  # Maximum screenshot size in MB
 BUGDROP_BOARD_TENANT_ID = "tenant_mean_weasel"
 BUGDROP_BOARD_APP_ID = "app_mean_weasel_bugdrop_dogfood"
 FEEDBACK_COUNT_BASELINE = "0"
-FEEDBACK_COUNT_EXCLUDED_OWNERS = "mean-weasel,neonwatty"
+FEEDBACK_COUNT_EXCLUDED_OWNERS = "mean-weasel,neonwatty,bugdrophq"
+INSTALLATION_COUNT_EXCLUDED_OWNERS = "mean-weasel,neonwatty,bugdrophq"
 
 [durable_objects]
 bindings = [{ name = "FEEDBACK_COUNTER", class_name = "FeedbackCounter" }]
@@ -71,7 +73,8 @@ ALLOWED_ORIGINS = "*"
 GITHUB_APP_NAME = "neonwatty-bugdrop"
 MAX_SCREENSHOT_SIZE_MB = "5"
 FEEDBACK_COUNT_BASELINE = "0"
-FEEDBACK_COUNT_EXCLUDED_OWNERS = "mean-weasel,neonwatty"
+FEEDBACK_COUNT_EXCLUDED_OWNERS = "mean-weasel,neonwatty,bugdrophq"
+INSTALLATION_COUNT_EXCLUDED_OWNERS = "mean-weasel,neonwatty,bugdrophq"
 
 [env.preview.durable_objects]
 bindings = [{ name = "FEEDBACK_COUNTER", class_name = "FeedbackCounter" }]
@@ -95,10 +98,11 @@ routes = [
   { pattern = "bugdrop.dev/api/bugdrop-board-token*", zone_name = "bugdrop.dev" },
   { pattern = "bugdrop.dev/api/github/webhook*", zone_name = "bugdrop.dev" },
   { pattern = "bugdrop.dev/api/stats/feedback-issues*", zone_name = "bugdrop.dev" },
+  { pattern = "bugdrop.dev/api/stats/installations*", zone_name = "bugdrop.dev" },
 ]
 
 [env.production.triggers]
-crons = ["17 3 * * *"]
+crons = ["17 3 * * *", "7 * * * *"]
 
 [env.production.assets]
 directory = "public"
@@ -114,7 +118,8 @@ MAX_SCREENSHOT_SIZE_MB = "5"
 BUGDROP_BOARD_TENANT_ID = "tenant_mean_weasel"
 BUGDROP_BOARD_APP_ID = "app_mean_weasel_bugdrop_dogfood"
 FEEDBACK_COUNT_BASELINE = "3116"
-FEEDBACK_COUNT_EXCLUDED_OWNERS = "mean-weasel,neonwatty"
+FEEDBACK_COUNT_EXCLUDED_OWNERS = "mean-weasel,neonwatty,bugdrophq"
+INSTALLATION_COUNT_EXCLUDED_OWNERS = "mean-weasel,neonwatty,bugdrophq"
 INSTALLATION_USAGE_ENABLED = "true"
 
 [env.production.durable_objects]

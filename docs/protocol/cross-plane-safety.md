@@ -2,16 +2,29 @@
 
 The current public system remains supported. This harness compares its tracked
 runtime, assets, widget build inputs and Wrangler configuration to the reviewed
-feature delta recorded in `test/cross-plane/fixtures/current-public-baseline.v8.json`.
-The test verifies that the v2 through v7 fixtures' commits produce their exact
+feature delta recorded in `test/cross-plane/fixtures/current-public-baseline.v10.json`.
+The test verifies that the v2 through v9 fixtures' commits produce their exact
 file counts and fingerprints, then compares the working tree against the reviewed
-v8 fingerprint. Public fingerprint mutations and changed/skipped/retried browser evidence must fail.
+v10 fingerprint. Public fingerprint mutations and changed/skipped/retried browser evidence must fail.
 An intentional future public change requires explicit baseline review; do not
 refresh the fingerprint merely to make a failure disappear. The v1 fixture is
 pre-localization history; v2 records Chinese localization; v3 records the mobile
 annotation change; v4 records the temporary deferral; v5 restores Chinese
 localization for issuer QA; v6 adds standard-widget modal accessibility; and v7 keeps
 Flow screenshot selection and review in the same visual host as the preceding screens.
+
+## Reviewed v10 automatic homepage totals
+
+The v10 delta was independently reviewed before its fingerprint was recorded. It
+changes only `src/index.ts`, `src/lib/public-installation-count.ts`,
+`src/routes/api.ts`, `src/types.ts`, and `wrangler.toml`: hourly complete-inventory
+publication, a read-only aggregate route, shorter feedback caching, and owned-account
+exclusions. No widget, assets, build inputs, managed files, or recent-activity collection
+change. All prior fixtures remain byte-for-byte; the v9 tree is pinned to
+`4fb8c1766533d76b039fae8b85ee008854f96a9e`. Focused tests cover incomplete inventory,
+last-snapshot retention, public-field projection, invalid storage, uninstall decreases,
+and hourly-versus-daily scheduling. See [public statistics](../public-statistics.md)
+for source definitions, limitations, and the separate protected release order.
 
 ## Reviewed v8 installation acquisition counting
 
