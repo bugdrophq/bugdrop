@@ -7,6 +7,7 @@ import { createBoardDogfoodToken } from './lib/boardDogfood';
 import { sweepInstallationRecords } from './lib/installation-retention';
 import { listActiveGitHubInstallations } from './lib/github-installation-inventory';
 import { reconcileInstallationRecords } from './lib/installation-reconciliation';
+import { INSTALLATION_COUNT_CRON, publishInstallationCount } from './lib/public-installation-count';
 
 export { FeedbackCounter } from './lib/feedback-counter';
 
@@ -149,10 +150,15 @@ function serveAsset(c: { env: Env; req: { raw: Request } }, pathname: string): P
 }
 
 export async function scheduled(
-  _controller: ScheduledController,
+  controller: ScheduledController,
   env: Env,
   _ctx: ExecutionContext
 ): Promise<void> {
+  if (controller.cron === INSTALLATION_COUNT_CRON) {
+    const inventory = await listActiveGitHubInstallations(env);
+    await publishInstallationCount(env, inventory);
+    return;
+  }
   await sweepInstallationRecords(env, {
     listActiveInstallationIds: async () => {
       const inventory = await listActiveGitHubInstallations(env);

@@ -30,6 +30,7 @@ import { handleStructuredFeedback, isStructuredFeedbackRequest } from './structu
 import { parseAppVersion } from '../app-version';
 import { getPublicFeedbackCount, scheduleSuccessfulFeedbackCount } from '../lib/feedback-counter';
 import { isCanonicalGitHubIssue } from '../lib/github-issue-result';
+import { getPublicInstallationCount } from '../lib/public-installation-count';
 
 type ApiVariables = {
   feedbackPayload?: unknown;
@@ -152,10 +153,26 @@ api.get('/health', c => {
   });
 });
 
+api.get('/stats/installations', async c => {
+  try {
+    const snapshot = await getPublicInstallationCount(c.env);
+    if (!snapshot) throw new Error('Installation count has not been initialized');
+    return c.json(snapshot, 200, {
+      'Cache-Control': 'public, max-age=300, s-maxage=300, stale-while-revalidate=3600',
+    });
+  } catch {
+    return c.json({ error: 'Installation count unavailable' }, 503, {
+      'Cache-Control': 'no-store',
+    });
+  }
+});
+
 api.get('/stats/feedback-issues', async c => {
   const cacheUrl = new URL(c.req.url);
   cacheUrl.search = '';
   cacheUrl.hash = '';
+  // Version the internal key so an old daily-cache entry cannot retain its previous TTL.
+  cacheUrl.pathname = '/__bugdrop-cache/v2/feedback-issues';
   const cacheKey = new Request(cacheUrl, { method: 'GET' });
   const sharedCache = typeof caches === 'undefined' ? undefined : caches.default;
   if (sharedCache) {
@@ -189,7 +206,7 @@ api.get('/stats/feedback-issues', async c => {
       {
         status: 200,
         headers: {
-          'Cache-Control': 'public, max-age=3600, s-maxage=86400, stale-while-revalidate=86400',
+          'Cache-Control': 'public, max-age=300, s-maxage=900, stale-while-revalidate=3600',
         },
       }
     );

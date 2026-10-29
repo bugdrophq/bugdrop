@@ -140,7 +140,7 @@ describe('API Routes', () => {
   });
 
   describe('GET /stats/feedback-issues', () => {
-    it('returns only the rounded public count with daily shared caching', async () => {
+    it('returns only the rounded public count with 15-minute shared caching', async () => {
       const put = vi.fn().mockResolvedValue(undefined);
       const match = vi.fn().mockResolvedValue(undefined);
       vi.stubGlobal('caches', { default: { match, put } });
@@ -154,11 +154,11 @@ describe('API Routes', () => {
         feedbackIssuesCreated: 3100,
         display: '3,100+',
       });
-      expect(res.headers.get('Cache-Control')).toContain('s-maxage=86400');
+      expect(res.headers.get('Cache-Control')).toContain('s-maxage=900');
       expect(match).toHaveBeenCalledOnce();
       expect(put).toHaveBeenCalledOnce();
       expect((match.mock.calls[0][0] as Request).url).toBe(
-        'http://localhost/stats/feedback-issues'
+        'http://localhost/__bugdrop-cache/v2/feedback-issues'
       );
       const storedResponse = put.mock.calls[0][1] as Response;
       expect(storedResponse.headers.get('Access-Control-Allow-Origin')).toBeNull();

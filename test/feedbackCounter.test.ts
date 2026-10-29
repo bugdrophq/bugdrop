@@ -74,11 +74,12 @@ describe('anonymous feedback counter', () => {
   it('excludes configured first-party owners without persisting repository identity', () => {
     const env = {
       ...baseEnv,
-      FEEDBACK_COUNT_EXCLUDED_OWNERS: 'mean-weasel, NeonWatty',
+      FEEDBACK_COUNT_EXCLUDED_OWNERS: 'mean-weasel, NeonWatty, bugdrophq',
     };
 
     expect(isExcludedFromFeedbackCount(env, 'mean-weasel/bugdrop')).toBe(true);
     expect(isExcludedFromFeedbackCount(env, 'neonwatty/test-repo')).toBe(true);
+    expect(isExcludedFromFeedbackCount(env, 'bugdrophq/bugdrop-widget-test')).toBe(true);
     expect(isExcludedFromFeedbackCount(env, 'external/app')).toBe(false);
   });
 
