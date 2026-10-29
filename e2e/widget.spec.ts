@@ -594,9 +594,32 @@ test.describe('Widget Interaction', () => {
 
     await expect(host.locator('css=.bd-upload-item')).toHaveCount(2);
     await expect(host.locator('css=.bd-upload-item').first()).toContainText('first.png');
+    const preview = host.locator('css=.bd-upload-item__preview');
+    await expect(preview).toHaveCount(1);
+    await expect(preview).toHaveAttribute('src', /^data:image\/png;base64,/);
+    await expect(preview).toHaveAttribute('alt', '');
+    await expect(preview).toBeVisible();
+    await expect
+      .poll(() => preview.evaluate(image => (image as HTMLImageElement).naturalWidth))
+      .toBeGreaterThan(0);
+    await expect(host.locator('css=.bd-upload-item').nth(1).locator('img')).toHaveCount(0);
+
+    // A rejected batch must not add previews or replace the accepted attachments.
+    await uploadInput.setInputFiles([
+      { name: 'rejected.png', mimeType: 'image/png', buffer: Buffer.from('image') },
+      { name: 'archive.zip', mimeType: 'application/zip', buffer: Buffer.from('zip') },
+    ]);
+    await expect(host.locator('css=#attachment-error')).toContainText(
+      'That file type is not supported'
+    );
+    await expect(host.locator('css=.bd-upload-item')).toHaveCount(2);
+    await expect(preview).toHaveCount(1);
+    await expect(host.locator('css=.bd-upload-item').first()).toContainText('first.png');
+
     await host.locator('css=.bd-upload-remove').first().click();
     await expect(host.locator('css=.bd-upload-item')).toHaveCount(1);
     await expect(host.locator('css=.bd-upload-item').first()).toContainText('notes.pdf');
+    await expect(preview).toHaveCount(0);
 
     await host.locator('css=#title').fill('Uploaded evidence');
     await host.locator('css=#include-screenshot').uncheck();
@@ -610,6 +633,54 @@ test.describe('Widget Interaction', () => {
         name: 'notes.pdf',
         type: 'application/pdf',
         dataUrl: expect.stringMatching(/^data:application\/pdf;base64,/),
+      }),
+    ]);
+  });
+
+  test('undecodable image uploads keep their filename and submission without a broken preview', async ({
+    page,
+  }) => {
+    const payloads = await trackFeedbackPayloads(page);
+    await page.route('**/api/check**', async route => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ installed: true }),
+      });
+    });
+
+    await page.goto('/test/');
+    const host = page.locator('#bugdrop-host');
+    await host.locator('css=.bd-trigger').click();
+    await host.locator('css=[data-action="continue"]').click();
+    await host.locator('css=#attachment-upload').setInputFiles([
+      { name: 'corrupt.png', mimeType: 'image/png', buffer: Buffer.from('not an image') },
+      { name: 'notes.pdf', mimeType: 'application/pdf', buffer: Buffer.from('%PDF-1.4\n') },
+    ]);
+
+    const imageRow = host.locator('css=.bd-upload-item').first();
+    await expect(host.locator('css=.bd-upload-item')).toHaveCount(2);
+    await expect(imageRow).toContainText('corrupt.png');
+    await expect(imageRow.locator('css=.bd-upload-item__meta')).toHaveText('12 B');
+    await expect(imageRow.locator('img')).toHaveCount(0);
+    await expect(imageRow).not.toHaveClass(/bd-upload-item--image/);
+    await expect(imageRow.locator('css=.bd-upload-remove')).toBeVisible();
+    await expect(host.locator('css=#attachment-error')).toBeHidden();
+
+    await host.locator('css=.bd-upload-remove').nth(1).click();
+    await expect(host.locator('css=.bd-upload-item')).toHaveCount(1);
+    await expect(imageRow.locator('img')).toHaveCount(0);
+    await host.locator('css=#title').fill('Undecodable uploaded evidence');
+    await host.locator('css=#include-screenshot').uncheck();
+    await host.locator('css=#submit-btn').click();
+
+    await expect(host.locator('css=.bd-success-icon')).toBeVisible({ timeout: 10000 });
+    expect(payloads).toHaveLength(1);
+    expect(payloads[0].attachments).toEqual([
+      expect.objectContaining({
+        name: 'corrupt.png',
+        type: 'image/png',
+        dataUrl: `data:image/png;base64,${Buffer.from('not an image').toString('base64')}`,
       }),
     ]);
   });

@@ -2,16 +2,31 @@
 
 The current public system remains supported. This harness compares its tracked
 runtime, assets, widget build inputs and Wrangler configuration to the reviewed
-feature delta recorded in `test/cross-plane/fixtures/current-public-baseline.v10.json`.
-The test verifies that the v2 through v9 fixtures' commits produce their exact
+feature delta recorded in `test/cross-plane/fixtures/current-public-baseline.v11.json`.
+The test verifies that the v2 through v10 fixtures' commits produce their exact
 file counts and fingerprints, then compares the working tree against the reviewed
-v10 fingerprint. Public fingerprint mutations and changed/skipped/retried browser evidence must fail.
+v11 fingerprint. Public fingerprint mutations and changed/skipped/retried browser evidence must fail.
 An intentional future public change requires explicit baseline review; do not
 refresh the fingerprint merely to make a failure disappear. The v1 fixture is
 pre-localization history; v2 records Chinese localization; v3 records the mobile
 annotation change; v4 records the temporary deferral; v5 restores Chinese
 localization for issuer QA; v6 adds standard-widget modal accessibility; and v7 keeps
 Flow screenshot selection and review in the same visual host as the preceding screens.
+
+## Reviewed v11 uploaded-image thumbnails
+
+PR #457 changes only `src/widget/index.ts` and `src/widget/ui.ts` in the protected
+public source set. Independent correctness, tests, fallback, and documentation
+reviews found no actionable defects. Chromium and WebKit checks cover decoded
+previews, corrupt-image fallback, rejected uploads, removal, narrow layouts, both
+themes, and byte-identical image submission. The v11 fingerprint pins the reviewed
+PR tree `518658c3f51a3e9c7d909da89ddb7cfa2f20322c`; the prior v10 tree is pinned to
+`1652efbcbe5564642cbfabc96445d97b568772a3`. All earlier fixtures remain unchanged.
+The protected set remains at 154 files. Mutation checks include both changed widget
+sources and the existing runtime, configuration, build, and localization boundaries.
+Attachment admission and submission behavior and managed-plane files are unchanged.
+This baseline records the reviewed source change; it does not establish full CI or
+production release readiness.
 
 ## Reviewed v10 automatic homepage totals
 

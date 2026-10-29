@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 11,
+  "description": "Reviewed uploaded-image thumbnails in the default feedback form. Sorted path + NUL + bytes + NUL.",
+  "fileCount": 154,
+  "sha256": "9f82abed2d63d466cf8b6cad29076422ab068cb9c0a8b09a99cbbe8d5f87902c",
+  "reviewedCommit": "518658c3f51a3e9c7d909da89ddb7cfa2f20322c",
+  "approvedDelta": {
+    "previousBaseline": "current-public-baseline.v10.json",
+    "previousSha256": "524331e58e6d919520cc97f549f43327baff6fc11224a8801c6501e55aafb520",
+    "baseCommit": "1652efbcbe5564642cbfabc96445d97b568772a3",
+    "changedPublicSources": ["src/widget/index.ts", "src/widget/ui.ts"],
+    "reason": "PR #457: independently reviewed local image previews with filename/size/removal retention and decode-error fallback. Attachment admission, submission bytes and managed-plane sources remain unchanged."
+  }
+}
