@@ -56,6 +56,7 @@ const approvedReleases = new Map([
   ['github/codeql-action/analyze@1c5b675653bb5c22dbe9b12b556ec555138e09fd', 'v4.38.1'],
   ['github/codeql-action/analyze@2892aa5e19bbd11bc0cff5427e3b750a04d9e3c2', 'v4.38.2'],
   ['github/codeql-action/analyze@6f2ac81f5cd81fe351a197ba0b00d91d03cd2aee', 'v4.39.0'],
+  ['github/codeql-action/analyze@9b3254085494b55a0f7c4c2b3d2d52cc712ce370', 'v4.39.1'],
   ['github/codeql-action/init@5595ccaf912efad79be6eef63a5619ff05969be3', 'v4.37.6'],
   ['github/codeql-action/init@db488ddef3bf6cb639b32c2e9a7c0a7ea8271d28', 'v4.37.8'],
   ['github/codeql-action/init@cdf488f595d80d6e07e03d4674febd5ab45fa938', 'v4.37.9'],
@@ -63,6 +64,7 @@ const approvedReleases = new Map([
   ['github/codeql-action/init@1c5b675653bb5c22dbe9b12b556ec555138e09fd', 'v4.38.1'],
   ['github/codeql-action/init@2892aa5e19bbd11bc0cff5427e3b750a04d9e3c2', 'v4.38.2'],
   ['github/codeql-action/init@6f2ac81f5cd81fe351a197ba0b00d91d03cd2aee', 'v4.39.0'],
+  ['github/codeql-action/init@9b3254085494b55a0f7c4c2b3d2d52cc712ce370', 'v4.39.1'],
 ]);
 
 const failures = [];
