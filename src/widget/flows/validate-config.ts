@@ -16,8 +16,21 @@ const TOP_KEYS = new Set([
 ]);
 const BASE_FIELD_KEYS = ['id', 'type', 'label', 'helpText', 'required', 'layout'];
 const FIELD_KEYS: Record<FlowField['type'], Set<string>> = {
-  shortText: new Set([...BASE_FIELD_KEYS, 'placeholder', 'minLength', 'maxLength']),
-  longText: new Set([...BASE_FIELD_KEYS, 'placeholder', 'rows', 'minLength', 'maxLength']),
+  shortText: new Set([
+    ...BASE_FIELD_KEYS,
+    'placeholder',
+    'minLength',
+    'maxLength',
+    'prefillFromContext',
+  ]),
+  longText: new Set([
+    ...BASE_FIELD_KEYS,
+    'placeholder',
+    'rows',
+    'minLength',
+    'maxLength',
+    'prefillFromContext',
+  ]),
   rating: new Set([...BASE_FIELD_KEYS, 'scale', 'icon', 'lowLabel', 'highLabel']),
   singleChoice: new Set([...BASE_FIELD_KEYS, 'options', 'display']),
   checkbox: new Set([...BASE_FIELD_KEYS, 'initialValue']),
@@ -95,6 +108,8 @@ function validateForm(
     if (field.required !== undefined && typeof field.required !== 'boolean')
       fail('field required must be boolean');
     validateFlowFieldConfig(field as FlowField);
+    if ('prefillFromContext' in field)
+      validId(field.prefillFromContext, 'field prefillFromContext');
     answerFields.set(`${form.id}.${field.id}`, field as FlowField);
   }
   forms.set(form.id, form);

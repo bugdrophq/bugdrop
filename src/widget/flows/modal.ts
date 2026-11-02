@@ -152,7 +152,8 @@ class FlowModalController {
         form,
         this.instanceId,
         this.runtime.answers,
-        this.definition.config.evidence?.submitter
+        this.definition.config.evidence?.submitter,
+        this.runtime.context
       );
       surface = this.currentForm.element;
       const quoteText = screen.quotePreview

@@ -2,13 +2,14 @@
   "schemaVersion": 12,
   "description": "Explicit final-submit actions, quote preview, and preserved Bleep API/context adaptations. Sorted path + NUL + bytes + NUL.",
   "fileCount": 156,
-  "sha256": "1211e63c7ecbdfbcdc45d6dc50d6fde3ad7dc6931b4d3d0dbedbad0928ffdc45",
+  "sha256": "cec2d8fab2c5f06a0105f64e82c36eaa7b1c731ca51d9f3b918638ea2c2279d2",
   "approvedDelta": {
     "previousBaseline": "current-public-baseline.v11.json",
     "previousSha256": "9f82abed2d63d466cf8b6cad29076422ab068cb9c0a8b09a99cbbe8d5f87902c",
     "baseCommit": "ce65a2a290728708c975f95a8426c75e5bf8ef55",
     "changedPublicSources": [
       "src/widget/flows/definition.ts",
+      "src/widget/flows/form-screen.ts",
       "src/widget/flows/issue-draft.ts",
       "src/widget/flows/manager.ts",
       "src/widget/flows/modal-view.ts",
@@ -22,6 +23,6 @@
       "src/widget/index.ts",
       "src/widget/public-api.d.ts"
     ],
-    "reason": "User-authorized single-submission endorsement choices. No managed-plane, Worker, or admission changes."
+    "reason": "User-authorized single-submission endorsement choices with per-open editable account-name defaults. No managed-plane, Worker, or admission changes."
   }
 }

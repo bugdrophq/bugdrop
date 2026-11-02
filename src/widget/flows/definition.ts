@@ -17,6 +17,10 @@ export function normalizeFlowDefinition(config: Readonly<FlowConfig>): FlowDefin
   }
   const screenAnswerPaths = new Map<string, readonly string[]>();
   const contextKeys = new Set<string>();
+  for (const field of fields.values()) {
+    if ((field.type === 'shortText' || field.type === 'longText') && field.prefillFromContext)
+      contextKeys.add(field.prefillFromContext);
+  }
   for (const screen of config.screens) {
     collectConditionContextKeys(screen.when, contextKeys);
     screenAnswerPaths.set(

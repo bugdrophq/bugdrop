@@ -27,7 +27,15 @@ export interface AttachmentsField {
   layout?: { span?: 1 | 2 };
 }
 
-export type FlowField = VariantField | CheckboxField | AttachmentsField;
+export type FlowTextField = Extract<VariantField, { type: 'shortText' | 'longText' }> & {
+  /** Per-open default, applied only when this field is shown and has no answer yet. */
+  prefillFromContext?: string;
+};
+export type FlowField =
+  | Exclude<VariantField, { type: 'shortText' | 'longText' }>
+  | FlowTextField
+  | CheckboxField
+  | AttachmentsField;
 export type FlowScalar = string | number | boolean | null;
 
 export type FlowCondition =

@@ -34,3 +34,9 @@ widget is served from a pinned local asset; the script-host fallback remains.
 
 This is an additive source change, not a released widget version. Existing
 flows without these properties retain their original navigation and submission.
+
+Text fields can declare `prefillFromContext: 'account-name'` to use a per-open
+context value as an editable default. It is applied only when the field is
+rendered. Hidden-field answers are still cleared, and a user-saved empty string
+is preserved rather than refilled. Non-string defaults are ignored; strings are
+bounded by the configured text limit. A default is not permission to publish.
