@@ -23,6 +23,7 @@ import type {
   FlowConfig,
   FlowOpenOptions,
   FlowOutcome,
+  FlowSubmitAction,
   OpenedFlow,
   ScreenshotScreen,
 } from './public-types';
@@ -154,12 +155,21 @@ class FlowModalController {
         this.definition.config.evidence?.submitter
       );
       surface = this.currentForm.element;
+      const quoteText = screen.quotePreview
+        ?.map(path => this.runtime.answers[path])
+        .find(value => typeof value === 'string' && value.trim());
+      if (typeof quoteText === 'string') {
+        const quote = document.createElement('blockquote');
+        quote.className = 'bdf-quote-preview';
+        quote.textContent = quoteText;
+        surface.querySelector('.bdv-header')?.appendChild(quote);
+      }
     } else surface = createScreenshotPrompt(screen);
     addNavigation(
       surface,
       route,
       () => void this.back(screen),
-      () => void this.advance(screen, surface),
+      action => void this.advance(screen, surface, action),
       () => this.close()
     );
     if (screen.type === 'form') {
@@ -182,7 +192,8 @@ class FlowModalController {
     const progress = surface.querySelector<HTMLElement>('.bdf-progress');
     if (progress) progress.textContent = `Step ${route.position} of ${route.total}`;
     const next = surface.querySelector<HTMLButtonElement>('.bdv-submit');
-    if (next) next.textContent = screen.continueLabel ?? (route.hasNext ? 'Continue' : 'Submit');
+    if (next && !(screen.type === 'form' && screen.submitActions))
+      next.textContent = screen.continueLabel ?? (route.hasNext ? 'Continue' : 'Submit');
   }
 
   private async back(screen: NonNullable<ReturnType<FlowRuntime['current']>>): Promise<void> {
@@ -203,7 +214,8 @@ class FlowModalController {
 
   private async advance(
     screen: NonNullable<ReturnType<FlowRuntime['current']>>,
-    surface: HTMLElement
+    surface: HTMLElement,
+    action?: FlowSubmitAction
   ): Promise<void> {
     if (this.busy) return;
     this.busy = true;
@@ -221,6 +233,7 @@ class FlowModalController {
       return;
     }
     if (!this.runtime.next()) {
+      this.runtime.submissionMetadata = Object.freeze({ ...action?.metadata });
       this.busy = false;
       await this.finish();
     } else {

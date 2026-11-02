@@ -441,7 +441,8 @@ if (rawAppVersion !== undefined && appVersion === undefined) {
 }
 const config: WidgetConfig = {
   repo: script?.dataset.repo || '',
-  apiUrl: script?.src.replace(/\/widget(?:\.v[\d.]+)?\.js$/, '/api') || '',
+  apiUrl:
+    script?.dataset.apiUrl || script?.src.replace(/\/widget(?:\.v[\d.]+)?\.js$/, '/api') || '',
   authTokenProvider: resolveAuthTokenProvider(script?.dataset.authTokenProvider),
   prefillProviderName: script?.dataset.prefillProvider,
   appVersion,

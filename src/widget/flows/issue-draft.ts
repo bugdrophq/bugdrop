@@ -1,4 +1,5 @@
 import type { FlowConfig, FlowIssueSection, FlowScalar } from './public-types';
+import { evaluateCondition } from './conditions';
 
 interface FlowIssueDraft {
   title: string;
@@ -35,6 +36,7 @@ function compileSection(
   answers: Readonly<Record<string, unknown>>,
   context: Readonly<Record<string, FlowScalar>>
 ): string | null {
+  if (!evaluateCondition(section.when, answers, context)) return null;
   const value = 'answer' in section ? answers[section.answer] : context[section.context];
   if (section.omitWhenEmpty && (value === undefined || value === null || value === '')) return null;
   const rendered = formatValue(config, section, value);
