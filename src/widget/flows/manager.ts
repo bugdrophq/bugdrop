@@ -36,7 +36,7 @@ export function createFlowManager(
                 transport,
                 normalized,
                 flowRuntime.answers,
-                { ...flowRuntime.context, ...flowRuntime.submissionMetadata },
+                flowRuntime.context,
                 flowRuntime.capture
               ),
           });

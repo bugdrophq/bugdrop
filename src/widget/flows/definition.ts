@@ -34,7 +34,6 @@ export function normalizeFlowDefinition(config: Readonly<FlowConfig>): FlowDefin
   }
   for (const section of config.issue.sections ?? []) {
     if ('context' in section) contextKeys.add(section.context);
-    collectConditionContextKeys(section.when, contextKeys);
   }
   return Object.freeze({
     compiler: 'bugdrop-flow@1' as const,

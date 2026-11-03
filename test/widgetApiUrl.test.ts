@@ -12,11 +12,10 @@ import { describe, it, expect } from 'vitest';
  * /widget.v1.js/check/owner/repo instead of /api/check/owner/repo.
  */
 
-// Extract the regex used in src/widget/index.ts for apiUrl derivation
-const widgetPathPattern = /\/widget(?:\.v[\d.]+)?\.js$/;
+import { resolveWidgetApiUrl } from '../src/widget/api-url';
 
-function deriveApiUrl(scriptSrc: string): string {
-  return scriptSrc.replace(widgetPathPattern, '/api');
+function deriveApiUrl(src: string): string {
+  return resolveWidgetApiUrl({ src, dataset: {} });
 }
 
 describe('Widget apiUrl derivation', () => {
@@ -45,5 +44,20 @@ describe('Widget apiUrl derivation', () => {
   it('returns original URL if pattern does not match', () => {
     const url = `${base}/other-script.js`;
     expect(deriveApiUrl(url)).toBe(url);
+  });
+  it('routes a pinned self-hosted asset to its explicit backend', () => {
+    expect(
+      resolveWidgetApiUrl({
+        src: 'https://app.example/vendor/digest/widget.v1.js',
+        dataset: { apiUrl: 'https://feedback.example/api' },
+      })
+    ).toBe('https://feedback.example/api');
+  });
+
+  it('keeps script-host routing when the override is empty or absent', () => {
+    expect(resolveWidgetApiUrl({ src: `${base}/widget.v1.js`, dataset: { apiUrl: '' } })).toBe(
+      `${base}/api`
+    );
+    expect(resolveWidgetApiUrl(null)).toBe('');
   });
 });

@@ -2,16 +2,30 @@
 
 The current public system remains supported. This harness compares its tracked
 runtime, assets, widget build inputs and Wrangler configuration to the reviewed
-feature delta recorded in `test/cross-plane/fixtures/current-public-baseline.v11.json`.
-The test verifies that the v2 through v10 fixtures' commits produce their exact
+feature delta recorded in `test/cross-plane/fixtures/current-public-baseline.v12.json`.
+The test verifies that the v2 through v11 fixtures' commits produce their exact
 file counts and fingerprints, then compares the working tree against the reviewed
-v11 fingerprint. Public fingerprint mutations and changed/skipped/retried browser evidence must fail.
+v12 fingerprint. Public fingerprint mutations and changed/skipped/retried browser evidence must fail.
 An intentional future public change requires explicit baseline review; do not
 refresh the fingerprint merely to make a failure disappear. The v1 fixture is
 pre-localization history; v2 records Chinese localization; v3 records the mobile
 annotation change; v4 records the temporary deferral; v5 restores Chinese
 localization for issuer QA; v6 adds standard-widget modal accessibility; and v7 keeps
 Flow screenshot selection and review in the same visual host as the preceding screens.
+
+## Reviewed v12 conditional defaults and self-hosted routing
+
+PR #463 uses existing single-choice, conditional-screen, answer-mapping, and
+Submit primitives for publication permission. Its only new runtime capabilities
+are conditional text defaults and an explicit backend for self-hosted scripts.
+The validator extraction keeps files within the repository's size limit.
+No new action-metadata, quote-preview, or conditional-Issue API remains. The
+reviewed v12 fixture lists the exact public-source delta; the v11 reviewed tree
+and all earlier historical fixtures remain unchanged. See the
+[capability decisions](../publication-permission-flow.md). Independent correctness,
+tests, contracts, failure-handling, documentation, and simplicity reviews found
+no actionable issues in this reduced delta. This is source-review evidence, not
+a production release or Bleep-integration qualification.
 
 ## Reviewed v11 uploaded-image thumbnails
 

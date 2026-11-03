@@ -28,10 +28,6 @@ export function createStyledFlowRoot(shadow: ShadowRoot, config: Readonly<FlowCo
     .bdf-screenshot-prompt .bdv-actions { justify-content: center; }
     .bdf-file-list { margin: 0; padding-left: 20px; color: var(--bdv-text-muted); }
     .bdf-back { order: -1; }
-    .bdf-submit-actions { flex-direction: column; }
-    .bdf-submit-actions button { width: 100%; min-height: 44px; white-space: normal; }
-    .bdf-submit-actions .bdf-back { order: 2; }
-    .bdf-quote-preview { margin: 16px 0; padding: 16px; border-left: 3px solid var(--bdv-accent); background: var(--bdv-bg); color: var(--bdv-text); overflow-wrap: anywhere; white-space: pre-wrap; }
     .bdf-transitioning { overflow: hidden; }
     .bdf-transitioning > .bdv-surface { grid-area: 1 / 1; }
     .bdf-slide-forward-enter { animation: bdf-slide-from-right var(--bdf-screen-transition-duration, 500ms) cubic-bezier(.2, .8, .2, 1); }

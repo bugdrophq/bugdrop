@@ -68,15 +68,6 @@ export interface FormScreen extends BaseScreen {
   form: string;
   continueLabel?: string;
   backLabel?: string;
-  /** Alternative final submit buttons. Metadata is mapped through Issue context sections. */
-  submitActions?: FlowSubmitAction[];
-  /** First nonempty earlier text answer to display as a plain-text quote. */
-  quotePreview?: string[];
-}
-
-export interface FlowSubmitAction {
-  label: string;
-  metadata: Record<string, FlowScalar>;
 }
 
 export interface ScreenshotScreen extends BaseScreen {
@@ -122,14 +113,12 @@ export type FlowIssueSection =
       answer: string;
       format?: 'text' | 'quote' | 'stars' | 'choice' | 'code';
       omitWhenEmpty?: boolean;
-      when?: FlowCondition;
     }
   | {
       heading: string;
       context: string;
       format?: 'text' | 'code';
       omitWhenEmpty?: boolean;
-      when?: FlowCondition;
     };
 
 export interface FlowConfig {

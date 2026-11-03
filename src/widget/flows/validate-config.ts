@@ -1,4 +1,4 @@
-import { validateScreen, validateCondition } from './screen-validation';
+import { validateScreen } from './screen-validation';
 import { validateFlowFieldConfig, validateFlowShell } from './field-validation';
 import type { FlowConfig, FlowField, FlowIssueSection } from './public-types';
 import { deepFreeze, fail, object, only, optionalText, text, validId } from './validation-utils';
@@ -59,8 +59,6 @@ export function validateAndFreezeFlowConfig(input: FlowConfig): Readonly<FlowCon
   const screenIds = new Set<string>();
   for (const screen of input.screens) {
     validateScreen(screen, screenIds, forms, earlierAnswers);
-    if (screen.type === 'form' && screen.submitActions && screen !== input.screens.at(-1))
-      fail('submitActions must belong to the last configured screen');
     if (screen.type === 'form') {
       if (referencedForms.has(screen.form)) fail(`form ${screen.form} may be referenced only once`);
       referencedForms.add(screen.form);
@@ -144,22 +142,13 @@ function validateSection(
 ) {
   if (!object(section)) fail('issue section must be an object');
   if ('answer' in section) {
-    only(
-      section,
-      new Set(['heading', 'answer', 'format', 'omitWhenEmpty', 'when']),
-      'issue section'
-    );
+    only(section, new Set(['heading', 'answer', 'format', 'omitWhenEmpty']), 'issue section');
     validateScalarAnswer(section.answer, answers, 'issue section');
   } else {
-    only(
-      section,
-      new Set(['heading', 'context', 'format', 'omitWhenEmpty', 'when']),
-      'issue section'
-    );
+    only(section, new Set(['heading', 'context', 'format', 'omitWhenEmpty']), 'issue section');
     validId(section.context, 'issue context');
   }
   text(section.heading, 'issue section heading', 120);
-  if (section.when !== undefined) validateCondition(section.when, answers);
   const heading = section.heading.trim().toLowerCase();
   if (headings.has(heading)) fail(`duplicate issue section heading ${section.heading}`);
   headings.add(heading);

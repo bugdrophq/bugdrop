@@ -34,7 +34,6 @@ export type {
   FlowOpenOptions,
   FlowOutcome,
   FlowScreen,
-  FlowSubmitAction,
   FlowTextField,
   FlowScreenTransition,
   FlowScreenTransitionFrame,
