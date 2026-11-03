@@ -856,38 +856,104 @@ test.describe('paired default-flow screenshot compatibility oracle', () => {
     });
   });
 
-  test('pairs optional skip and element-picker cancellation retention boundaries', async ({
-    browser,
-  }) => {
-    const result = await expectPairedJourney(browser, async (page, trace, requests) => {
-      await page.goto('/test/complex-dom.html?nodes=12000');
-      await waitForWidget(page);
-      await openFromPublicApi(page, trace);
-      await fillBaseForm(page, 'Picker cancellation');
-      await act(page, trace, 'continue-to-capture', '#submit-btn');
-      await act(page, trace, 'select-element', '[data-action="element"]');
-      await expect(page.locator('#bugdrop-element-picker-tooltip')).toBeVisible();
-      trace.push('action:cancel-picker');
-      await page.keyboard.press('Escape');
-      await expect(host(page).locator('css=.bd-success-icon')).toBeVisible();
-      expect(requests).toHaveLength(1);
+  for (const picker of ['element', 'area'] as const) {
+    test(`pairs optional skip and ${picker}-picker cancellation retention boundaries`, async ({
+      browser,
+    }) => {
+      const result = await expectPairedJourney(browser, async (page, trace, requests) => {
+        await page.goto(picker === 'element' ? '/test/complex-dom.html?nodes=12000' : '/test/');
+        await waitForWidget(page);
+        await openFromPublicApi(page, trace);
+        await fillBaseForm(page, 'Picker cancellation', 'Retained picker details');
+        await host(page).locator('css=#include-screenshot').check();
+        await act(page, trace, 'continue-to-capture', '#submit-btn');
+        await act(page, trace, `select-${picker}`, `[data-action="${picker}"]`);
+        await expect(page.locator(`#bugdrop-${picker}-picker-tooltip`)).toBeVisible();
+        trace.push('action:cancel-picker');
+        await page.keyboard.press('Escape');
+        await expect(host(page).locator('css=[data-action="element"]')).toBeVisible();
+        await expect(page.locator(`#bugdrop-${picker}-picker-tooltip`)).not.toBeAttached();
+        expect(requests).toHaveLength(0);
+        await observe(page, trace, 'options-after-picker-cancel');
 
-      await act(page, trace, 'done', '[data-action="done"]');
-      await openFromPublicApi(page, trace);
-      await expect(host(page).locator('css=#include-screenshot')).toBeChecked();
-      await fillBaseForm(page, 'Explicit optional skip');
-      await host(page).locator('css=#include-screenshot').uncheck();
-      await act(page, trace, 'explicit-skip-submit', '#submit-btn');
-      await expect(host(page).locator('css=.bd-success-icon')).toBeVisible();
-      expect(requests).toHaveLength(2);
+        await act(page, trace, 'close-chooser', '.bd-close');
+        await expect(host(page).locator('css=#title')).toHaveValue('Picker cancellation');
+        await expect(host(page).locator('css=#description')).toHaveValue('Retained picker details');
+        await expect(host(page).locator('css=#include-screenshot')).toBeChecked();
+        expect(requests).toHaveLength(0);
+        await act(page, trace, 'continue-again', '#submit-btn');
+        await act(page, trace, 'explicit-skip', '[data-action="skip"]');
+        await expect(host(page).locator('css=.bd-success-icon')).toBeVisible();
+        expect(requests).toHaveLength(1);
+      });
+
+      expect(result.requests[0]).toMatchObject({
+        title: 'Picker cancellation',
+        description: 'Retained picker details',
+        screenshot: null,
+        metadata: { elementSelector: null, fullElementSelector: null },
+      });
     });
 
-    expect(result.requests.map(request => request.screenshot)).toEqual([null, null]);
-    expect(result.requests[0].metadata).toMatchObject({
-      elementSelector: null,
-      fullElementSelector: null,
+    for (const mode of ['optional', 'required'] as const) {
+      test(`pairs ${mode} capture recovery after ${picker}-picker cancellation`, async ({
+        browser,
+      }) => {
+        const result = await expectPairedJourney(
+          browser,
+          async (page, trace, requests) => {
+            await page.goto(`/test/?screenshot=${mode}`);
+            await waitForWidget(page);
+            await openFromPublicApi(page, trace);
+            await fillBaseForm(page, 'Recovered picker capture');
+            if (mode === 'optional') {
+              await host(page).locator('css=#include-screenshot').check();
+            }
+            await act(page, trace, 'continue-to-capture', '#submit-btn');
+            await act(page, trace, `select-${picker}`, `[data-action="${picker}"]`);
+            await expect(page.locator(`#bugdrop-${picker}-picker-tooltip`)).toBeVisible();
+            await page.keyboard.press('Escape');
+            await expect(host(page).locator('css=[data-action="capture"]')).toBeVisible();
+            expect(requests).toHaveLength(0);
+            if (mode === 'required') {
+              await expect(host(page).locator('css=[data-action="skip"]')).not.toBeAttached();
+            }
+            await act(page, trace, 'capture-full-page', '[data-action="capture"]');
+            await expect(host(page).locator('css=#annotation-canvas')).toBeVisible();
+            expect(requests).toHaveLength(0);
+            await act(page, trace, 'submit-annotation', '[data-action="done"]');
+            await expect(host(page).locator('css=.bd-success-icon')).toBeVisible();
+            expect(requests).toHaveLength(1);
+          },
+          successfulCaptureHook()
+        );
+        expect(result.requests[0].screenshot).toMatch(/^data:image\/png;base64,/);
+      });
+    }
+
+    test(`pairs public close during ${picker} selection without reopening capture UI`, async ({
+      browser,
+    }) => {
+      await expectPairedJourney(browser, async (page, trace, requests) => {
+        await page.goto('/test/');
+        await waitForWidget(page);
+        await openFromPublicApi(page, trace);
+        await fillBaseForm(page, 'Aborted picker capture');
+        await host(page).locator('css=#include-screenshot').check();
+        await act(page, trace, 'continue-to-capture', '#submit-btn');
+        await act(page, trace, `select-${picker}`, `[data-action="${picker}"]`);
+        await expect(page.locator(`#bugdrop-${picker}-picker-tooltip`)).toBeVisible();
+        await page.evaluate(() => window.BugDrop?.close());
+        await expect(page.locator(`#bugdrop-${picker}-picker-tooltip`)).not.toBeAttached();
+        await expect(host(page).locator('css=.bd-modal')).toHaveCount(0);
+        expect(await page.evaluate(() => window.BugDrop?.isOpen())).toBe(false);
+        await openFromPublicApi(page, trace);
+        await expect(host(page).locator('css=#title')).toHaveValue('');
+        await expect(host(page).locator('css=[data-action="element"]')).not.toBeAttached();
+        expect(requests).toHaveLength(0);
+      });
     });
-  });
+  }
 
   test('pairs optional capture-failure skip and complex-page preference retention', async ({
     browser,

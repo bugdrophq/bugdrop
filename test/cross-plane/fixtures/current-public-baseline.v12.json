@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 12,
+  "description": "Issue #460: cancelled screenshot selection returns to the chooser. Sorted path + NUL + bytes + NUL.",
+  "fileCount": 154,
+  "sha256": "7b136f0e4ec2ea6ebd611eb33db6e049797f62aa8b9676c725123e28e958518e",
+  "approvedDelta": {
+    "previousBaseline": "current-public-baseline.v11.json",
+    "previousSha256": "9f82abed2d63d466cf8b6cad29076422ab068cb9c0a8b09a99cbbe8d5f87902c",
+    "baseCommit": "ce65a2a290728708c975f95a8426c75e5bf8ef55",
+    "changedPublicSources": ["src/widget/capture-flow.ts"],
+    "reason": "User-requested fix for #460: area and element selection cancellation retries the chooser instead of advancing optional feedback submission. Explicit skip, required capture, retained details and public close are covered in paired default-flow browser tests. No other public sources or managed-plane files change."
+  }
+}

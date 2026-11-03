@@ -2,16 +2,32 @@
 
 The current public system remains supported. This harness compares its tracked
 runtime, assets, widget build inputs and Wrangler configuration to the reviewed
-feature delta recorded in `test/cross-plane/fixtures/current-public-baseline.v11.json`.
-The test verifies that the v2 through v10 fixtures' commits produce their exact
+feature delta recorded in `test/cross-plane/fixtures/current-public-baseline.v12.json`.
+The test verifies that the v2 through v11 fixtures' commits produce their exact
 file counts and fingerprints, then compares the working tree against the reviewed
-v11 fingerprint. Public fingerprint mutations and changed/skipped/retried browser evidence must fail.
+v12 fingerprint. Public fingerprint mutations and changed/skipped/retried browser evidence must fail.
 An intentional future public change requires explicit baseline review; do not
 refresh the fingerprint merely to make a failure disappear. The v1 fixture is
 pre-localization history; v2 records Chinese localization; v3 records the mobile
 annotation change; v4 records the temporary deferral; v5 restores Chinese
 localization for issuer QA; v6 adds standard-widget modal accessibility; and v7 keeps
 Flow screenshot selection and review in the same visual host as the preceding screens.
+
+## v12 screenshot selection cancellation recovery
+
+Issue #460 changes only `src/widget/capture-flow.ts` in the protected public set:
+area and element picker cancellation returns to the screenshot chooser instead of
+advancing optional feedback submission. The v12 fixture records this explicit
+delta from main commit `ce65a2a290728708c975f95a8426c75e5bf8ef55`, whose tree is
+verified against the unchanged v11 fingerprint. All earlier fixtures remain intact,
+and the protected set remains at 154 files. Mutation checks include capture-flow.
+
+Regression tests failed before the fix. After it, 115 focused unit tests and 35
+Chromium browser tests passed, covering both default-flow runners, optional and
+required capture, retained details, explicit skip, capture recovery, desktop Escape,
+mobile Cancel, and public close during selection. The tests count intercepted
+feedback requests to distinguish cancellation from submission. This fixture records
+the intended source delta; it does not establish production release readiness.
 
 ## Reviewed v11 uploaded-image thumbnails
 
