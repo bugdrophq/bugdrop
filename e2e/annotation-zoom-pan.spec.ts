@@ -80,18 +80,27 @@ test('mobile zoom controls have usable touch targets and respond to repeated tap
   }
 });
 
-test('mobile dock keeps navigation separate from tools across phone sizes', async ({ browser }) => {
-  for (const viewport of [
-    { width: 320, height: 568 },
-    { width: 375, height: 667 },
-    { width: 430, height: 932 },
-    { width: 667, height: 375 },
-    { width: 896, height: 414 },
-    { width: 932, height: 430 },
-  ]) {
-    const context = await browser.newContext({ ...devices['iPhone 11'], viewport });
-    try {
-      const page = await context.newPage();
+// Each viewport gets its own timeout and fixture-owned context cleanup.
+for (const viewport of [
+  { width: 320, height: 568 },
+  { width: 375, height: 667 },
+  { width: 430, height: 932 },
+  { width: 667, height: 375 },
+  { width: 896, height: 414 },
+  { width: 932, height: 430 },
+]) {
+  test.describe(`mobile dock at ${viewport.width}x${viewport.height}`, () => {
+    const phone = devices['iPhone 11'];
+    test.use({
+      viewport,
+      screen: phone.screen,
+      deviceScaleFactor: phone.deviceScaleFactor,
+      isMobile: phone.isMobile,
+      hasTouch: phone.hasTouch,
+      userAgent: phone.userAgent,
+    });
+
+    test('keeps navigation separate from tools', async ({ page }) => {
       await page.addInitScript(() => {
         (
           window as typeof window & { __bugdropMockToPng?: () => Promise<string> }
@@ -173,11 +182,9 @@ test('mobile dock keeps navigation separate from tools across phone sizes', asyn
       await expect(host.locator('.bd-tools')).toBeHidden();
       await host.locator('[data-action="back-to-edit"]').tap();
       await expect(host.locator('.bd-tools')).toBeVisible();
-    } finally {
-      await context.close();
-    }
-  }
-});
+    });
+  });
+}
 
 test('mobile review sends the annotated image only after the final action', async ({ browser }) => {
   const context = await browser.newContext({ ...devices['iPhone 11'] });

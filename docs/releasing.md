@@ -309,7 +309,15 @@ retain A's exact bytes, deploys A then B, treats B's command result as lost and 
 inspection, rolls back to A, and finally restores and verifies the captured baseline. Never use the
 production Worker for this proof.
 
-The controller-pinned Wrangler 4.98.0 command shapes are `deployments status`, `deployments list`,
+Wrangler updates require a coordinated controller change: update the exact package/lockfile pin,
+`CAPABILITY_WRANGLER_VERSION`, and release test fixtures together. Dependabot keeps Wrangler out of
+the grouped development updates so its capability requirement cannot block unrelated updates.
+Before merging a new toolchain, invalidate the old `RELEASE_CLOUDFLARE_CAPABILITY_VALIDATED` proof
+and keep `RELEASE_PRODUCTION_ENABLED=false`. After merge, run the main-only preview drill with the
+new controller and record its successful run and artifact before restoring the capability gate.
+Passing offline tests alone does not validate live command compatibility.
+
+The controller-pinned Wrangler 4.156.0 command shapes are `deployments status`, `deployments list`,
 `versions list`, `versions view <version-id>`, `deploy <candidate-entrypoint> --assets
 <candidate-assets> --var BUILD_SHA:<full-sha>`, and `rollback <version-id> --message <bounded-message>
 --yes`. Every command also receives controller-owned `--config <absolute-wrangler.toml> --env
@@ -341,3 +349,28 @@ rules, notification credentials, or the two production gates—and performing an
 cutover, rollback, or notification—belongs to a separately authorized operator phase. Cutover is also
 blocked on the separate operator authorization and live N/N+1 proof described above. Until that
 evidence exists, production remains disabled and undispatched.
+
+## Fixed preview venue retention
+
+Merge-queue live tests use
+`https://bugdrop-widget-test-git-preview-jermwatts-projects.vercel.app` from the `preview` branch of
+`bugdrophq/bugdrop-widget-test`. Keep that branch active and its latest successful deployment
+assigned to the fixed URL. Do not point it at a screenshot-storage branch or the production widget.
+
+On November 3, 2026, the fixed venue returned HTTP 410 (`GONE`, deployment removed). Redeploying
+`preview` at `8f9ddbb979c94fa860b666752521a3c487c996c3` restored it; merge-queue run
+[41637215460](https://github.com/bugdrophq/bugdrop/actions/runs/41637215460) then passed all live tests
+and the independently verified Issue canary.
+
+The Vercel project's Pre-Production Deployments retention was increased from 30 days to 3 years on
+November 3, 2026. Canceled, errored, and production retention remain 30 days. This is a finite
+retention safeguard, not protection against manual deletion. Vercel also documents that the latest
+preview for an active Git branch is retained; preserve the `preview` branch and verify its alias
+after repository transfers or deployment cleanup. See
+[Vercel retention exclusions](https://vercel.com/academy/optimize-your-vercel-account/retention-policies).
+
+If CI reports HTTP 410, inspect the fixed venue's deployment in Vercel and create a Preview Deployment
+from the existing `preview` branch. Verify that its HTML references
+`https://bugdrop-preview.neonwatty.workers.dev/widget.js` and
+`data-repo="bugdrophq/bugdrop-widget-test"`, then retry the normal merge queue. Do not bypass the
+preview or real-Issue verification gates.
