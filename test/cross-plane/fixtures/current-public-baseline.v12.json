@@ -1,8 +1,8 @@
 {
   "schemaVersion": 12,
-  "description": "Reviewed conditional text defaults and self-hosted API routing; publication uses existing primitives. Sorted path + NUL + bytes + NUL.",
-  "fileCount": 156,
-  "sha256": "e314b5f2573b7130c665c1f34f9c95c5c634fc60581dfbc8b08af21c76ab5924",
+  "description": "Reviewed final form submit actions, plain-text quote preview, conditional text defaults and self-hosted API routing. Sorted path + NUL + bytes + NUL.",
+  "fileCount": 157,
+  "sha256": "3d919790fd1ab19c4586f7e68e584548ed3019fa671f5a26c1953b0d277afe48",
   "approvedDelta": {
     "previousBaseline": "current-public-baseline.v11.json",
     "previousSha256": "9f82abed2d63d466cf8b6cad29076422ab068cb9c0a8b09a99cbbe8d5f87902c",
@@ -11,14 +11,19 @@
       "src/widget/api-url.ts",
       "src/widget/flows/definition.ts",
       "src/widget/flows/form-screen.ts",
+      "src/widget/flows/manager.ts",
+      "src/widget/flows/modal-view.ts",
       "src/widget/flows/modal.ts",
       "src/widget/flows/public-types.d.ts",
+      "src/widget/flows/runtime.ts",
       "src/widget/flows/screen-validation.ts",
+      "src/widget/flows/styles.ts",
+      "src/widget/flows/submit-actions.ts",
       "src/widget/flows/validate-config.ts",
       "src/widget/index.ts",
       "src/widget/public-api.d.ts",
       "src/widget/variants/fields/rating.ts"
     ],
-    "reason": "PR #463 rework: required singleChoice, conditional attribution and ordinary Submit use existing flow primitives. Independently reviewed retained gaps are conditional editable defaults and self-hosted backend routing. No new submission, Issue compiler, Worker or managed-plane behavior. The existing rating control notifies form listeners on user value changes to keep conditional navigation labels current; hover and programmatic defaults remain silent."
+    "reason": "PR #463 explicitly requires two buttons to choose scalar permission metadata and submit the final quote/credit form. Independent correctness review approved bounded actions, plain-text earlier-answer preview, conditional editable defaults, self-hosted backend routing, and rating-change notifications. Existing submission lock, retry and hidden-answer cleanup are retained. No conditional Issue-section, Worker or managed-plane behavior changes."
   }
 }

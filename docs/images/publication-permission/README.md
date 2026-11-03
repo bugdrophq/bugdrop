@@ -2,9 +2,9 @@
 
 Captured November 3, 2026 from Bleep commit `73fc4636ffdb237c9c7579baf2edf6c4808cd025`
 at `/dev/bugdrop-feedback?preview=sharing`, using its earlier pinned BugDrop candidate.
-These screenshots specify the requested interaction. They are **not screenshots
-of PR #463's current required-radio-choice implementation**, and do not establish
-that the current SDK supports the buttons. No application source was changed for
+These screenshots specify the requested interaction. They record the earlier
+Bleep preview; current SDK support is established by the acceptance checks in the
+PR description. No application source was changed for
 this capture. Both submissions used the development-only simulated endpoint;
 no GitHub Issues were created. The quote and account name are synthetic.
 
@@ -20,9 +20,10 @@ The required interaction is:
 4. Show the acknowledgement. Permission covers the Bleep website only; an empty
    quote cannot authorize publishing a testimonial. Publication remains manual.
 
-PR #463 must restore that interaction while preserving duplicate-click protection,
-retry behavior, and hidden-answer cleanup. Restoring buttons does not by itself
-justify reinstating every other removed capability; assess them independently.
+PR #463 implements that interaction with bounded final-submit actions and a plain-text
+quote preview. The gallery remains the original Bleep capture, not a fresh capture
+of the current SDK. See the PR description for SDK acceptance evidence. Conditional
+Issue sections remain omitted.
 
 ## Desktop
 
@@ -55,3 +56,16 @@ reached the simulated confirmation.
 
 The captured confirmation retains the existing privacy sentence. These images
 record the current original preview and do not silently revise its copy.
+
+## Current SDK verification
+
+These additional captures use the rebuilt SDK and executable recipe from this PR.
+Desktop Chrome exercised the optional-quote route and Yes; the in-app browser at
+393 × 852 exercised comment reuse and Keep private. The visible local request
+payloads each contained one request with the matching boolean permission and
+website channel. Both captures use synthetic data and the existing local-only
+submission interceptor, with no GitHub Issue creation.
+
+| Current SDK desktop | Current SDK responsive mobile |
+| --- | --- |
+| ![Current SDK desktop](current-sdk-desktop.jpg) | ![Current SDK mobile](current-sdk-mobile.jpg) |

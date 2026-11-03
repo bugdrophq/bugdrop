@@ -32,9 +32,13 @@ function open(fetcher = vi.fn().mockResolvedValue(success())) {
       }),
     }
   );
-  const opened = manager
-    .register(publicationFlow)
-    .open({ context: { 'account-name': 'Account Name' } });
+  const opened = manager.register(publicationFlow).open({
+    context: {
+      'account-name': 'Account Name',
+      'publication-permission': false,
+      'publication-channels': 'website',
+    },
+  });
   return { opened, fetcher };
 }
 const shadow = () => document.querySelector('[data-bugdrop-flow]')!.shadowRoot!;
@@ -46,13 +50,7 @@ async function button(label: string) {
   );
   return [...shadow().querySelectorAll('button')].find(button => button.textContent === label)!;
 }
-async function choose(value: string) {
-  const choice = shadow().querySelector<HTMLInputElement>(`input[value="${value}"]`)!;
-  choice.click();
-  await Promise.resolve();
-  await Promise.resolve();
-}
-async function rate(rating: number) {
+async function rate(rating: number, comment = 'Great!') {
   await vi.waitFor(() =>
     expect(
       shadow().querySelector(`[aria-label="${rating} ${rating === 1 ? 'star' : 'stars'}"]`)
@@ -63,91 +61,115 @@ async function rate(rating: number) {
       `[aria-label="${rating} ${rating === 1 ? 'star' : 'stars'}"]`
     )!
     .click();
-  const quote = shadow().querySelector('textarea')!;
-  quote.value = 'Great!';
-  quote.dispatchEvent(new Event('input', { bubbles: true }));
+  const input = shadow().querySelector('textarea')!;
+  input.value = comment;
+  input.dispatchEvent(new Event('input', { bubbles: true }));
 }
+const description = (fetcher: ReturnType<typeof vi.fn>, index = 0) =>
+  JSON.parse(fetcher.mock.calls[index][1].body).description as string;
 afterEach(() => {
   vi.unstubAllGlobals();
   document.body.replaceChildren();
 });
 
-describe('publication permission using existing flow primitives', () => {
-  for (const permission of ['yes', 'no']) {
-    it(`uses ordinary Submit to send one Issue after ${permission}`, async () => {
+describe('two-button publication permission', () => {
+  for (const permission of [true, false]) {
+    it(`collects credit and submits once with permission ${permission}`, async () => {
       const { opened, fetcher } = open();
       await rate(5);
       (await button('Continue')).click();
-      await vi.waitFor(() => expect(shadow().textContent).toContain('Publication permission'));
-      expect(shadow().querySelector('input:checked')).toBeNull();
-      (await button('Submit')).click();
-      await vi.waitFor(() => expect(shadow().querySelector('.bdv-error')).not.toBeNull());
+      const submit = await button(
+        permission ? 'Yes, you can share this' : 'Keep my feedback private'
+      );
+      expect(shadow().querySelector('input[type="radio"]')).toBeNull();
+      expect(
+        [...shadow().querySelectorAll('button')].some(button => button.textContent === 'Submit')
+      ).toBe(false);
+      expect(shadow().querySelector('blockquote')?.textContent).toBe('Great!');
+      const credit = shadow().querySelector<HTMLInputElement>('input')!;
+      expect(credit.value).toBe('Account Name');
+      credit.value = 'Edited Credit';
+      credit.dispatchEvent(new Event('input', { bubbles: true }));
+      await Promise.resolve();
+      expect(submit.textContent).toBe(
+        permission ? 'Yes, you can share this' : 'Keep my feedback private'
+      );
       expect(fetcher).not.toHaveBeenCalled();
-      await choose(permission);
-      if (permission === 'yes') {
-        (await button('Continue')).click();
-        await vi.waitFor(() =>
-          expect(shadow().querySelector<HTMLInputElement>('input')?.value).toBe('Account Name')
-        );
-        shadow().querySelector<HTMLInputElement>('input')!.value = 'Edited Credit';
-      } else {
-        expect(shadow().textContent).not.toContain('Show my quote as');
-      }
-      expect(fetcher).not.toHaveBeenCalled();
-      const submit = await button('Submit');
+      const opposite = await button(
+        permission ? 'Keep my feedback private' : 'Yes, you can share this'
+      );
       submit.click();
-      submit.click();
+      // An opposite choice while the first submit is pending must not replace metadata.
+      opposite.click();
       await expect(opened.result).resolves.toMatchObject({ status: 'submitted' });
       expect(fetcher).toHaveBeenCalledTimes(1);
-      const description = JSON.parse(fetcher.mock.calls[0][1].body).description;
-      expect(description).toContain(`## Publication permission\n\n${permission}`);
-      expect(description.includes('## Credit')).toBe(permission === 'yes');
-      expect(description).not.toContain('Account Name');
-      if (permission === 'yes') expect(description).toContain('Edited Credit');
+      expect(description(fetcher)).toContain(`## Publication permission\n\n${permission}`);
+      expect(description(fetcher)).toContain('## Publication channels\n\nwebsite');
+      expect(description(fetcher)).toContain('Edited Credit');
+      expect(description(fetcher)).not.toContain('Account Name');
       opened.close();
     });
   }
 
   for (const rating of [1, 2, 3, 4]) {
-    it(`${rating} stars skips permission and attribution without leaking account defaults`, async () => {
+    it(`${rating} stars submits privately without the sharing screen`, async () => {
       const { opened, fetcher } = open();
       await rate(rating);
       (await button('Submit')).click();
       await expect(opened.result).resolves.toMatchObject({ status: 'submitted' });
       expect(fetcher).toHaveBeenCalledTimes(1);
-      const description = JSON.parse(fetcher.mock.calls[0][1].body).description;
-      expect(description).not.toContain('## Publication permission');
-      expect(description).not.toContain('## Credit');
-      expect(description).not.toContain('Account Name');
+      expect(description(fetcher)).toContain('## Publication permission\n\nfalse');
+      expect(description(fetcher)).not.toContain('## Credit');
+      expect(description(fetcher)).not.toContain('Account Name');
       opened.close();
     });
   }
 
-  it('Back then No clears attribution and submits privately exactly once', async () => {
+  it('offers a quote only when the comment is empty and enforces 5 characters', async () => {
     const { opened, fetcher } = open();
-    await rate(5);
+    await rate(5, '');
     (await button('Continue')).click();
-    await vi.waitFor(() => expect(shadow().querySelector('input[value="yes"]')).not.toBeNull());
-    await choose('yes');
+    await button('Continue');
+    await vi.waitFor(() => expect(shadow().textContent).toContain('Your quote (optional)'));
+    const quote = shadow().querySelector('textarea')!;
+    quote.value = 'Nice';
     (await button('Continue')).click();
-    await vi.waitFor(() =>
-      expect(shadow().querySelector<HTMLInputElement>('input')?.value).toBe('Account Name')
-    );
-    shadow().querySelector<HTMLInputElement>('input')!.value = 'Do not retain this';
-    (await button('Back')).click();
-    await vi.waitFor(() => expect(shadow().querySelector('input[value="no"]')).not.toBeNull());
-    await choose('no');
-    (await button('Submit')).click();
+    await vi.waitFor(() => expect(shadow().querySelector('.bdv-error')).not.toBeNull());
+    expect(fetcher).not.toHaveBeenCalled();
+    quote.value = 'Great';
+    (await button('Continue')).click();
+    await button('Yes, you can share this');
+    expect(shadow().querySelector('blockquote')?.textContent).toBe('Great');
+    shadow().querySelector<HTMLInputElement>('input')!.value = '';
+    (await button('Yes, you can share this')).click();
     await expect(opened.result).resolves.toMatchObject({ status: 'submitted' });
-    expect(fetcher).toHaveBeenCalledTimes(1);
-    const description = JSON.parse(fetcher.mock.calls[0][1].body).description;
-    expect(description).toContain('## Publication permission\n\nno');
-    expect(description).not.toContain('Do not retain this');
-    expect(description).not.toContain('## Credit');
+    expect(description(fetcher)).toContain('> Great');
+    expect(description(fetcher)).not.toContain('## Credit');
     opened.close();
   });
 
-  it('a failed submission retries the chosen answer without creating an early Issue', async () => {
+  it('Back to a lower rating clears abandoned credit and quote', async () => {
+    const { opened, fetcher } = open();
+    await rate(5, '');
+    (await button('Continue')).click();
+    await vi.waitFor(() => expect(shadow().textContent).toContain('Your quote (optional)'));
+    shadow().querySelector('textarea')!.value = 'Abandoned quote';
+    (await button('Continue')).click();
+    await button('Yes, you can share this');
+    shadow().querySelector<HTMLInputElement>('input')!.value = 'Abandoned credit';
+    (await button('Back')).click();
+    await vi.waitFor(() => expect(shadow().textContent).toContain('Your quote (optional)'));
+    (await button('Back')).click();
+    await rate(4);
+    (await button('Submit')).click();
+    await expect(opened.result).resolves.toMatchObject({ status: 'submitted' });
+    expect(fetcher).toHaveBeenCalledTimes(1);
+    expect(description(fetcher)).toContain('## Publication permission\n\nfalse');
+    expect(description(fetcher)).not.toContain('Abandoned');
+    opened.close();
+  });
+
+  it('retries with the chosen permission and edited credit', async () => {
     const fetcher = vi
       .fn()
       .mockRejectedValueOnce(new Error('Offline'))
@@ -155,38 +177,39 @@ describe('publication permission using existing flow primitives', () => {
     const { opened } = open(fetcher);
     await rate(5);
     (await button('Continue')).click();
-    await vi.waitFor(() => expect(shadow().querySelector('input[value="no"]')).not.toBeNull());
-    await choose('no');
-    (await button('Submit')).click();
+    await button('Keep my feedback private');
+    shadow().querySelector<HTMLInputElement>('input')!.value = 'Edited Credit';
+    (await button('Keep my feedback private')).click();
     await vi.waitFor(() => expect(shadow().textContent).toContain('Submission failed'));
     expect(fetcher).toHaveBeenCalledTimes(1);
-    shadow().querySelector<HTMLButtonElement>('.bdv-submit')!.click();
+    (await button('Try again')).click();
     await expect(opened.result).resolves.toMatchObject({ status: 'submitted' });
     expect(fetcher).toHaveBeenCalledTimes(2);
-    for (const [, request] of fetcher.mock.calls)
-      expect(JSON.parse(request.body).description).toContain('## Publication permission\n\nno');
+    for (let i = 0; i < 2; i++) {
+      expect(description(fetcher, i)).toContain('## Publication permission\n\nfalse');
+      expect(description(fetcher, i)).toContain('Edited Credit');
+    }
     opened.close();
   });
 
-  it('closing an unfinished flow creates no Issue', async () => {
+  it('closing before choosing a button creates no Issue', async () => {
     const { opened, fetcher } = open();
     await rate(5);
     (await button('Continue')).click();
+    await button('Yes, you can share this');
     opened.close();
     await expect(opened.result).resolves.toEqual({ status: 'closed' });
     expect(fetcher).not.toHaveBeenCalled();
   });
 
-  it('retains native hidden-answer cleanup for seeds and Yes-to-No changes', () => {
+  it('retains native hidden-answer cleanup for initially hidden seeds', () => {
     const definition = normalizeFlowDefinition(validateAndFreezeFlowConfig(publicationFlow));
-    const runtime = new FlowRuntime(definition, {}, { 'attribution.name': 'Hidden seed' });
-    expect(runtime.answers['attribution.name']).toBeUndefined();
-    runtime.setFormAnswers('experience', { rating: 5, quote: 'Great!' });
-    runtime.setFormAnswers('permission', { publish: 'yes' });
-    runtime.setFormAnswers('attribution', { name: 'Visible name' });
-    runtime.setFormAnswers('permission', { publish: 'no' });
-    expect(runtime.answers['attribution.name']).toBeUndefined();
-    runtime.setFormAnswers('experience', { rating: 4, quote: 'Okay!' });
-    expect(runtime.answers['permission.publish']).toBeUndefined();
+    const runtime = new FlowRuntime(
+      definition,
+      {},
+      { 'sharing.credit': 'Hidden seed', 'quote.text': 'Hidden quote' }
+    );
+    expect(runtime.answers['sharing.credit']).toBeUndefined();
+    expect(runtime.answers['quote.text']).toBeUndefined();
   });
 });

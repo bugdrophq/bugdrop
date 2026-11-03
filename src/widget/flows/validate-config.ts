@@ -59,6 +59,8 @@ export function validateAndFreezeFlowConfig(input: FlowConfig): Readonly<FlowCon
   const screenIds = new Set<string>();
   for (const screen of input.screens) {
     validateScreen(screen, screenIds, forms, earlierAnswers);
+    if (screen.type === 'form' && screen.submitActions && screen !== input.screens.at(-1))
+      fail('submitActions must belong to the last configured screen');
     if (screen.type === 'form') {
       if (referencedForms.has(screen.form)) fail(`form ${screen.form} may be referenced only once`);
       referencedForms.add(screen.form);

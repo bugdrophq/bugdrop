@@ -68,6 +68,15 @@ export interface FormScreen extends BaseScreen {
   form: string;
   continueLabel?: string;
   backLabel?: string;
+  /** Two alternative final submit buttons; metadata is mapped through Issue context sections. */
+  submitActions?: FlowSubmitAction[];
+  /** First nonempty earlier text answer displayed as a plain-text quote. */
+  quotePreview?: string[];
+}
+
+export interface FlowSubmitAction {
+  label: string;
+  metadata: Record<string, FlowScalar>;
 }
 
 export interface ScreenshotScreen extends BaseScreen {

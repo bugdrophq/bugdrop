@@ -1,4 +1,5 @@
 import { countConditionNodes } from './conditions';
+import { validateSubmitActions } from './submit-actions';
 import { validateFlowConditionValue } from './field-validation';
 import type { FlowCondition, FlowConfig, FlowField, FlowScreen } from './public-types';
 import { fail, object, only, optionalText, scalar, text, validId } from './validation-utils';
@@ -18,7 +19,16 @@ export function validateScreen(
     screen.type === 'message'
       ? new Set(['id', 'type', 'when', 'title', 'description', 'continueLabel'])
       : screen.type === 'form'
-        ? new Set(['id', 'type', 'when', 'form', 'continueLabel', 'backLabel'])
+        ? new Set([
+            'id',
+            'type',
+            'when',
+            'form',
+            'continueLabel',
+            'backLabel',
+            'submitActions',
+            'quotePreview',
+          ])
         : new Set([
             'id',
             'type',
@@ -46,6 +56,22 @@ export function validateScreen(
   }
   optionalText(screen.continueLabel, 'screen continueLabel', 120);
   if (screen.type !== 'message') optionalText(screen.backLabel, 'screen backLabel', 120);
+  if (screen.type === 'form') {
+    validateSubmitActions(screen);
+    if (screen.quotePreview !== undefined) {
+      if (
+        !Array.isArray(screen.quotePreview) ||
+        screen.quotePreview.length < 1 ||
+        screen.quotePreview.length > 3
+      )
+        fail('quotePreview must contain 1-3 earlier text answers');
+      for (const path of screen.quotePreview) {
+        const type = earlier.get(path)?.type;
+        if (type !== 'shortText' && type !== 'longText')
+          fail('quotePreview must reference an earlier text field');
+      }
+    }
+  }
 }
 
 function validateCondition(condition: FlowCondition, earlier: Map<string, FlowField>) {

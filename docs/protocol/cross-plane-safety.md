@@ -13,21 +13,22 @@ annotation change; v4 records the temporary deferral; v5 restores Chinese
 localization for issuer QA; v6 adds standard-widget modal accessibility; and v7 keeps
 Flow screenshot selection and review in the same visual host as the preceding screens.
 
-## Reviewed v12 conditional defaults and self-hosted routing
+## Reviewed v12 two-button publication flow
 
-PR #463 uses existing single-choice, conditional-screen, answer-mapping, and
-Submit primitives for publication permission. Its only new runtime capabilities
-are conditional text defaults and an explicit backend for self-hosted scripts.
-The validator extraction keeps files within the repository's size limit.
-The existing rating control now notifies form listeners of user value changes
-so conditional-screen progress and navigation labels update without text entry.
-No new action-metadata, quote-preview, or conditional-Issue API remains. The
-reviewed v12 fixture lists the exact public-source delta; the v11 reviewed tree
-and all earlier historical fixtures remain unchanged. See the
-[capability decisions](../publication-permission-flow.md). Independent correctness,
-tests, contracts, failure-handling, documentation, and simplicity reviews found
-no actionable issues in this reduced delta. This is source-review evidence, not
-a production release or Bleep-integration qualification.
+PR #463 adds two final form submit actions with scalar metadata and a plain-text
+preview of earlier answers. These support a quote, editable credit, and two
+permission buttons on the same screen. Metadata is attached only after form
+validation and retained across retries. The existing submission lock and
+hidden-answer cleanup remain in use. Conditional Issue sections are not added.
+Conditional text defaults and explicit backend routing for self-hosted scripts
+remain independently justified. The rating control notifies form listeners on
+user changes so navigation updates without text entry. The validator extraction
+keeps files within the repository's size limit.
+
+The v12 fixture records the explicitly reviewed public-source delta; the v11
+reviewed tree and earlier historical fixtures remain unchanged. See the
+[capability decisions](../publication-permission-flow.md). This is unreleased
+source-review evidence, not a production release or Bleep-integration qualification.
 
 ## Reviewed v11 uploaded-image thumbnails
 

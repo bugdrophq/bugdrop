@@ -169,7 +169,7 @@ describe('legacy public plane preserves its explicit compatibility boundary', ()
     ).toBe(thumbnails.sha256);
   }, 30_000);
 
-  it('limits conditional defaults and API routing to their declared public source delta', () => {
+  it('limits publication actions, quote preview, defaults and API routing to their declared public source delta', () => {
     const paths = publicFiles();
     const base = additions.approvedDelta.baseCommit;
     const prior = publicFilesAt(base);
