@@ -1,5 +1,12 @@
 # Publication permission with existing flow primitives
 
+> **Design decision updated November 3, 2026:** Bleep requires the original two
+> permission buttons, each choosing permission and submitting in one action.
+> See the [desktop and mobile reference](images/publication-permission/README.md).
+> The composition below describes the current branch implementation; restoring
+> the two-button interaction in PR #463 is outstanding. Its earlier statement
+> that one-click submission is unnecessary is superseded by this requirement.
+
 Publication permission does not require a new submission API. Use the executable
 [example configuration](../test/fixtures/publication-flow.ts):
 
