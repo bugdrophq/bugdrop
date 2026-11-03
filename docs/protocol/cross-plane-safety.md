@@ -2,16 +2,29 @@
 
 The current public system remains supported. This harness compares its tracked
 runtime, assets, widget build inputs and Wrangler configuration to the reviewed
-feature delta recorded in `test/cross-plane/fixtures/current-public-baseline.v12.json`.
-The test verifies that the v2 through v11 fixtures' commits produce their exact
+feature delta recorded in `test/cross-plane/fixtures/current-public-baseline.v13.json`.
+The test verifies that the v2 through v12 fixtures' commits produce their exact
 file counts and fingerprints, then compares the working tree against the reviewed
-v12 fingerprint. Public fingerprint mutations and changed/skipped/retried browser evidence must fail.
+v13 fingerprint. Public fingerprint mutations and changed/skipped/retried browser evidence must fail.
 An intentional future public change requires explicit baseline review; do not
 refresh the fingerprint merely to make a failure disappear. The v1 fixture is
 pre-localization history; v2 records Chinese localization; v3 records the mobile
 annotation change; v4 records the temporary deferral; v5 restores Chinese
 localization for issuer QA; v6 adds standard-widget modal accessibility; and v7 keeps
 Flow screenshot selection and review in the same visual host as the preceding screens.
+
+## v13 modal theme text colors
+
+Issue #465 changes only `src/widget/ui.ts` in the protected public set: `.bd-modal`
+sets `color: var(--bd-text-primary)` so category labels follow the widget theme
+instead of inheriting host-page text colors. The v13 fixture records this explicit
+delta from main commit `1540dd22ccabdfe24c37da768060d3e94c8c6dcf`, verified against
+the unchanged v12 fingerprint. All earlier fixtures remain intact.
+
+Browser regressions cover dark and light themes with contrasting host text colors,
+host color changes while the form is open, and runtime theme switching. Both cases
+failed before the fix. This fixture records the intended source delta; it does not
+establish production release readiness.
 
 ## v12 screenshot selection cancellation recovery
 

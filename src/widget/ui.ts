@@ -413,6 +413,7 @@ export function injectStyles(shadow: ShadowRoot, config: WidgetConfig) {
 
     /* Modal */
     .bd-modal {
+      color: var(--bd-text-primary);
       background: var(--bd-bg-primary);
       border-radius: var(--bd-radius-lg);
       border: var(--bd-border-style);
