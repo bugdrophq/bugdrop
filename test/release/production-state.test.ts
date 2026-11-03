@@ -70,7 +70,7 @@ describe('Worker provenance', () => {
       moduleRoot: 'node_modules',
       environment: 'production',
     });
-    expect(result.toolchain).toEqual({ esbuild: '0.28.2', wrangler: '4.151.1' });
+    expect(result.toolchain).toEqual({ esbuild: '0.28.2', wrangler: '4.156.0' });
   });
 
   it('pins controller tools and produces a path-independent staging identity', () => {

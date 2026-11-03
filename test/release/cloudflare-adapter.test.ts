@@ -65,6 +65,12 @@ describe('controller-owned Cloudflare command plan', () => {
     expect(plan({ controllerLockBytes }).wranglerVersion).toBe(CAPABILITY_WRANGLER_VERSION);
   });
 
+  it('rejects the previous toolchain instead of accepting stale capability evidence', () => {
+    expect(() => plan({ controllerLockBytes: lock('4.151.1') })).toThrow(
+      'WRANGLER_VERSION_MISMATCH'
+    );
+  });
+
   it('pins the named environment and omits the unsafe name override', () => {
     const result = plan();
     expect(result).toMatchObject({
