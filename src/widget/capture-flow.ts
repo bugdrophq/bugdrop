@@ -44,8 +44,7 @@ export interface CaptureFlowResult {
   returnToForm: boolean;
 }
 
-export type EmptyCaptureReason =
-  'none' | 'explicit-skip' | 'capture-failure-skip' | 'selection-cancelled';
+export type EmptyCaptureReason = 'none' | 'explicit-skip' | 'capture-failure-skip';
 
 type ElementMetadata = Pick<CaptureFlowResult, 'elementSelector' | 'fullElementSelector'>;
 type ChosenCaptureResult =
@@ -261,7 +260,7 @@ async function captureFromElementChoice(
 ): Promise<ChosenCaptureResult> {
   const element = await createElementPicker(getCapturePickerStyle(config), signal);
   if (!element) {
-    return emptyChosenCaptureResult('selection-cancelled');
+    return { kind: 'chooseAgain' };
   }
 
   const elementMetadata = {
@@ -313,7 +312,7 @@ async function captureFromAreaChoice(
     signal
   );
   if (!rect) {
-    return emptyChosenCaptureResult('selection-cancelled');
+    return { kind: 'chooseAgain' };
   }
 
   const result = await captureAreaWithLoading(root, rect, config.screenshotScale, {

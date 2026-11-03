@@ -1212,9 +1212,8 @@ test.describe('Widget Interaction', () => {
 
     // Overlay should be removed
     await expect(overlay).not.toBeVisible({ timeout: 3000 });
-    await expect(host.locator('css=.bd-success-icon')).toBeVisible({ timeout: 10000 });
-    expect(payloads).toHaveLength(1);
-    expect(payloads[0].screenshot).toBeNull();
+    await expect(host.locator('css=[data-action="element"]')).toBeVisible();
+    expect(payloads).toHaveLength(0);
   });
 
   test('area picker prompt clears mobile safe areas and uses an inline cancel link', async ({
@@ -1277,9 +1276,8 @@ test.describe('Widget Interaction', () => {
       await expect(page.locator('#bugdrop-area-picker-overlay')).not.toBeVisible({
         timeout: 3000,
       });
-      await expect(host.locator('css=.bd-success-icon')).toBeVisible({ timeout: 10000 });
-      expect(payloads).toHaveLength(1);
-      expect(payloads[0].screenshot).toBeNull();
+      await expect(host.locator('css=[data-action="element"]')).toBeVisible();
+      expect(payloads).toHaveLength(0);
     } finally {
       await context.close();
     }
@@ -1351,9 +1349,8 @@ test.describe('Widget Interaction', () => {
       await expect(cancelButton).toHaveText('Cancel');
 
       await cancelButton.click();
-      await expect(host.locator('css=.bd-success-icon')).toBeVisible({ timeout: 10000 });
-      expect(payloads).toHaveLength(1);
-      expect(payloads[0].screenshot).toBeNull();
+      await expect(host.locator('css=[data-action="element"]')).toBeVisible();
+      expect(payloads).toHaveLength(0);
     } finally {
       await context.close();
     }
@@ -1640,15 +1637,8 @@ test.describe('Widget Interaction', () => {
       await expect(page.locator('#bugdrop-element-picker-tooltip')).not.toBeVisible({
         timeout: 5000,
       });
-      await expect(host.locator('css=.bd-trigger')).toBeVisible({ timeout: 5000 });
-      expect(submissions).toHaveLength(1);
-      const payload = submissions[0] as {
-        screenshot: string | null;
-        metadata: { elementSelector?: string | null; fullElementSelector?: string | null };
-      };
-      expect(payload.screenshot).toBeNull();
-      expect(payload.metadata.elementSelector).toBeNull();
-      expect(payload.metadata.fullElementSelector).toBeNull();
+      await expect(host.locator('css=[data-action="element"]')).toBeVisible();
+      expect(submissions).toHaveLength(0);
     } finally {
       await context.close();
     }
@@ -5599,20 +5589,13 @@ test.describe('Screenshot Crash Prevention (#67)', () => {
     await expect(page.locator('#bugdrop-element-picker-tooltip')).toBeVisible({ timeout: 5000 });
     await page.keyboard.press('Escape');
 
-    await expect(host.locator('css=.bd-success-icon')).toBeVisible({ timeout: 5000 });
-    expect(payloads).toHaveLength(1);
-    expect(payloads[0].screenshot).toBeNull();
-    const metadata = payloads[0].metadata as {
-      elementSelector?: string | null;
-      fullElementSelector?: string | null;
-    };
-    expect(metadata.elementSelector).toBeNull();
-    expect(metadata.fullElementSelector).toBeNull();
+    await expect(host.locator('css=[data-action="element"]')).toBeVisible();
+    expect(payloads).toHaveLength(0);
 
     await host.locator('css=.bd-close').click();
-    await host.locator('css=.bd-trigger').click();
     await expect(host.locator('css=#title')).toBeVisible({ timeout: 5000 });
     await expect(host.locator('css=#include-screenshot')).toBeChecked();
+    expect(payloads).toHaveLength(0);
   });
 
   test('shows all buttons on pages below 10k nodes', async ({ page }) => {
