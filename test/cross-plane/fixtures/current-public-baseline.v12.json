@@ -2,7 +2,7 @@
   "schemaVersion": 12,
   "description": "Reviewed conditional text defaults and self-hosted API routing; publication uses existing primitives. Sorted path + NUL + bytes + NUL.",
   "fileCount": 156,
-  "sha256": "a553df04ecc7ebf80d84ab8756e1978eacb7bdce37e692f250ca15395fd13bf2",
+  "sha256": "01592e66b20b4fca12bc433388233a8c6f1ea58ace28ff48bee3bedc2b4a019b",
   "approvedDelta": {
     "previousBaseline": "current-public-baseline.v11.json",
     "previousSha256": "9f82abed2d63d466cf8b6cad29076422ab068cb9c0a8b09a99cbbe8d5f87902c",

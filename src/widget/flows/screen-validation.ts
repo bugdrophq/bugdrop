@@ -48,7 +48,7 @@ export function validateScreen(
   if (screen.type !== 'message') optionalText(screen.backLabel, 'screen backLabel', 120);
 }
 
-export function validateCondition(condition: FlowCondition, earlier: Map<string, FlowField>) {
+function validateCondition(condition: FlowCondition, earlier: Map<string, FlowField>) {
   if (!object(condition)) fail('condition must be an object');
   countConditionNodes(condition);
   if ('answer' in condition) {
