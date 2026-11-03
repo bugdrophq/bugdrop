@@ -19,6 +19,8 @@ PR #463 uses existing single-choice, conditional-screen, answer-mapping, and
 Submit primitives for publication permission. Its only new runtime capabilities
 are conditional text defaults and an explicit backend for self-hosted scripts.
 The validator extraction keeps files within the repository's size limit.
+The existing rating control now notifies form listeners of user value changes
+so conditional-screen progress and navigation labels update without text entry.
 No new action-metadata, quote-preview, or conditional-Issue API remains. The
 reviewed v12 fixture lists the exact public-source delta; the v11 reviewed tree
 and all earlier historical fixtures remain unchanged. See the

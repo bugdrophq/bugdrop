@@ -2,7 +2,7 @@
   "schemaVersion": 12,
   "description": "Reviewed conditional text defaults and self-hosted API routing; publication uses existing primitives. Sorted path + NUL + bytes + NUL.",
   "fileCount": 156,
-  "sha256": "01592e66b20b4fca12bc433388233a8c6f1ea58ace28ff48bee3bedc2b4a019b",
+  "sha256": "e314b5f2573b7130c665c1f34f9c95c5c634fc60581dfbc8b08af21c76ab5924",
   "approvedDelta": {
     "previousBaseline": "current-public-baseline.v11.json",
     "previousSha256": "9f82abed2d63d466cf8b6cad29076422ab068cb9c0a8b09a99cbbe8d5f87902c",
@@ -16,8 +16,9 @@
       "src/widget/flows/screen-validation.ts",
       "src/widget/flows/validate-config.ts",
       "src/widget/index.ts",
-      "src/widget/public-api.d.ts"
+      "src/widget/public-api.d.ts",
+      "src/widget/variants/fields/rating.ts"
     ],
-    "reason": "PR #463 rework: required singleChoice, conditional attribution and ordinary Submit use existing flow primitives. Independently reviewed retained gaps are conditional editable defaults and self-hosted backend routing. No new submission, Issue compiler, Worker or managed-plane behavior."
+    "reason": "PR #463 rework: required singleChoice, conditional attribution and ordinary Submit use existing flow primitives. Independently reviewed retained gaps are conditional editable defaults and self-hosted backend routing. No new submission, Issue compiler, Worker or managed-plane behavior. The existing rating control notifies form listeners on user value changes to keep conditional navigation labels current; hover and programmatic defaults remain silent."
   }
 }

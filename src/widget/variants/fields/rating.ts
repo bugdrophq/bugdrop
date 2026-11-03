@@ -29,10 +29,12 @@ export function createRatingController(field: RatingField, instanceId: string): 
     }
   };
   const select = (value: number, focus = false) => {
+    const changed = selected !== value;
     selected = value;
     previewed = null;
     renderSelection();
     if (focus) buttons[value - 1]?.focus();
+    if (changed) group.dispatchEvent(new Event('input', { bubbles: true }));
   };
   const listeners: Array<{
     button: HTMLButtonElement;

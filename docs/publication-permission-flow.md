@@ -59,3 +59,12 @@ not a value read from feedback answers or flow context.
 Both retained additions are unreleased. This PR does not deploy a widget or
 update Bleep's pinned integration. Bleep PR #2689 still uses the earlier
 one-click candidate and must be adapted and repinned separately before rollout.
+
+## Local browser verification
+
+Desktop and 393 × 852 responsive browser tests exercise required choice, edited
+and anonymous attribution, one final request, and Back → No cleanup. Rating-only
+changes with an empty blurb also update the visible route and Continue/Submit
+label immediately, for both pointer and keyboard input. The existing rating
+control emits a bubbling input notification on user value changes; hover and
+programmatic defaults remain silent.
