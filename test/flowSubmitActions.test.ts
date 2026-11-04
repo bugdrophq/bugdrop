@@ -3,35 +3,10 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { createFlowManager } from '../src/widget/flows/manager';
 import { validateAndFreezeFlowConfig } from '../src/widget/flows/validate-config';
 import type { FlowConfig } from '../src/widget/flows/public-types';
+import { replyPreferenceFlow } from './fixtures/reply-preference-flow';
 
 function config(): FlowConfig {
-  return {
-    configVersion: 1,
-    id: 'permission-test',
-    presentation: { kind: 'modal' },
-    forms: [
-      {
-        id: 'credit',
-        title: 'Can we share?',
-        fields: [{ id: 'name', type: 'shortText', label: 'Name', required: true }],
-      },
-    ],
-    screens: [
-      {
-        id: 'sharing',
-        type: 'form',
-        form: 'credit',
-        submitActions: [
-          { label: 'Yes, share', metadata: { permission: true } },
-          { label: 'Keep private', metadata: { permission: false } },
-        ],
-      },
-    ],
-    issue: {
-      title: 'Permission test',
-      sections: [{ heading: 'Permission', context: 'permission' }],
-    },
-  };
+  return structuredClone(replyPreferenceFlow);
 }
 
 afterEach(() => {
@@ -53,7 +28,7 @@ function open(fetcher: ReturnType<typeof vi.fn>) {
       }),
     }
   );
-  return manager.register(config()).open({ context: { permission: false } });
+  return manager.register(config()).open({ context: { 'reply-preference': 'no-reply' } });
 }
 function success() {
   return {
@@ -71,23 +46,26 @@ function shadow() {
 }
 
 describe('final submit actions', () => {
-  for (const permission of [true, false]) {
-    it(`sends exactly one Issue with permission ${permission}`, async () => {
+  for (const preference of ['reply', 'no-reply']) {
+    it(`records ${preference} and sends exactly one Issue without preview or defaults`, async () => {
       const fetcher = vi.fn().mockResolvedValue(success());
       const opened = open(fetcher);
       await vi.waitFor(() => expect(shadow().querySelector('input')).not.toBeNull());
+      expect(shadow().querySelector('blockquote')).toBeNull();
+      expect(shadow().querySelector('input')!.value).toBe('');
       const input = shadow().querySelector('input')!;
       input.value = 'Reviewer';
       input.dispatchEvent(new Event('input', { bubbles: true }));
       const button = shadow().querySelector<HTMLButtonElement>(
-        `[data-submit-action="${permission ? 0 : 1}"]`
+        `[data-submit-action="${preference === 'reply' ? 0 : 1}"]`
       )!;
       button.click();
       button.click();
       await expect(opened.result).resolves.toMatchObject({ status: 'submitted' });
       expect(fetcher).toHaveBeenCalledTimes(1);
       const payload = JSON.parse(fetcher.mock.calls[0][1].body);
-      expect(payload.description).toContain(`## Permission\n\n${permission}`);
+      expect(payload.description).toContain(`## Reply preference\n\n${preference}`);
+      expect(payload.description).toContain('## Feedback\n\nReviewer');
       opened.close();
     });
   }
@@ -108,7 +86,7 @@ describe('final submit actions', () => {
     shadow().querySelector<HTMLButtonElement>('.bdv-submit')!.click();
     await expect(opened.result).resolves.toMatchObject({ status: 'submitted' });
     for (const [, request] of fetcher.mock.calls)
-      expect(JSON.parse(request.body).description).toContain('## Permission\n\nfalse');
+      expect(JSON.parse(request.body).description).toContain('## Reply preference\n\nno-reply');
     opened.close();
   });
 
@@ -132,10 +110,10 @@ describe('final submit actions', () => {
     expect(() => validateAndFreezeFlowConfig(invalid)).toThrow('must be scalar');
     const duplicate = config();
     if (duplicate.screens[0].type === 'form')
-      duplicate.screens[0].submitActions![1].label = 'Yes, share';
+      duplicate.screens[0].submitActions![1].label = 'Record reply requested';
     expect(() => validateAndFreezeFlowConfig(duplicate)).toThrow('distinct');
     const preview = config();
-    if (preview.screens[0].type === 'form') preview.screens[0].quotePreview = ['credit.name'];
+    if (preview.screens[0].type === 'form') preview.screens[0].quotePreview = ['feedback.summary'];
     expect(() => validateAndFreezeFlowConfig(preview)).toThrow('text field');
   });
 });

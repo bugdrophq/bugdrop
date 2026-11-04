@@ -1,4 +1,9 @@
-# Two-button publication permission
+# Publication-permission recipe
+
+This recipe composes the general
+[alternative final submission actions](flow-submit-actions.md), earlier-text
+preview, and editable context defaults. The rating threshold, publication scope,
+and attribution copy are application decisions, not built-in flow policies.
 
 PR #463 supports the [original desktop/mobile design](images/publication-permission/README.md):
 a quote and editable credit on one final screen, with two buttons that choose
@@ -44,6 +49,11 @@ Do not infer publication permission from the presence of credit or a high rating
 | `data-api-url` | Retained independently | Bleep serves its pinned widget asset locally but needs a separate feedback backend. Public flow open/register APIs do not configure transport. |
 
 ## Final submit actions
+
+See the [general action contract](flow-submit-actions.md#action-contract) for
+mapping, precedence, supported placement, and the distinction between recording
+a choice and enforcing application behavior. Here the recorded choice is
+publication permission.
 
 Only the **last configured screen**, when it is a form, may declare
 `submitActions`. It must contain exactly two distinct nonempty labels and scalar
