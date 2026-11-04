@@ -2,6 +2,11 @@
 
 Follow `CLAUDE.md` for repo-level agent guidance.
 
+## Documentation
+
+Only `docs/website/` belongs in version control. Other `docs/` files are ignored;
+do not force-add planning notes, goal boards, review captures, or other documents.
+
 ## Local Servers
 
 When starting or handing off a local server, always use a named `.localhost`
