@@ -2,10 +2,10 @@
 
 The current public system remains supported. This harness compares its tracked
 runtime, assets, widget build inputs and Wrangler configuration to the reviewed
-feature delta recorded in `test/cross-plane/fixtures/current-public-baseline.v12.json`.
-The test verifies that the v2 through v11 fixtures' commits produce their exact
+feature delta recorded in `test/cross-plane/fixtures/current-public-baseline.v14.json`.
+The test verifies that the v2 through v13 fixtures' commits produce their exact
 file counts and fingerprints, then compares the working tree against the reviewed
-v12 fingerprint. Public fingerprint mutations and changed/skipped/retried browser evidence must fail.
+v14 fingerprint. Public fingerprint mutations and changed/skipped/retried browser evidence must fail.
 An intentional future public change requires explicit baseline review; do not
 refresh the fingerprint merely to make a failure disappear. The v1 fixture is
 pre-localization history; v2 records Chinese localization; v3 records the mobile
@@ -13,22 +13,53 @@ annotation change; v4 records the temporary deferral; v5 restores Chinese
 localization for issuer QA; v6 adds standard-widget modal accessibility; and v7 keeps
 Flow screenshot selection and review in the same visual host as the preceding screens.
 
-## Reviewed v12 two-button publication flow
+## Reviewed v14 alternative final flow actions
 
-PR #463 adds two final form submit actions with scalar metadata and a plain-text
-preview of earlier answers. These support a quote, editable credit, and two
-permission buttons on the same screen. Metadata is attached only after form
-validation and retained across retries. The existing submission lock and
-hidden-answer cleanup remain in use. Conditional Issue sections are not added.
-Conditional text defaults and explicit backend routing for self-hosted scripts
-remain independently justified. The rating control notifies form listeners on
-user changes so navigation updates without text entry. The validator extraction
-keeps files within the repository's size limit.
+PR #463 adds opt-in final form actions that record scalar values and use the
+existing submission pipeline. Earlier-text quote preview and editable defaults
+from opening context are independent capabilities; publication permission is one
+example recipe. See the [general contract](../flow-submit-actions.md).
 
-The v12 fixture records the explicitly reviewed public-source delta; the v11
-reviewed tree and earlier historical fixtures remain unchanged. See the
-[capability decisions](../publication-permission-flow.md). This is unreleased
-source-review evidence, not a production release or Bleep-integration qualification.
+The feature retains validation, submission locking, retry choice retention and
+hidden-answer cleanup. Final-action DOM order matches the displayed button order.
+Shown forms with context defaults immediately preview their route so progress and
+Continue/Submit agree with the displayed values before interaction. Default flows
+without these options retain their existing behavior. Self-hosted API routing and
+rating-change notifications remain separately bounded changes.
+
+The v14 fixture records the reviewed feature delta from main commit
+`e1380f7f0c34131555db5c9070298f8ed3d436a3`. The v13 tree is pinned to that commit,
+and the v12/v13 fixtures from main remain unchanged. This is unreleased source
+review evidence, not a production release or Bleep-integration qualification.
+
+## v13 modal theme text colors
+
+Issue #465 changes only `src/widget/ui.ts` in the protected public set: `.bd-modal`
+sets `color: var(--bd-text-primary)` so category labels follow the widget theme
+instead of inheriting host-page text colors. The v13 fixture records this explicit
+delta from main commit `1540dd22ccabdfe24c37da768060d3e94c8c6dcf`, verified against
+the unchanged v12 fingerprint. All earlier fixtures remain intact.
+
+Browser regressions cover dark and light themes with contrasting host text colors,
+host color changes while the form is open, and runtime theme switching. Both cases
+failed before the fix. This fixture records the intended source delta; it does not
+establish production release readiness.
+
+## v12 screenshot selection cancellation recovery
+
+Issue #460 changes only `src/widget/capture-flow.ts` in the protected public set:
+area and element picker cancellation returns to the screenshot chooser instead of
+advancing optional feedback submission. The v12 fixture records this explicit
+delta from main commit `ce65a2a290728708c975f95a8426c75e5bf8ef55`, whose tree is
+verified against the unchanged v11 fingerprint. All earlier fixtures remain intact,
+and the protected set remains at 154 files. Mutation checks include capture-flow.
+
+Regression tests failed before the fix. After it, 115 focused unit tests and 35
+Chromium browser tests passed, covering both default-flow runners, optional and
+required capture, retained details, explicit skip, capture recovery, desktop Escape,
+mobile Cancel, and public close during selection. The tests count intercepted
+feedback requests to distinguish cancellation from submission. This fixture records
+the intended source delta; it does not establish production release readiness.
 
 ## Reviewed v11 uploaded-image thumbnails
 

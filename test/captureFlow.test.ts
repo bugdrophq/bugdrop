@@ -125,7 +125,6 @@ describe('capture flow state decisions', () => {
   it.each([
     ['explicit-skip', true],
     ['capture-failure-skip', true],
-    ['selection-cancelled', false],
     ['none', false],
   ] satisfies Array<[EmptyCaptureReason, boolean]>)(
     'complex screenshot skip persistence for %s is %s',
@@ -157,27 +156,67 @@ describe('capture flow state decisions', () => {
     expect(onComplexScreenshotSkipped).toHaveBeenCalledTimes(1);
   });
 
-  it('does not remember complex screenshot skip when element selection is cancelled', async () => {
-    const { runScreenshotCaptureFlow } = await loadCaptureFlowWithMocks({
-      screenshotChoice: { kind: 'element' },
-      pickedElement: null,
-    });
-    const onComplexScreenshotSkipped = vi.fn();
+  describe.each(['element', 'area'] as const)('%s selection cancellation', kind => {
+    it.each(['optional', 'required'] as const)(
+      'reopens the chooser before returning to the form in %s mode',
+      async screenshotMode => {
+        const {
+          runScreenshotCaptureFlow,
+          screenshotOptionsMock,
+          captureWithLoadingMock,
+          captureAreaWithLoadingMock,
+        } = await loadCaptureFlowWithMocks({
+          screenshotChoices: [{ kind }],
+          screenshotChoice: { kind: 'cancel' },
+        });
+        const onComplexScreenshotSkipped = vi.fn();
 
-    const result = await runScreenshotCaptureFlow(
-      document.createElement('div'),
-      baseConfig,
-      true,
-      onComplexScreenshotSkipped
+        const result = await runScreenshotCaptureFlow(
+          document.createElement('div'),
+          { ...baseConfig, screenshotMode },
+          true,
+          onComplexScreenshotSkipped
+        );
+
+        expect(result).toEqual({
+          screenshot: null,
+          elementSelector: null,
+          fullElementSelector: null,
+          returnToForm: true,
+        });
+        expect(screenshotOptionsMock).toHaveBeenCalledTimes(2);
+        expect(screenshotOptionsMock).toHaveBeenLastCalledWith(expect.anything(), {
+          allowSkip: screenshotMode === 'optional',
+        });
+        expect(captureWithLoadingMock).not.toHaveBeenCalled();
+        expect(captureAreaWithLoadingMock).not.toHaveBeenCalled();
+        expect(onComplexScreenshotSkipped).not.toHaveBeenCalled();
+      }
     );
 
-    expect(result).toEqual({
-      screenshot: null,
-      elementSelector: null,
-      fullElementSelector: null,
-      returnToForm: false,
+    it('continues only after an explicit optional skip', async () => {
+      const { runScreenshotCaptureFlow, screenshotOptionsMock } = await loadCaptureFlowWithMocks({
+        screenshotChoices: [{ kind }],
+        screenshotChoice: { kind: 'skip' },
+      });
+      const onComplexScreenshotSkipped = vi.fn();
+
+      const result = await runScreenshotCaptureFlow(
+        document.createElement('div'),
+        baseConfig,
+        true,
+        onComplexScreenshotSkipped
+      );
+
+      expect(screenshotOptionsMock).toHaveBeenCalledTimes(2);
+      expect(result).toEqual({
+        screenshot: null,
+        elementSelector: null,
+        fullElementSelector: null,
+        returnToForm: false,
+      });
+      expect(onComplexScreenshotSkipped).toHaveBeenCalledTimes(1);
     });
-    expect(onComplexScreenshotSkipped).not.toHaveBeenCalled();
   });
 
   it('keeps selected element metadata when element capture is skipped after failure', async () => {

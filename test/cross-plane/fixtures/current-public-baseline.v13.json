@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 13,
+  "description": "Issue #465: modal text follows the widget theme instead of the host page. Sorted path + NUL + bytes + NUL.",
+  "fileCount": 154,
+  "sha256": "bc343eeb177901ff0776a853326843b3b1de47e46c57fad44fb77d2abcbf1741",
+  "approvedDelta": {
+    "previousBaseline": "current-public-baseline.v12.json",
+    "previousSha256": "7b136f0e4ec2ea6ebd611eb33db6e049797f62aa8b9676c725123e28e958518e",
+    "baseCommit": "1540dd22ccabdfe24c37da768060d3e94c8c6dcf",
+    "changedPublicSources": ["src/widget/ui.ts"],
+    "reason": "User-requested fix for #465: set the modal default color to --bd-text-primary. Browser regressions cover category labels in both themes with contrasting host colors, host color changes, and runtime theme switching. No other protected public sources change."
+  }
+}

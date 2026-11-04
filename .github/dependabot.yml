@@ -20,6 +20,8 @@ updates:
           - patch
       development-minor-patch:
         dependency-type: development
+        exclude-patterns:
+          - wrangler
         update-types:
           - minor
           - patch

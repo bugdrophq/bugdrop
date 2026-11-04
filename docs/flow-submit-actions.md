@@ -74,7 +74,8 @@ by its own mappings.
 `prefillFromContext` names a declared opening-context key on a text field. The
 default applies when the field renders without a saved answer. Edits, including
 an explicit blank, take precedence. Non-string defaults are ignored and strings
-respect the field's text limit. Existing hidden-answer cleanup still applies.
+respect the field's text limit and are trimmed to match submitted text. Existing
+hidden-answer cleanup still applies.
 
 ## Compatibility and release boundary
 

@@ -112,7 +112,7 @@ function createController(
   if ((field.type === 'shortText' || field.type === 'longText') && field.prefillFromContext) {
     const prefill = context[field.prefillFromContext];
     const maximum = field.maxLength ?? (field.type === 'shortText' ? 500 : 5_000);
-    if (typeof prefill === 'string') defaultValue = prefill.slice(0, maximum);
+    if (typeof prefill === 'string') defaultValue = prefill.slice(0, maximum).trim();
   }
   // A saved empty string is an intentional clear, not a request to reapply the default.
   controller.setValue(answers[`${formId}.${field.id}`] ?? defaultValue);

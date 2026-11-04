@@ -29,38 +29,38 @@ afterEach(() => {
 
 describe('context default route preview', () => {
   for (const type of ['shortText', 'longText'] as const) {
-    it(`routes from an untouched ${type} default before the first click`, async () => {
-      vi.stubGlobal(
-        'fetch',
-        fetcher.mockResolvedValue({
-          ok: true,
-          json: async () => ({
-            success: true,
-            issueNumber: 1,
-            issueUrl: 'https://github.com/owner/repo/issues/1',
-            isPublic: false,
-          }),
-        })
-      );
-      const opened = manager()
-        .register(contextDefaultFlow(type))
-        .open({ context: { name: 'Alice' } });
-      await vi.waitFor(() =>
-        expect(shadow().querySelector('.bdf-progress')?.textContent).toBe('Step 1 of 2')
-      );
-      expect(shadow().querySelector<HTMLInputElement>('input, textarea')!.value).toBe('Alice');
-      expect(button('Continue')).toBeDefined();
-      expect(fetcher).not.toHaveBeenCalled();
-      button('Continue').click();
-      await vi.waitFor(() => expect(shadow().textContent).toContain('Follow-up for Alice'));
-      expect(fetcher).not.toHaveBeenCalled();
-      shadow().querySelector<HTMLInputElement>('input')!.value = 'Follow-up answer';
-      button('Submit').click();
-      await expect(opened.result).resolves.toMatchObject({ status: 'submitted' });
-      expect(fetcher).toHaveBeenCalledTimes(1);
-      expect(JSON.parse(fetcher.mock.calls[0][1].body).description).toContain('## Name\n\nAlice');
-      opened.close();
-    });
+    for (const name of ['Alice', ' Alice ']) {
+      it(`routes from an untouched ${type} default ${JSON.stringify(name)} before the first click`, async () => {
+        vi.stubGlobal(
+          'fetch',
+          fetcher.mockResolvedValue({
+            ok: true,
+            json: async () => ({
+              success: true,
+              issueNumber: 1,
+              issueUrl: 'https://github.com/owner/repo/issues/1',
+              isPublic: false,
+            }),
+          })
+        );
+        const opened = manager().register(contextDefaultFlow(type)).open({ context: { name } });
+        await vi.waitFor(() =>
+          expect(shadow().querySelector('.bdf-progress')?.textContent).toBe('Step 1 of 2')
+        );
+        expect(shadow().querySelector<HTMLInputElement>('input, textarea')!.value).toBe('Alice');
+        expect(button('Continue')).toBeDefined();
+        expect(fetcher).not.toHaveBeenCalled();
+        button('Continue').click();
+        await vi.waitFor(() => expect(shadow().textContent).toContain('Follow-up for Alice'));
+        expect(fetcher).not.toHaveBeenCalled();
+        shadow().querySelector<HTMLInputElement>('input')!.value = 'Follow-up answer';
+        button('Submit').click();
+        await expect(opened.result).resolves.toMatchObject({ status: 'submitted' });
+        expect(fetcher).toHaveBeenCalledTimes(1);
+        expect(JSON.parse(fetcher.mock.calls[0][1].body).description).toContain('## Name\n\nAlice');
+        opened.close();
+      });
+    }
   }
 
   it('keeps an explicit blank instead of routing from the context default', async () => {

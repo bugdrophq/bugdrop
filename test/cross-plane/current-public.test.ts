@@ -12,7 +12,9 @@ import acquisition from './fixtures/current-public-baseline.v8.json';
 import productionCanary from './fixtures/current-public-baseline.v9.json';
 import totals from './fixtures/current-public-baseline.v10.json';
 import thumbnails from './fixtures/current-public-baseline.v11.json';
-import additions from './fixtures/current-public-baseline.v12.json';
+import pickerCancellation from './fixtures/current-public-baseline.v12.json';
+import modalColors from './fixtures/current-public-baseline.v13.json';
+import additions from './fixtures/current-public-baseline.v14.json';
 
 function isPublicPath(path: string): boolean {
   return (
@@ -144,9 +146,35 @@ describe('legacy public plane preserves its explicit compatibility boundary', ()
     ).toBe(thumbnails.sha256);
   }, 30_000);
 
-  it('pins the historical thumbnail baseline before conditional defaults and API routing', () => {
+  it('pins the v11 public tree before picker cancellation recovery', () => {
+    const commit = pickerCancellation.approvedDelta.baseCommit;
+    expect(commit).toBe('ce65a2a290728708c975f95a8426c75e5bf8ef55');
+    expect(pickerCancellation.approvedDelta.previousBaseline).toBe(
+      'current-public-baseline.v11.json'
+    );
+    expect(pickerCancellation.approvedDelta.previousSha256).toBe(thumbnails.sha256);
+    const paths = publicFilesAt(commit);
+    expect(paths.length).toBe(thumbnails.fileCount);
+    expect(fingerprint(paths, path => execFileSync('git', ['show', `${commit}:${path}`]))).toBe(
+      thumbnails.sha256
+    );
+  }, 30_000);
+
+  it('pins the v12 public tree before modal theme colors', () => {
+    const commit = modalColors.approvedDelta.baseCommit;
+    expect(commit).toBe('1540dd22ccabdfe24c37da768060d3e94c8c6dcf');
+    expect(modalColors.approvedDelta.previousBaseline).toBe('current-public-baseline.v12.json');
+    expect(modalColors.approvedDelta.previousSha256).toBe(pickerCancellation.sha256);
+    const paths = publicFilesAt(commit);
+    expect(paths.length).toBe(pickerCancellation.fileCount);
+    expect(fingerprint(paths, path => execFileSync('git', ['show', `${commit}:${path}`]))).toBe(
+      pickerCancellation.sha256
+    );
+  }, 30_000);
+
+  it('pins the v13 public tree before alternative final flow actions', () => {
     const paths = publicFilesAt(additions.approvedDelta.baseCommit);
-    const base = thumbnails.approvedDelta.baseCommit;
+    const base = modalColors.approvedDelta.baseCommit;
     const prior = publicFilesAt(base);
     const changed = paths.filter(
       path =>
@@ -155,34 +183,32 @@ describe('legacy public plane preserves its explicit compatibility boundary', ()
           execFileSync('git', ['show', `${base}:${path}`])
         )
     );
-    expect(thumbnails.approvedDelta.changedPublicSources).toEqual([
-      'src/widget/index.ts',
-      'src/widget/ui.ts',
-    ]);
-    expect(changed).toEqual(thumbnails.approvedDelta.changedPublicSources);
+    expect(modalColors.approvedDelta.changedPublicSources).toEqual(['src/widget/ui.ts']);
+    expect(changed).toEqual(modalColors.approvedDelta.changedPublicSources);
     expect(prior.filter(path => !paths.includes(path))).toEqual([]);
-    expect(paths.length).toBe(thumbnails.fileCount);
+    expect(paths.length).toBe(modalColors.fileCount);
     expect(
       fingerprint(paths, path =>
         execFileSync('git', ['show', `${additions.approvedDelta.baseCommit}:${path}`])
       )
-    ).toBe(thumbnails.sha256);
+    ).toBe(modalColors.sha256);
+    expect(additions.approvedDelta.previousBaseline).toBe('current-public-baseline.v13.json');
+    expect(additions.approvedDelta.previousSha256).toBe(modalColors.sha256);
   }, 30_000);
 
-  it('limits publication actions, quote preview, defaults and API routing to their declared public source delta', () => {
+  it('limits final actions, preview, defaults and API routing to their declared public source delta', () => {
     const paths = publicFiles();
     const base = additions.approvedDelta.baseCommit;
     const prior = publicFilesAt(base);
     const changed = paths.filter(
       path =>
         !prior.includes(path) ||
-        !Buffer.from(readFileSync(path)).equals(execFileSync('git', ['show', base + ':' + path]))
+        !Buffer.from(readFileSync(path)).equals(execFileSync('git', ['show', `${base}:${path}`]))
     );
     expect(changed).toEqual(additions.approvedDelta.changedPublicSources);
     expect(prior.filter(path => !paths.includes(path))).toEqual([]);
     expect(paths.length).toBe(additions.fileCount);
     expect(fingerprint(paths, readFileSync)).toBe(additions.sha256);
-    expect(additions.approvedDelta.previousSha256).toBe(thumbnails.sha256);
   }, 30_000);
 
   it.each([
@@ -192,6 +218,7 @@ describe('legacy public plane preserves its explicit compatibility boundary', ()
     'src/widget/locales/zh-CN.ts',
     'src/widget/index.ts',
     'src/widget/ui.ts',
+    'src/widget/capture-flow.ts',
   ])('detects a public boundary mutation in %s', target => {
     const hash = fingerprint(publicFiles(), path => {
       const bytes = readFileSync(path);
