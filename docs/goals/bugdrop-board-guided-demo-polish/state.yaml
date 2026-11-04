@@ -1,0 +1,110 @@
+version: 2
+
+goal:
+  title: "BugDrop Board Guided Demo Polish"
+  slug: "bugdrop-board-guided-demo-polish"
+  kind: specific
+  tranche: "Apply UX critique to the live demo, ship, and prove production."
+  status: done
+  oracle:
+    signal: "Production desktop/mobile walkthrough proves smoother embedded-app intro, clearer kanban scanning, and visible upvote counts."
+    cadence: "after implementation, after CI, after merge/deploy, and at final production proof"
+    final_proof: "Production screenshot plus DOM assertions show accepted UX changes and no layout/browser errors."
+  intake:
+    original_request: "Use three independent UX sub-agents, make a GoalBuddy prep board, ship changes, and show a new production screenshot."
+    interpreted_outcome: "Use independent UX critique to improve the BugDrop Board production demo and prove the shipped result."
+    input_shape: specific
+    audience: "Closed-beta reviewers and prospective self-hosters"
+    authority: requested
+    proof_type: demo
+    completion_proof: "Live production board visibly reads as a polished embedded feedback board with clear intro, kanban lifecycle, and vote affordance."
+    likely_misfire: "Only changing copy or colors while leaving cluttered card hierarchy, ambiguous voting, or internal host framing."
+    blind_spots_considered:
+      - "The screenshot used by sub-agents may be older than current production; stale dogfood/timestamp critiques must be filtered."
+      - "Widget and host changes live in different repositories and deploy independently."
+      - "Production deploys are allowed here only through existing repo release/deploy workflows after green PRs."
+
+agents:
+  scout: installed
+  worker: installed
+  judge: installed
+
+visual_board:
+  selected: local
+  local:
+    status: planned
+    url: "http://goalbuddy.localhost:41737/bugdrop-board-guided-demo-polish/"
+    command: "npx goalbuddy board docs/goals/bugdrop-board-guided-demo-polish"
+
+active_task: null
+
+tasks:
+  - id: T001
+    type: scout
+    assignee: "UX sub-agents"
+    status: done
+    objective: "Collect three independent critiques of the demo screenshot."
+    receipt:
+      result: done
+      summary: "Agents agreed on clearer first-run framing, less internal language, better lane/card hierarchy, clearer vote action, realistic customer-app context, and balanced kanban lifecycle."
+      evidence:
+        - "Sub-agent 1 prioritized purpose copy, first-run cue, reduced internal language, vote clarity, and balanced statuses."
+        - "Sub-agent 2 prioritized collapsing creation, lane header badges, card hierarchy, compact voting, and more breathing room."
+        - "Sub-agent 3 prioritized customer-app framing, closed-beta context, visible customization, realistic data, and a credibility marker."
+      stale_notes_filtered:
+        - "Dogfood titles and empty status lanes were already addressed by prior production seeding and are not repeated as new work."
+
+  - id: T002
+    type: judge
+    assignee: PM
+    status: done
+    objective: "Choose the largest safe reversible slice."
+    receipt:
+      result: approved
+      summary: "Proceed with one vertical demo UX slice: widget kanban scanability and compact vote text in bugdrop-board, plus host framing/intro/stats copy in bugdrop."
+      allowed_files:
+        - "/Users/neonwatty/Desktop/bugdrop-board/src/widget/**"
+        - "/Users/neonwatty/Desktop/bugdrop-board/test/widget-dom.test.ts"
+        - "/Users/neonwatty/Desktop/bugdrop/src/lib/boardDogfood.ts"
+        - "/Users/neonwatty/Desktop/bugdrop/test/boardDogfood.test.ts"
+        - "/Users/neonwatty/Desktop/bugdrop/docs/goals/bugdrop-board-guided-demo-polish/**"
+      verify:
+        - "bugdrop-board focused widget tests and validate gate"
+        - "bugdrop focused dogfood host tests and validate gate"
+        - "production desktop/mobile Playwright proof after merge/deploy"
+
+  - id: T003
+    type: worker
+    assignee: PM
+    status: done
+    objective: "Implement and ship the guided demo polish with focused tests, PRs, CI, merge, deploy proof, and screenshots."
+    constraints:
+      - "No product behavior changes beyond backwards-compatible presentation/customization."
+      - "No package publish, version bump, credential changes, or destructive data cleanup."
+    acceptance:
+      - "Host copy no longer uses Launch Console."
+      - "Closed beta/lifecycle introduction is visible."
+      - "Kanban cards show compact vote action/counts."
+      - "Lane headers and cards are calmer and more scannable."
+      - "Production screenshot is attached to the final handoff."
+    receipt:
+      result: done
+      summary: "Shipped the guided demo polish across bugdrop-board and bugdrop. Production now renders a Northstar closed-beta workspace with concise introduction copy, summary chips, compact kanban vote/count pills, hidden GitHub links, balanced lanes, and no desktop/mobile overflow."
+      pull_requests:
+        - "https://github.com/mean-weasel/bugdrop-board/pull/65"
+        - "https://github.com/mean-weasel/bugdrop/pull/206"
+      deploy_runs:
+        - "https://github.com/mean-weasel/bugdrop-board/actions/runs/27109046825"
+        - "https://github.com/mean-weasel/bugdrop/actions/runs/27109183446"
+      production_proof:
+        url: "https://bugdrop.dev/board-dogfood"
+        screenshots:
+          - "/Users/neonwatty/Desktop/bugdrop/test-results/production-board-guided-demo-polish/desktop.png"
+          - "/Users/neonwatty/Desktop/bugdrop/test-results/production-board-guided-demo-polish/mobile.png"
+        assertions:
+          - "Body contains Northstar, Closed beta feedback board, Shape the roadmap, Maya Chen, beta user, and Synced with GitHub Issues."
+          - "Board contains Ideas from beta users, the lifecycle intro, Share feedback composer, and Open/Planned/Building/Shipped lanes."
+          - "Vote controls render compact counts such as Voted 2 and Vote 1."
+          - "GitHub link count is 0."
+          - "Desktop overflow is 0 and mobile overflow is 0."
+          - "Browser pageerror/console error list is empty."

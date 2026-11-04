@@ -1,0 +1,817 @@
+version: 2
+
+goal:
+  title: "Production Heartbeat"
+  slug: "production-heartbeat"
+  kind: existing_plan
+  tranche: "Complete successive safe verified slices through local implementation, authorized live proof, and staged activation."
+  status: active
+  oracle:
+    signal: "A production widget submission creates exactly one verified synthetic Issue, closes it with zero stale heartbeat Issues, and drives one deduplicated incident Issue through failure and recovery."
+    cadence: "after each Worker package and at final audit"
+    final_proof: "Receipt-backed local checks plus authorized live production transaction, cleanup, incident, and recovery evidence."
+  intake:
+    original_request: "Create the implementation plan for the agreed production heartbeat using GoalBuddy Prep."
+    interpreted_outcome: "A safe executable board delivers a four-hour production heartbeat without weakening the merge-triggered preview canary."
+    input_shape: existing_plan
+    audience: "BugDrop maintainers and operators"
+    authority: approved
+    proof_type: demo
+    completion_proof: "The full live oracle succeeds and a final audit records full_outcome_complete: true."
+    likely_misfire: "Declaring success from workflow syntax or mocked tests without proving the real production Issue lifecycle and incident recovery."
+    blind_spots_considered:
+      - "GitHub schedule timing is approximate."
+      - "GitHub is shared by the monitored Issue transaction and the incident channel."
+      - "Production and preview cleanup must not collide."
+      - "Continued execution can hide cleanup or alert failures unless final aggregation fails closed."
+      - "Unrelated dirty work must be preserved."
+      - "Execution must not accidentally inherit changes from the original feature worktree."
+    existing_plan_facts:
+      - "Use a dedicated staggered four-hour production workflow and production-only concurrency lock."
+      - "Add and verify production environment and full Worker build identity."
+      - "Share a canary engine behind strict preview and production profiles."
+      - "Use distinct marker prefixes, independent verification, unconditional cleanup, and zero-open sweeps."
+      - "Manage one deduplicated incident Issue directly through GitHub Actions."
+      - "Keep preview mutating tests deployment-triggered; retain daily nonmutating health and janitor coverage."
+      - "Require contract, unit, intercepted browser, adversarial, and authorized live proof."
+      - "Stage rollout from manual to daily soak to every four hours."
+      - "Execute only in /Users/neonwatty/Desktop/bugdrop-production-heartbeat on codex/production-heartbeat, created from freshly fetched origin/main at 75c0e5c7009e804c6d9e03f4886188d4f7b2094d."
+
+rules:
+  pm_owns_state: true
+  one_active_task: true
+  max_write_workers: 1
+  no_implementation_without_worker_or_pm_task: true
+  no_completion_without_judge_or_pm_audit: true
+  planning_is_not_completion: true
+  queued_required_worker_blocks_completion: true
+  continuous_until_full_outcome: true
+  missing_input_or_credentials_do_not_stop_goal: true
+  exact_human_approval_can_terminal_wait: true
+  preserve_and_validate_existing_plan: true
+  intake_misfire_must_be_audited: true
+  goal_pressure_requires_oracle: true
+  no_completion_on_weak_proof: true
+  slice_policy:
+    max_consecutive_tiny_tasks: 2
+    prefer_vertical_slices: true
+    judge_picks_largest_safe_slice: true
+    worker_completes_whole_slice: true
+
+agents:
+  scout: installed
+  worker: installed
+  judge: installed
+
+visual_board:
+  selected: local
+  local:
+    status: live
+    url: "http://goalbuddy.localhost:41737/production-heartbeat-2/"
+    command: "node /Users/neonwatty/.codex/plugins/cache/goalbuddy/goalbuddy/0.4.2/skills/goal-prep/surfaces/local-goal-board/scripts/local-goal-board.mjs --goal docs/goals/production-heartbeat"
+
+active_task: T006
+
+tasks:
+  - id: T001
+    type: judge
+    assignee: Judge
+    status: done
+    reasoning_hint: high
+    objective: "Validate the agreed implementation plan against repository reality before any implementation work."
+    inputs:
+      - "Existing production-heartbeat plan facts in goal.md"
+    constraints:
+      - "Read-only."
+      - "Do not edit implementation files."
+    expected_output:
+      - "Validated architecture and risks"
+      - "Current workflow, test, deployment-identity, credential, and cleanup evidence map"
+      - "Largest safe Worker package"
+      - "allowed_files"
+      - "verify"
+      - "stop_if"
+    receipt:
+      result: done
+      task_id: T001
+      board_path: docs/goals/production-heartbeat/state.yaml
+      decision: approved
+      full_outcome_complete: false
+      rationale: "The architecture is sound only with a stricter first boundary: production observation must reject the currently deployed development identity before any browser mutation, and target profiles must make cross-environment cleanup impossible. Existing preview behavior is mature enough to refactor safely, but the production scheduler and incident lifecycle should wait until those primitives pass. Local implementation can proceed without remote mutation; live activation cannot."
+      evidence:
+        - "Worktree proof: /Users/neonwatty/Desktop/bugdrop-production-heartbeat is codex/production-heartbeat at 75c0e5c7009e804c6d9e03f4886188d4f7b2094d; HEAD, merge-base, and origin/main match. Only docs/goals/production-heartbeat/ is untracked."
+        - "Workflow map: .github/workflows/ci.yml owns the merge_group-only preview deployment and exactly one real-Issue canary under non-cancelling bugdrop-shared-preview concurrency; Live Preview Tests remains the required fail-closed bridge."
+        - "Scheduled map: .github/workflows/live-tests.yml currently runs daily nonmutating browser tests against production, while taking the preview concurrency lock and sweeping only the preview prefix. No dedicated production-heartbeat workflow or incident manager exists."
+        - "Canary map: scripts/github-issue-canary.mjs already paginates all Issues, filters pull requests, stabilizes singleton discovery, independently verifies browser output, redacts tokens, retries ambiguous closes, and requires stable zero-open cleanup. Its arbitrary repo/prefix/marker inputs are not yet strict target profiles."
+        - "Browser map: e2e/widget.issue-canary.spec.ts proves one feedback POST, exact preview widget origin/hash, full Worker SHA response identity, structured Issue payload, canonical result, and absence of BUGDROP_CANARY_GITHUB_TOKEN, but it hard-rejects every LIVE_TARGET except preview."
+        - "Cleanup map: preview preflight, marker cleanup, and reserved-prefix sweep use step-scoped credentials; marker cleanup is independent of the Playwright result file and the final sweep is unconditional. Production prefix isolation and incident aggregation are absent."
+        - "Deployment-identity map: wrangler.toml and the release tooling define env.production and pass a full BUILD_SHA; explicit release verification rejects non-production environment or SHA mismatch. Scheduled observe mode accepts any environment and an absent buildSha."
+        - "Live disproof: https://bugdrop.neonwatty.workers.dev/api/health returned environment=development with no buildSha. verify-live observe likewise reported development and no targetSha, so the current production endpoint is not a trustworthy heartbeat target."
+        - "Credential map: repository Actions metadata lists BUGDROP_CANARY_GITHUB_TOKEN, CLOUDFLARE_ACCOUNT_ID, CLOUDFLARE_API_TOKEN, and VERCEL_AUTOMATION_BYPASS_SECRET. GitHub reports zero repository environments; production environment lookup returned 404. Secret effective permissions cannot be inferred from metadata."
+        - "Merge protection map: the active main ruleset still requires Lint, Typecheck, Knip, Audit; Unit Tests & Build; both E2E shards; Deploy Preview; and Live Preview Tests."
+      missing_evidence:
+        - "A configured protected production GitHub environment and its reviewer/secret policy."
+        - "Proof that BUGDROP_CANARY_GITHUB_TOKEN can read and close Issues in mean-weasel/bugdrop-widget-test without broader unnecessary access."
+        - "A live production health response reporting environment=production and a full lowercase 40-character buildSha."
+        - "Any production synthetic Issue, zero-open production-prefix cleanup, incident recurrence/recovery, or four-hour schedule evidence."
+      required_board_updates:
+        - task_id: T002
+          objective: "Implement strict preview and production canary profiles plus fail-closed production deployment observation, and refactor the executable real-Issue browser transaction to use only those profiles while preserving the existing merge-queue preview behavior byte-for-byte at its external contract. Do not add or activate the production scheduler or incident workflow in this package."
+          allowed_files:
+            - .github/workflows/ci.yml
+            - e2e/widget.issue-canary.spec.ts
+            - e2e/widget.issue-canary.ts
+            - scripts/github-issue-canary-profiles.mjs
+            - scripts/github-issue-canary.mjs
+            - scripts/release/verify-live.mjs
+            - test/ci-workflow-contract.test.sh
+            - test/githubIssueCanary.test.ts
+            - test/githubIssueCanaryProfiles.test.ts
+            - test/release/verify-live.test.ts
+          verify:
+            - "npx vitest run test/githubIssueCanary.test.ts test/githubIssueCanaryProfiles.test.ts test/release/verify-live.test.ts"
+            - "bash test/ci-workflow-contract.test.sh"
+            - "bash test/release-workflow-contract.test.sh"
+            - "npm run typecheck"
+            - "npx eslint e2e/widget.issue-canary.spec.ts e2e/widget.issue-canary.ts scripts/github-issue-canary-profiles.mjs scripts/github-issue-canary.mjs scripts/release/verify-live.mjs test/githubIssueCanary.test.ts test/githubIssueCanaryProfiles.test.ts test/release/verify-live.test.ts"
+            - "npx prettier --check .github/workflows/ci.yml e2e/widget.issue-canary.spec.ts e2e/widget.issue-canary.ts scripts/github-issue-canary-profiles.mjs scripts/github-issue-canary.mjs scripts/release/verify-live.mjs test/ci-workflow-contract.test.sh test/githubIssueCanary.test.ts test/githubIssueCanaryProfiles.test.ts test/release/verify-live.test.ts"
+            - "npm run check:actions-node24"
+            - "npx playwright test e2e/widget.issue-canary.spec.ts --project=chromium-issue-canary --list"
+          stop_if:
+            - "Any implementation file outside allowed_files is required."
+            - "The existing preview title, marker, origins, one-POST behavior, cleanup ownership, or required status bridge would change ambiguously."
+            - "Production observation cannot fail before browser execution on environment!=production or missing/malformed full buildSha."
+            - "Any GitHub credential would reach Playwright, job-wide environment, logs, or artifacts."
+            - "A test would create or close a live Issue, dispatch a workflow, deploy, push, or mutate GitHub configuration."
+            - "Verification fails twice for the same unresolved cause."
+  - id: T002
+    type: worker
+    assignee: Worker
+    status: done
+    reasoning_hint: medium
+    objective: "Implement strict preview and production canary profiles plus fail-closed production deployment observation, and refactor the executable real-Issue browser transaction to use only those profiles while preserving the existing merge-queue preview behavior byte-for-byte at its external contract. Do not add or activate the production scheduler or incident workflow in this package."
+    inputs:
+      - "T001 receipt"
+      - "Existing plan facts in goal.md"
+    constraints:
+      - "Keep preview repo mean-weasel/bugdrop-widget-test, widget origin, venue origin, title prefix [BugDrop CI canary], marker format, one-POST behavior, result shape, and required check names unchanged."
+      - "Define a distinct production title prefix [BugDrop production heartbeat] and marker namespace bugdrop-production-heartbeat; target selection must be allowlisted and must reject repo, origin, prefix, or marker/profile mismatches before network access."
+      - "Make verify, cleanup, preflight, and sweep profile-bound so production can never sweep preview and preview can never sweep production."
+      - "Keep GitHub verification and cleanup credentials unavailable to Playwright and preserve redaction on every failure path."
+      - "Add a strict production observation path that rejects environment other than production and missing or malformed full buildSha; do not weaken existing explicit release verification."
+      - "Refactor the browser transaction as one shared engine behind thin strict preview and production profiles, preserving exactly-one POST and Worker response SHA assertions."
+      - "Do not perform remote or live mutations."
+    expected_output:
+      - "Working bounded vertical slice"
+      - "Verification evidence"
+      - "Strongest realistic failure mode and disproof attempt"
+    allowed_files:
+      - .github/workflows/ci.yml
+      - e2e/widget.issue-canary.spec.ts
+      - e2e/widget.issue-canary.ts
+      - scripts/github-issue-canary-profiles.mjs
+      - scripts/github-issue-canary.mjs
+      - scripts/release/verify-live.mjs
+      - test/ci-workflow-contract.test.sh
+      - test/githubIssueCanary.test.ts
+      - test/githubIssueCanaryProfiles.test.ts
+      - test/release/verify-live.test.ts
+    verify:
+      - "npx vitest run test/githubIssueCanary.test.ts test/githubIssueCanaryProfiles.test.ts test/release/verify-live.test.ts"
+      - "bash test/ci-workflow-contract.test.sh"
+      - "bash test/release-workflow-contract.test.sh"
+      - "npm run typecheck"
+      - "npx eslint e2e/widget.issue-canary.spec.ts e2e/widget.issue-canary.ts scripts/github-issue-canary-profiles.mjs scripts/github-issue-canary.mjs scripts/release/verify-live.mjs test/githubIssueCanary.test.ts test/githubIssueCanaryProfiles.test.ts test/release/verify-live.test.ts"
+      - "npx prettier --check .github/workflows/ci.yml e2e/widget.issue-canary.spec.ts e2e/widget.issue-canary.ts scripts/github-issue-canary-profiles.mjs scripts/github-issue-canary.mjs scripts/release/verify-live.mjs test/ci-workflow-contract.test.sh test/githubIssueCanary.test.ts test/githubIssueCanaryProfiles.test.ts test/release/verify-live.test.ts"
+      - "npm run check:actions-node24"
+      - "npx playwright test e2e/widget.issue-canary.spec.ts --project=chromium-issue-canary --list"
+    stop_if:
+      - "Any implementation file outside allowed_files is required."
+      - "The existing preview title, marker, origins, one-POST behavior, cleanup ownership, or required status bridge would change ambiguously."
+      - "Production observation cannot fail before browser execution on environment!=production or missing/malformed full buildSha."
+      - "Any GitHub credential would reach Playwright, job-wide environment, logs, or artifacts."
+      - "A test would create or close a live Issue, dispatch a workflow, deploy, push, or mutate GitHub configuration."
+      - "Verification fails twice for the same unresolved cause."
+    receipt:
+      result: done
+      task_id: T002
+      board_path: docs/goals/production-heartbeat/state.yaml
+      changed_files:
+        - .github/workflows/ci.yml
+        - e2e/widget.issue-canary.spec.ts
+        - e2e/widget.issue-canary.ts
+        - scripts/github-issue-canary-profiles.mjs
+        - scripts/github-issue-canary.mjs
+        - scripts/release/verify-live.mjs
+        - test/ci-workflow-contract.test.sh
+        - test/githubIssueCanaryProfiles.test.ts
+        - test/release/verify-live.test.ts
+      commands:
+        - cmd: "npx vitest run test/githubIssueCanary.test.ts test/githubIssueCanaryProfiles.test.ts test/githubHeartbeatIncident.test.ts test/release/verify-live.test.ts"
+          status: pass
+        - cmd: "bash test/ci-workflow-contract.test.sh"
+          status: pass
+        - cmd: "bash test/production-heartbeat-workflow-contract.test.sh"
+          status: pass
+        - cmd: "bash test/release-workflow-contract.test.sh"
+          status: pass
+        - cmd: "npm run typecheck"
+          status: pass
+        - cmd: "npm run check:actions-node24"
+          status: pass
+        - cmd: "npx playwright test e2e/widget.issue-canary.spec.ts --project=chromium-issue-canary --list"
+          status: pass
+        - cmd: "make check"
+          status: pass
+        - cmd: "make test"
+          status: pass
+        - cmd: "git diff --check"
+          status: pass
+      summary: "T002 originally stopped on an invalid Judge-supplied Prettier command for a shell file. T004 remediated the marker/SHA defect and completed the integrated implementation; T007 remediated cadence and artifact fail-closed defects. The full integrated focused, contract, type, repository, 737-test, Playwright-list, and diff verification now passes, so the earlier blocked slice is resolved without weakening its scope."
+      remaining_blockers: []
+      verification_attempts: 3
+  - id: T003
+    type: judge
+    assignee: Judge
+    status: done
+    reasoning_hint: high
+    objective: "Review the first vertical slice against the oracle and specify the largest safe remaining local package."
+    inputs:
+      - "T001 and T002 receipts"
+      - "Current diff and verification evidence"
+    constraints:
+      - "Read-only."
+      - "Reject hidden credential broadening, prefix collision, weak cleanup, and syntax-only proof."
+    expected_output:
+      - "accept | remediate"
+      - "Oracle coverage and missing evidence"
+      - "Exact T004 objective"
+      - "allowed_files"
+      - "verify"
+      - "stop_if"
+    receipt:
+      result: done
+      task_id: T003
+      board_path: docs/goals/production-heartbeat/state.yaml
+      decision: rejected
+      full_outcome_complete: false
+      rationale: "The Prettier failure is an invalid verification command, not an implementation failure: Prettier 3.8.1 cannot infer a shell parser, while every supported changed file formats cleanly. The slice otherwise passes focused tests and preserves credential and prefix boundaries, but it is not acceptable standalone because marker validation no longer binds the marker's terminal SHA to EXPECTED_WORKER_SHA. That weakens exact preview and production identity. T004 should absorb this remediation and complete the remaining local workflow, incident, aggregation, schedule-gating, and operations package."
+      evidence:
+        - "Verification-command diagnosis: npx prettier --check test/ci-workflow-contract.test.sh fails only with No parser could be inferred; the same check excluding the shell file passes for every supported changed file, and git diff --check passes."
+        - "Current focused verification passes: 65 Vitest tests, CI workflow contract, guarded release workflow contract, TypeScript typecheck, focused ESLint, Actions Node 24 check, and Playwright canary list discovery."
+        - "Profile isolation is materially improved: preview and production use fixed allowlisted repo, venue, widget origin, title prefix, marker regex, variant ID, and dialog identity. Selector mismatch is rejected before GitHub API discovery."
+        - "Cleanup remains independent and bounded: marker cleanup and prefix sweeps are profile-bound, paginate, filter pull requests, retry close/readback, and require stable zero-open observations."
+        - "Credential boundary remains intact: CI still exposes BUGDROP_CANARY_GITHUB_TOKEN only to the four preview GitHub helper steps; the shared Playwright engine explicitly rejects that credential and receives no GitHub verification or cleanup token."
+        - "Preview workflow compatibility remains structurally intact: merge_group ownership, bugdrop-shared-preview concurrency, exactly one canary invocation, preview profile selection on all four GitHub operations, and required Deploy Preview/Live Preview Tests names remain unchanged."
+        - "Production observation now rejects non-production health identity and missing, abbreviated, or uppercase build SHA; tests cover these failures without weakening explicit release verification."
+        - "Identity defect: resolveBrowserCanaryProfile validates only the marker namespace regex, and verifyCanaryIssue validates marker and expectedSha independently. A marker ending in SHA B can therefore accompany EXPECTED_WORKER_SHA A, unlike the original preview assertion that embedded expectedWorkerSha in the marker regex."
+        - "Oracle gaps remain: no dedicated production workflow, inert-by-default staged schedule gate, production-only concurrency lock, production cleanup orchestration, controlled post-cleanup failure, incident lifecycle manager, final cross-job aggregation, or operations runbook exists."
+      missing_evidence:
+        - "Local proof that preview and production markers must end in the exact expected Worker SHA."
+        - "Contract and behavioral proof for the dedicated production workflow and staged schedule gate."
+        - "Incident first-failure, recurrence, reopen, recovery-close, duplicate rejection, pagination, and token-redaction proof."
+        - "Fail-closed proof that cleanup, sweep, incident update, artifact, or final aggregation failure cannot produce a green workflow."
+        - "Authorized live production Issue creation, independent verification, zero-open cleanup, incident failure/recovery, production environment, credential capability, and staged activation evidence."
+      required_board_updates:
+        - task_id: T002
+          resolution: "Treat the shell-file Prettier failure as an invalid Judge-supplied verification command. Do not send shell scripts or Makefile through Prettier. Preserve T002's implementation as the base for T004, but do not accept it as oracle-safe until marker SHA binding is remediated."
+        - task_id: T004
+          objective: "Remediate exact marker-to-Worker-SHA binding, then complete the largest safe remaining local package: an inert-by-default staged production heartbeat workflow, strict production identity and canary lifecycle, unconditional independent cleanup and zero-open sweep, one deduplicated GitHub-native incident lifecycle, fail-closed final aggregation, daily nonmutating preview health/janitor behavior, executable contracts/tests, and an operator runbook. Perform no remote mutation."
+          allowed_files:
+            - .github/workflows/live-tests.yml
+            - .github/workflows/production-heartbeat.yml
+            - Makefile
+            - docs/merge-queue-issue-canary.md
+            - docs/production-heartbeat.md
+            - e2e/widget.issue-canary.spec.ts
+            - e2e/widget.issue-canary.ts
+            - scripts/github-heartbeat-incident.mjs
+            - scripts/github-issue-canary-profiles.mjs
+            - scripts/github-issue-canary.mjs
+            - scripts/release/verify-live.mjs
+            - test/ci-workflow-contract.test.sh
+            - test/githubHeartbeatIncident.test.ts
+            - test/githubIssueCanary.test.ts
+            - test/githubIssueCanaryProfiles.test.ts
+            - test/production-heartbeat-workflow-contract.test.sh
+            - test/release/verify-live.test.ts
+          verify:
+            - "npx vitest run test/githubIssueCanary.test.ts test/githubIssueCanaryProfiles.test.ts test/githubHeartbeatIncident.test.ts test/release/verify-live.test.ts"
+            - "bash test/ci-workflow-contract.test.sh"
+            - "bash test/production-heartbeat-workflow-contract.test.sh"
+            - "bash test/release-workflow-contract.test.sh"
+            - "npm run typecheck"
+            - "npx eslint e2e/widget.issue-canary.spec.ts e2e/widget.issue-canary.ts scripts/github-heartbeat-incident.mjs scripts/github-issue-canary-profiles.mjs scripts/github-issue-canary.mjs scripts/release/verify-live.mjs test/githubHeartbeatIncident.test.ts test/githubIssueCanary.test.ts test/githubIssueCanaryProfiles.test.ts test/release/verify-live.test.ts"
+            - "npx prettier --check .github/workflows/live-tests.yml .github/workflows/production-heartbeat.yml docs/merge-queue-issue-canary.md docs/production-heartbeat.md e2e/widget.issue-canary.spec.ts e2e/widget.issue-canary.ts scripts/github-heartbeat-incident.mjs scripts/github-issue-canary-profiles.mjs scripts/github-issue-canary.mjs scripts/release/verify-live.mjs test/githubHeartbeatIncident.test.ts test/githubIssueCanary.test.ts test/githubIssueCanaryProfiles.test.ts test/release/verify-live.test.ts"
+            - "npm run check:actions-node24"
+            - "npx playwright test e2e/widget.issue-canary.spec.ts --project=chromium-issue-canary --list"
+            - "make check"
+            - "make test"
+            - "git diff --check"
+          stop_if:
+            - "Any implementation file outside allowed_files is required."
+            - "The schedule cannot remain inert by default or cannot stage manual to daily to four-hour activation through an explicit allowlisted gate."
+            - "The marker cannot be proven bound to the exact expected Worker SHA before browser mutation and independent verification."
+            - "Any GitHub verification, cleanup, or incident credential reaches Playwright, job-wide environment, persisted checkout credentials, logs, or artifacts."
+            - "Production and preview prefixes, markers, concurrency locks, workflow owners, or sweeps can overlap."
+            - "Cleanup, sweep, incident transition, artifact, or final aggregation failure can be masked as success."
+            - "Incident management would call BugDrop or require a secret broader than a step-scoped GitHub token with issues: write."
+            - "Existing merge-queue required check names or release-triggered production verification behavior must change ambiguously."
+            - "A workflow dispatch, push, deployment, live Issue mutation, environment change, secret change, or schedule activation would be required."
+            - "Verification fails twice for the same unresolved cause."
+  - id: T004
+    type: worker
+    assignee: Worker
+    status: done
+    reasoning_hint: medium
+    objective: "Remediate exact marker-to-Worker-SHA binding, then complete the largest safe remaining local package: an inert-by-default staged production heartbeat workflow, strict production identity and canary lifecycle, unconditional independent cleanup and zero-open sweep, one deduplicated GitHub-native incident lifecycle, fail-closed final aggregation, daily nonmutating preview health/janitor behavior, executable contracts/tests, and an operator runbook. Perform no remote mutation."
+    inputs:
+      - "T003 receipt"
+      - "Existing plan facts in goal.md"
+    constraints:
+      - "Bind every browser and independent-verification marker's terminal SHA to the exact expected full Worker SHA; cleanup may validate namespace shape without trusting browser output."
+      - "Keep production and preview repo ownership equal but title prefixes, marker namespaces, concurrency locks, workflow owners, and sweeps strictly disjoint."
+      - "Add a dedicated workflow_dispatch plus staggered daily/four-hour cron workflow whose scheduled jobs remain skipped by default and are enabled only through an explicit allowlisted repository variable mode: manual, daily, or four-hour."
+      - "Use a production-only non-cancelling concurrency lock, bounded timeout, environment production, explicit least-privilege permissions, and persist-credentials false."
+      - "Require strict production environment, full build SHA, widget origin/hash, venue origin, and feedback response SHA before accepting the transaction."
+      - "Expose BUGDROP_CANARY_GITHUB_TOKEN only to production preflight, independent verify, current-marker cleanup, and final production-prefix sweep steps; never expose it to Playwright, job scope, artifacts, or logs."
+      - "Run current-marker cleanup and a final production-prefix zero-open sweep independently of the browser result and under always() semantics."
+      - "Support a manual post-cleanup controlled-failure mode so incident behavior can be exercised without intentionally leaking a synthetic Issue."
+      - "Manage one stable incident Issue directly through GitHub's API in mean-weasel/bugdrop using only a step-scoped github.token and a separate issues: write job: create on first failure, comment/update while open, reopen on recurrence after closure, and comment plus close after complete recovery."
+      - "Reject duplicate incident matches before mutation, paginate discovery, filter pull requests, reconcile ambiguous mutations by readback, and redact tokens from errors."
+      - "Use a final always-running conclusion job that fails unless heartbeat stages, cleanup, sweep, incident transition, artifact handling, and required dependencies have acceptable outcomes."
+      - "Change the existing daily live workflow to fixed preview origins, nonmutating preview tests, explicit preview profile janitor selection, and the existing bugdrop-shared-preview lock; preserve release-triggered production verification behavior."
+      - "Document manual proof, controlled failure and recovery, daily soak, four-hour activation, rollback, token scope and rotation, environment prerequisites, approximate cron timing, and GitHub-shared incident-channel limitations."
+      - "No remote publication, workflow dispatch, deployment, live Issue mutation, environment change, secret change, or schedule activation."
+    expected_output:
+      - "Complete locally testable implementation"
+      - "Operations and rollout guidance"
+      - "Verification evidence"
+      - "Strongest realistic failure mode and disproof attempt"
+    allowed_files:
+      - .github/workflows/live-tests.yml
+      - .github/workflows/production-heartbeat.yml
+      - Makefile
+      - docs/merge-queue-issue-canary.md
+      - docs/production-heartbeat.md
+      - e2e/widget.issue-canary.spec.ts
+      - e2e/widget.issue-canary.ts
+      - scripts/github-heartbeat-incident.mjs
+      - scripts/github-issue-canary-profiles.mjs
+      - scripts/github-issue-canary.mjs
+      - scripts/release/verify-live.mjs
+      - test/ci-workflow-contract.test.sh
+      - test/githubHeartbeatIncident.test.ts
+      - test/githubIssueCanary.test.ts
+      - test/githubIssueCanaryProfiles.test.ts
+      - test/production-heartbeat-workflow-contract.test.sh
+      - test/release/verify-live.test.ts
+    verify:
+      - "npx vitest run test/githubIssueCanary.test.ts test/githubIssueCanaryProfiles.test.ts test/githubHeartbeatIncident.test.ts test/release/verify-live.test.ts"
+      - "bash test/ci-workflow-contract.test.sh"
+      - "bash test/production-heartbeat-workflow-contract.test.sh"
+      - "bash test/release-workflow-contract.test.sh"
+      - "npm run typecheck"
+      - "npx eslint e2e/widget.issue-canary.spec.ts e2e/widget.issue-canary.ts scripts/github-heartbeat-incident.mjs scripts/github-issue-canary-profiles.mjs scripts/github-issue-canary.mjs scripts/release/verify-live.mjs test/githubHeartbeatIncident.test.ts test/githubIssueCanary.test.ts test/githubIssueCanaryProfiles.test.ts test/release/verify-live.test.ts"
+      - "npx prettier --check .github/workflows/live-tests.yml .github/workflows/production-heartbeat.yml docs/merge-queue-issue-canary.md docs/production-heartbeat.md e2e/widget.issue-canary.spec.ts e2e/widget.issue-canary.ts scripts/github-heartbeat-incident.mjs scripts/github-issue-canary-profiles.mjs scripts/github-issue-canary.mjs scripts/release/verify-live.mjs test/githubHeartbeatIncident.test.ts test/githubIssueCanary.test.ts test/githubIssueCanaryProfiles.test.ts test/release/verify-live.test.ts"
+      - "npm run check:actions-node24"
+      - "npx playwright test e2e/widget.issue-canary.spec.ts --project=chromium-issue-canary --list"
+      - "make check"
+      - "make test"
+      - "git diff --check"
+    stop_if:
+      - "Any implementation file outside allowed_files is required."
+      - "The schedule cannot remain inert by default or cannot stage manual to daily to four-hour activation through an explicit allowlisted gate."
+      - "The marker cannot be proven bound to the exact expected Worker SHA before browser mutation and independent verification."
+      - "Any GitHub verification, cleanup, or incident credential reaches Playwright, job-wide environment, persisted checkout credentials, logs, or artifacts."
+      - "Production and preview prefixes, markers, concurrency locks, workflow owners, or sweeps can overlap."
+      - "Cleanup, sweep, incident transition, artifact, or final aggregation failure can be masked as success."
+      - "Incident management would call BugDrop or require a secret broader than a step-scoped GitHub token with issues write."
+      - "Existing merge-queue required check names or release-triggered production verification behavior must change ambiguously."
+      - "A workflow dispatch, push, deployment, live Issue mutation, environment change, secret change, or schedule activation would be required."
+      - "Verification fails twice for the same unresolved cause."
+    receipt:
+      result: done
+      task_id: T004
+      board_path: docs/goals/production-heartbeat/state.yaml
+      changed_files:
+        - .github/workflows/live-tests.yml
+        - .github/workflows/production-heartbeat.yml
+        - Makefile
+        - docs/merge-queue-issue-canary.md
+        - docs/production-heartbeat.md
+        - e2e/widget.issue-canary.ts
+        - scripts/github-heartbeat-incident.mjs
+        - scripts/github-issue-canary-profiles.mjs
+        - scripts/github-issue-canary.mjs
+        - scripts/release/verify-live.mjs
+        - test/ci-workflow-contract.test.sh
+        - test/githubHeartbeatIncident.test.ts
+        - test/githubIssueCanary.test.ts
+        - test/githubIssueCanaryProfiles.test.ts
+        - test/production-heartbeat-workflow-contract.test.sh
+        - test/release/verify-live.test.ts
+      commands:
+        - cmd: "npx vitest run test/githubIssueCanary.test.ts test/githubIssueCanaryProfiles.test.ts test/githubHeartbeatIncident.test.ts test/release/verify-live.test.ts"
+          status: pass
+        - cmd: "bash test/ci-workflow-contract.test.sh"
+          status: pass
+        - cmd: "bash test/production-heartbeat-workflow-contract.test.sh"
+          status: pass
+        - cmd: "bash test/release-workflow-contract.test.sh"
+          status: pass
+        - cmd: "npm run typecheck"
+          status: pass
+        - cmd: "npx eslint e2e/widget.issue-canary.spec.ts e2e/widget.issue-canary.ts scripts/github-heartbeat-incident.mjs scripts/github-issue-canary-profiles.mjs scripts/github-issue-canary.mjs scripts/release/verify-live.mjs test/githubHeartbeatIncident.test.ts test/githubIssueCanary.test.ts test/githubIssueCanaryProfiles.test.ts test/release/verify-live.test.ts"
+          status: pass
+        - cmd: "npx prettier --check .github/workflows/live-tests.yml .github/workflows/production-heartbeat.yml docs/merge-queue-issue-canary.md docs/production-heartbeat.md e2e/widget.issue-canary.spec.ts e2e/widget.issue-canary.ts scripts/github-heartbeat-incident.mjs scripts/github-issue-canary-profiles.mjs scripts/github-issue-canary.mjs scripts/release/verify-live.mjs test/githubHeartbeatIncident.test.ts test/githubIssueCanary.test.ts test/githubIssueCanaryProfiles.test.ts test/release/verify-live.test.ts"
+          status: pass
+        - cmd: "npm run check:actions-node24"
+          status: pass
+        - cmd: "npx playwright test e2e/widget.issue-canary.spec.ts --project=chromium-issue-canary --list"
+          status: pass
+        - cmd: "make check"
+          status: pass
+        - cmd: "make check"
+          status: pass
+        - cmd: "make test"
+          status: pass
+        - cmd: "git diff --check"
+          status: pass
+      summary: "Implemented exact marker/SHA binding, inert staged production scheduling, strict production identity, isolated synthetic Issue lifecycle, unconditional cleanup/sweep, deduplicated incident create/update/reopen/recovery, artifact-aware fail-closed conclusion, fixed nonmutating preview scheduling/janitor, contracts, and runbook. Verification passed: 75 focused tests, 265 release tests via make check, 737 full tests, workflow contracts, typecheck, ESLint, Prettier, knip, Actions Node 24, Playwright list-only, and diff checks. Strongest failure-mode disproof traced cleanup, sweep, artifact, and incident outcomes into the separate conclusion job; contract checks reject missing links. No remote mutation occurred."
+      remaining_blockers: []
+      verification_attempts: 2
+  - id: T005
+    type: judge
+    assignee: Judge
+    status: done
+    reasoning_hint: high
+    objective: "Perform an adversarial local readiness audit and add a bounded remediation task if any oracle-critical gap remains."
+    inputs:
+      - "All completed local task receipts"
+      - "Current diff"
+      - "Full relevant verification"
+    constraints:
+      - "Read-only."
+      - "Try to disprove fail-closed aggregation, cleanup independence, incident idempotency, prefix isolation, and preview compatibility."
+      - "Do not accept workflow syntax, happy-path tests, or Worker claims as live proof."
+    expected_output:
+      - "locally_ready | remediation_required"
+      - "Strongest failure-mode audit"
+      - "Exact remediation task if needed"
+      - "Live-proof prerequisites and exact authorization boundary"
+    receipt:
+      result: done
+      task_id: T005
+      board_path: docs/goals/production-heartbeat/state.yaml
+      decision: rejected
+      full_outcome_complete: false
+      rationale: "Remediation is required for two fail-closed rollout defects. Four-hour mode currently also authorizes the daily cron, producing seven daily runs instead of an approximately four-hour cadence. Separately, diagnostics upload uses if-no-files-found ignore and may report success while creating no artifact after an early failure; the conclusion therefore cannot distinguish evidence from a no-op upload. Profile isolation, marker/SHA binding, credential boundaries, cleanup aggregation, incident state deduplication/redaction, preview compatibility, and release-triggered production verification otherwise withstand targeted local review."
+      evidence:
+        - "Direct verification passed: 75 focused Vitest tests, production heartbeat contract, CI workflow contract, guarded release workflow contract, TypeScript typecheck, supported-file Prettier check, and git diff whitespace validation."
+        - "Cadence defect: production-heartbeat.yml permits BUGDROP_PRODUCTION_HEARTBEAT_MODE=four-hour on the daily 17 2 * * * trigger and on the four-hour trigger. The runbook explicitly says four-hour mode retains daily."
+        - "The passing production workflow contract misses the cadence defect because it checks only that both mode literals and cron strings exist; it does not prove their mutual exclusivity."
+        - "Artifact defect: the upload step includes only playwright-report/ and test-results/ with if-no-files-found ignore. Early failures can produce neither path, yet the artifact outcome can still be success."
+        - "Fail-closed stage aggregation otherwise holds: required stage outcomes feed heartbeat_ok; cleanup, sweep, controlled failure, summary, and upload run under always semantics; incident runs after non-skipped heartbeat; conclusion checks heartbeat_ok, artifact outcome, and incident job result."
+        - "Cleanup independence holds: current-marker cleanup uses only the attempt sentinel and marker, never the browser result; final production-prefix sweep runs independently and the summary treats skipped or failed cleanup/sweep as failure."
+        - "Profile and SHA isolation holds: fixed preview/production origins, prefixes, marker regexes, and selectors are disjoint; browser resolution and independent verification both reject a marker whose terminal SHA differs from the expected full Worker SHA before GitHub discovery."
+        - "Credential boundaries hold structurally: BUGDROP_CANARY_GITHUB_TOKEN appears only in four production and four preview helper step environments; Playwright rejects it; checkout persistence is disabled; issues write and github.token exist only in the incident job."
+        - "Incident behavior is locally covered: pagination and PR filtering, duplicate rejection, create, recurrence update, reopen, recovery close, absent recovery no-op, ambiguous-create reconciliation, and token redaction all pass."
+        - "Preview compatibility holds: merge_group remains the sole preview mutating owner, required check names remain unchanged, the preview mutex and four explicit preview profile operations remain, and daily live tests are nonmutating preview tests plus janitor."
+        - "Release-triggered behavior holds: reusable production calls still require the complete explicit release identity and execute verify-live verify; only scheduled live tests use strict preview-observe."
+        - "Remote prerequisites remain absent: production health still reports development without buildSha; GitHub reports zero environments and zero repository variables; effective secret scope is unproven."
+      missing_evidence:
+        - "A mutually exclusive daily versus four-hour schedule gate."
+        - "A guaranteed token-free diagnostics artifact whose absence makes artifact upload and final conclusion fail."
+        - "A protected production GitHub environment and exact reviewer policy."
+        - "A production deployment reporting environment=production and a full lowercase buildSha."
+        - "Read/close capability proof for the fine-grained canary token without broader access."
+        - "Authorized live normal run, controlled failure recurrence/reopen, recovery closure, zero-open production sweep, daily soak, and four-hour activation evidence."
+      required_board_updates:
+        - task_id: T007
+          objective: "Remediate the local rollout gate so daily and four-hour modes are mutually exclusive, and guarantee a token-free stage diagnostics artifact whose absence fails upload and the final conclusion."
+          allowed_files:
+            - .github/workflows/production-heartbeat.yml
+            - docs/production-heartbeat.md
+            - test/production-heartbeat-workflow-contract.test.sh
+          verify:
+            - "bash test/production-heartbeat-workflow-contract.test.sh"
+            - "bash test/ci-workflow-contract.test.sh"
+            - "bash test/release-workflow-contract.test.sh"
+            - "npx prettier --check .github/workflows/production-heartbeat.yml docs/production-heartbeat.md"
+            - "npm run check:actions-node24"
+            - "make check"
+            - "git diff --check"
+          stop_if:
+            - "Any implementation file outside allowed_files is required."
+            - "Daily and four-hour cron authorization cannot be proven mutually exclusive."
+            - "The diagnostics file could contain a GitHub, canary, Vercel, or other credential."
+            - "Missing diagnostics can still yield a successful artifact outcome."
+            - "Artifact failure can be masked by incident or conclusion behavior."
+            - "Credential scope, cleanup independence, prefix isolation, preview required checks, or release-triggered production verification would change."
+            - "A push, dispatch, deployment, Issue mutation, environment change, secret change, or repository-variable mutation would be required."
+            - "Verification fails twice for the same unresolved cause."
+        - task_id: T002
+          resolution: "After T007 passes, clear the stale blocked status: its Prettier blocker was an invalid Judge-supplied command, and its marker/SHA defect was remediated by T004."
+  - id: T007
+    type: worker
+    assignee: Worker
+    status: done
+    reasoning_hint: medium
+    objective: "Remediate the local rollout gate so daily and four-hour modes are mutually exclusive, and guarantee a token-free stage diagnostics artifact whose absence fails upload and the final conclusion."
+    inputs:
+      - "T005 receipt"
+      - "Current production heartbeat workflow and contract"
+    constraints:
+      - "Authorize the daily cron only when BUGDROP_PRODUCTION_HEARTBEAT_MODE equals daily."
+      - "Authorize the four-hour cron only when BUGDROP_PRODUCTION_HEARTBEAT_MODE equals four-hour; four-hour mode must not also run the daily cron."
+      - "Keep unset, manual, and unknown modes inert while preserving workflow_dispatch behavior."
+      - "Write a bounded token-free diagnostics file containing stage outcomes before artifact upload."
+      - "Upload the guaranteed diagnostics file with optional Playwright outputs and use if-no-files-found error."
+      - "Keep artifact outcome wired into incident selection and final conclusion."
+      - "Strengthen the workflow contract to reject overlapping cadence gates, missing guaranteed diagnostics, or permissive no-file artifact behavior."
+      - "Correct the runbook so four-hour activation replaces daily execution."
+      - "Perform no remote mutation."
+    expected_output:
+      - "Mutually exclusive schedule modes"
+      - "Guaranteed token-free diagnostics artifact"
+      - "Fail-closed contract evidence"
+    allowed_files:
+      - .github/workflows/production-heartbeat.yml
+      - docs/production-heartbeat.md
+      - test/production-heartbeat-workflow-contract.test.sh
+    verify:
+      - "bash test/production-heartbeat-workflow-contract.test.sh"
+      - "bash test/ci-workflow-contract.test.sh"
+      - "bash test/release-workflow-contract.test.sh"
+      - "npx prettier --check .github/workflows/production-heartbeat.yml docs/production-heartbeat.md"
+      - "npm run check:actions-node24"
+      - "make check"
+      - "git diff --check"
+    stop_if:
+      - "Any implementation file outside allowed_files is required."
+      - "Daily and four-hour cron authorization cannot be proven mutually exclusive."
+      - "The diagnostics file could contain a GitHub, canary, Vercel, or other credential."
+      - "Missing diagnostics can still yield a successful artifact outcome."
+      - "Artifact failure can be masked by incident or conclusion behavior."
+      - "Credential scope, cleanup independence, prefix isolation, preview required checks, or release-triggered production verification would change."
+      - "A push, dispatch, deployment, Issue mutation, environment change, secret change, or repository-variable mutation would be required."
+      - "Verification fails twice for the same unresolved cause."
+    receipt:
+      result: done
+      task_id: T007
+      board_path: docs/goals/production-heartbeat/state.yaml
+      changed_files:
+        - .github/workflows/production-heartbeat.yml
+        - docs/production-heartbeat.md
+        - test/production-heartbeat-workflow-contract.test.sh
+      commands:
+        - cmd: "bash test/production-heartbeat-workflow-contract.test.sh"
+          status: pass
+        - cmd: "bash test/ci-workflow-contract.test.sh"
+          status: pass
+        - cmd: "bash test/release-workflow-contract.test.sh"
+          status: pass
+        - cmd: "npx prettier --check .github/workflows/production-heartbeat.yml docs/production-heartbeat.md"
+          status: pass
+        - cmd: "npm run check:actions-node24"
+          status: pass
+        - cmd: "make check"
+          status: pass
+        - cmd: "git diff --check"
+          status: pass
+      summary: "Made daily and four-hour schedule gates mutually exclusive while preserving inert unset/manual/unknown modes and manual dispatch. Added fixed-schema token-free JSON diagnostics, mandatory artifact staging, optional Playwright-output copying, and if-no-files-found error. Both staging and upload outcomes now drive incident selection and final failure aggregation. The strengthened contract rejects overlapping cadence predicates, credential-bearing diagnostics inputs, missing required diagnostics, permissive empty uploads, or disconnected artifact outcomes. All prescribed checks pass."
+      remaining_blockers: []
+      verification_attempts: 2
+  - id: T008
+    type: judge
+    assignee: Judge
+    status: done
+    reasoning_hint: high
+    objective: "Re-audit the mutually exclusive cadence gate and mandatory diagnostics artifact, then decide whether the local implementation is ready for the exact live-authorization boundary."
+    inputs:
+      - "T005 and T007 receipts"
+      - "Current diff and verification evidence"
+    constraints:
+      - "Read-only."
+      - "Directly disprove overlapping cadence and no-op artifact success."
+      - "Confirm no regression to credential scope, cleanup independence, prefix isolation, preview required checks, or release-triggered production verification."
+    expected_output:
+      - "locally_ready | remediation_required"
+      - "Oracle gaps that require remote authorization"
+      - "Exact authorization phrase if locally ready"
+      - "Worker package if remediation remains"
+    receipt:
+      result: done
+      task_id: T008
+      board_path: docs/goals/production-heartbeat/state.yaml
+      decision: rejected
+      full_outcome_complete: false
+      rationale: "Cadence overlap and empty-directory artifact success are remediated, but a remaining fail-open path prevents local readiness. Summarize writes heartbeat_ok=true before generating diagnostics. If diagnostics generation then fails, the redirect may leave an empty file; summarize is continue-on-error and its outcome is not aggregated, prepare checks only file existence, upload can succeed, incident selects recovery, and conclusion can pass. Diagnostics must be written atomically and non-empty/valid, and summarize outcome must feed incident and conclusion."
+      evidence:
+        - "Cadence disproof succeeds: daily is authorized only by mode daily, four-hour only by mode four-hour, workflow_dispatch remains independent, and the runbook says four-hour replaces daily."
+        - "Artifact staging creates a dedicated directory, requires a diagnostics pathname, uses if-no-files-found error, and exposes preparation and upload outcomes to incident selection and conclusion."
+        - "Fail-open sequence: summarize writes heartbeat_ok/details before jq diagnostics; redirection can create an empty file; summarize is continue-on-error; summarize outcome is not aggregated; prepare uses test -f; upload can succeed."
+        - "The contract requires file existence but not atomic generation, non-empty valid JSON, or summarize-outcome aggregation."
+        - "Focused tests, workflow contracts, Playwright list discovery, formatting, Actions Node 24, and diff validation pass."
+        - "Credential boundaries, cleanup independence, environment isolation, preview required checks, and release-triggered behavior remain intact."
+      missing_evidence:
+        - "Atomic, non-empty, schema-valid diagnostics creation with summarize outcome included in incident selection and final conclusion."
+        - "Protected production environment and reviewer policy."
+        - "Production health reporting production and a full buildSha."
+        - "Fine-grained canary-token capability and narrow-scope proof."
+        - "Authorized publication, preview regression, live transaction, cleanup, incident recovery, soak, and activation evidence."
+      required_board_updates:
+        - task_id: T009
+          objective: "Close the remaining diagnostics fail-open path by making summary generation atomic and independently aggregated, and by requiring non-empty schema-valid diagnostics before upload."
+          allowed_files:
+            - .github/workflows/production-heartbeat.yml
+            - docs/production-heartbeat.md
+            - test/production-heartbeat-workflow-contract.test.sh
+          verify:
+            - "bash test/production-heartbeat-workflow-contract.test.sh"
+            - "bash test/ci-workflow-contract.test.sh"
+            - "bash test/release-workflow-contract.test.sh"
+            - "npx prettier --check .github/workflows/production-heartbeat.yml docs/production-heartbeat.md"
+            - "npm run check:actions-node24"
+            - "make check"
+            - "git diff --check"
+          stop_if:
+            - "Any implementation file outside allowed_files is required."
+            - "A failed summarize step can retain heartbeat_ok=true or permit incident recovery/conclusion success."
+            - "Diagnostics generation can leave an empty or invalid final file that passes artifact preparation."
+            - "Diagnostics could contain a credential."
+            - "Artifact preparation or upload failure can be masked."
+            - "Cadence, cleanup, isolation, credential, preview, or release behavior changes."
+            - "A remote mutation would be required."
+            - "Verification fails twice for the same unresolved cause."
+  - id: T009
+    type: worker
+    assignee: Worker
+    status: done
+    reasoning_hint: medium
+    objective: "Close the remaining diagnostics fail-open path by making summary generation atomic and independently aggregated, and by requiring non-empty schema-valid diagnostics before upload."
+    inputs:
+      - "T008 receipt"
+      - "Current production heartbeat workflow and contract"
+    constraints:
+      - "Generate diagnostics into a temporary file, validate it, and atomically move it before writing heartbeat outputs."
+      - "Do not leave a final diagnostics file when generation or validation fails."
+      - "Export summarize outcome as a heartbeat job output."
+      - "Require summarize success for incident recovery and conclusion success."
+      - "Require diagnostics to be non-empty and schema-valid before artifact copying."
+      - "Keep preparation and upload outcomes independently wired into incident and conclusion."
+      - "Strengthen the contract against test-f-only validation, missing summarize aggregation, early output publication, and non-atomic final creation."
+      - "Keep diagnostics limited to run identifiers, stage outcomes, schema version, and aggregate boolean."
+      - "Perform no remote mutation."
+    expected_output:
+      - "Atomic validated diagnostics"
+      - "Independent summarize aggregation"
+      - "Negative-path contract proof"
+    allowed_files:
+      - .github/workflows/production-heartbeat.yml
+      - docs/production-heartbeat.md
+      - test/production-heartbeat-workflow-contract.test.sh
+    verify:
+      - "bash test/production-heartbeat-workflow-contract.test.sh"
+      - "bash test/ci-workflow-contract.test.sh"
+      - "bash test/release-workflow-contract.test.sh"
+      - "npx prettier --check .github/workflows/production-heartbeat.yml docs/production-heartbeat.md"
+      - "npm run check:actions-node24"
+      - "make check"
+      - "git diff --check"
+    stop_if:
+      - "Any implementation file outside allowed_files is required."
+      - "A failed summarize step can retain heartbeat_ok=true or permit incident recovery/conclusion success."
+      - "Diagnostics generation can leave an empty or invalid final file that passes artifact preparation."
+      - "Diagnostics could contain a canary, GitHub, Vercel, or other credential."
+      - "Artifact preparation or upload failure can be masked."
+      - "Cadence exclusivity, cleanup independence, prefix isolation, credential scope, preview required checks, or release-triggered production behavior changes."
+      - "A push, dispatch, deployment, Issue mutation, environment change, secret change, or repository-variable mutation would be required."
+      - "Verification fails twice for the same unresolved cause."
+    receipt:
+      result: done
+      task_id: T009
+      board_path: docs/goals/production-heartbeat/state.yaml
+      changed_files:
+        - .github/workflows/production-heartbeat.yml
+        - docs/production-heartbeat.md
+        - test/production-heartbeat-workflow-contract.test.sh
+      commands:
+        - cmd: "bash test/production-heartbeat-workflow-contract.test.sh"
+          status: pass
+        - cmd: "bash test/ci-workflow-contract.test.sh"
+          status: pass
+        - cmd: "bash test/release-workflow-contract.test.sh"
+          status: pass
+        - cmd: "npx prettier --check .github/workflows/production-heartbeat.yml docs/production-heartbeat.md"
+          status: pass
+        - cmd: "npm run check:actions-node24"
+          status: pass
+        - cmd: "make check"
+          status: pass
+        - cmd: "git diff --check"
+          status: pass
+      summary: "Closed the diagnostics fail-open path. Summary now writes to a run-specific temporary file, checks non-empty exact-schema JSON and allowed stage outcomes, atomically renames it, then publishes outputs. Temporary files are removed on failure. Artifact preparation independently repeats non-empty schema validation. Summarize, artifact preparation, and upload outcomes now each gate incident recovery and final success. The negative contract rejects direct final-file writes, existence-only validation, early output publication, missing atomic rename, or absent summarize aggregation. All prescribed checks pass."
+      remaining_blockers: []
+      verification_attempts: 1
+  - id: T010
+    type: judge
+    assignee: Judge
+    status: done
+    reasoning_hint: high
+    objective: "Perform the terminal local-readiness audit of atomic diagnostics and fail-closed aggregation, then define the exact remote authorization boundary."
+    inputs:
+      - "T008 and T009 receipts"
+      - "Current workflow, contract, runbook, and diff"
+    constraints:
+      - "Read-only."
+      - "Replay the empty, invalid, and generation-failure diagnostics paths."
+      - "Reject local readiness if incident recovery or conclusion can succeed after summarize, preparation, or upload failure."
+      - "Confirm all previously accepted isolation and compatibility boundaries remain intact."
+    expected_output:
+      - "locally_ready | remediation_required"
+      - "Exact remote authorization phrase"
+      - "Remaining live oracle requirements"
+    receipt:
+      result: done
+      task_id: T010
+      board_path: docs/goals/production-heartbeat/state.yaml
+      decision: approved
+      full_outcome_complete: false
+      rationale: "The implementation is locally ready. Diagnostics are generated into a run-specific temporary file, validated for non-empty exact-schema content, atomically renamed, and only then publish heartbeat outputs. Summary, artifact preparation, upload, and incident outcomes independently gate recovery and conclusion. Generation, empty or invalid file, preparation, or upload failure cannot produce green. Cadence exclusivity, credential scope, cleanup independence, prefix and SHA isolation, preview required checks, and release-triggered production verification remain intact."
+      evidence:
+        - "Diagnostics generation failure cannot write the final path; an EXIT trap removes the temporary file and outputs are written only after validation and atomic rename."
+        - "Summary and artifact preparation both require non-empty exact-schema diagnostics with allowed stage outcomes."
+        - "Summarize, artifact preparation, and upload outcomes independently gate incident recovery and conclusion success."
+        - "The negative contract rejects direct final writes, existence-only checks, early outputs, missing outcome aggregation, permissive uploads, and cadence overlap."
+        - "Cadence, credential scope, cleanup independence, environment isolation, preview required checks, and release-triggered behavior remain intact."
+        - "Focused tests, contracts, Playwright discovery, formatting, Actions Node 24, and diff validation pass."
+        - "The branch remains unpublished and production still reports the old development identity without buildSha."
+      blocked_tasks:
+        - T006
+      missing_evidence:
+        - "Committed revision, pushed branch, protected-main merge, and merge-queue preview canary regression proof."
+        - "Protected production environment and reviewer policy."
+        - "Verified narrow canary-token scope and expiry ownership."
+        - "Guarded production deployment reporting production and a full buildSha."
+        - "Authorized normal and controlled heartbeat Issue, cleanup, incident, recovery, soak, and activation proof."
+        - "Final T999 oracle-to-live-evidence audit."
+      required_board_updates:
+        - task_id: T006
+          status: awaiting_exact_authorization
+          authorization_phrase: "I authorize T006 to commit and push the reviewed production-heartbeat worktree, open and merge it through the protected main merge queue including its live preview canary, create and protect the production environment with me as required reviewer, verify and use the existing narrowly scoped secrets without exposing or rotating them, satisfy rather than bypass the existing release capability gates, run a standard patch production release and its configured notification to establish environment=production with a full build SHA, dispatch the normal and controlled-failure, recurrence, authorized manual incident-close, reopen, and recovery heartbeat exercises with all resulting synthetic and incident Issue mutations and cleanup, set BUGDROP_PRODUCTION_HEARTBEAT_MODE=daily for one successful scheduled soak, and then replace it with four-hour only after every gate passes."
+  - id: T006
+    type: pm
+    assignee: PM
+    status: active
+    reasoning_hint: high
+    objective: "After local readiness and exact operator authorization, publish safely and capture the manual production transaction, cleanup, incident recurrence, recovery, and staged schedule evidence."
+    inputs:
+      - "T005 readiness receipt"
+      - "Exact operator authorization"
+      - "Production workflow run and Issue evidence"
+    constraints:
+      - "Do not push, dispatch, deploy, create or close live Issues, or enable scheduling without exact authorization."
+      - "Keep secrets out of receipts and artifacts."
+      - "Do not manufacture green status by rerunning before diagnosing a failure."
+      - "If authorization is absent and no safe local work remains, use GoalBuddy's exact terminal approval-wait shape."
+    expected_output:
+      - "Published revision identity"
+      - "Manual production run URL and observed Worker/widget identity"
+      - "Exactly-one synthetic Issue verification and zero-open cleanup proof"
+      - "One incident Issue open/update-or-reopen/close proof"
+      - "Daily soak and four-hour activation evidence, or explicit staged follow-up status"
+    authorization:
+      status: granted
+      granted_by: "neonwatty"
+      granted_at: "2026-08-04"
+      scope: "Exact T006 required_reply supplied verbatim by the operator."
+  - id: T999
+    type: judge
+    assignee: Judge
+    status: queued
+    reasoning_hint: high
+    objective: "Audit whether the full production-heartbeat owner outcome and live oracle are complete."
+    inputs:
+      - "All done task receipts"
+      - "Latest local verification"
+      - "Authorized live evidence"
+      - "Current dirty diff"
+    constraints:
+      - "Read-only."
+      - "Reject completion while any required Worker or PM task remains queued, active, or unresolved."
+      - "Reject completion without real production Issue creation, independent verification, cleanup, incident lifecycle, and preview-regression proof."
+      - "Record operational limits such as GitHub-shared alert dependency without misrepresenting them as independent paging."
+    expected_output:
+      - "complete | not_complete"
+      - "full_outcome_complete: true | false"
+      - "Oracle-to-evidence mapping"
+      - "Missing evidence and next task if not complete"
+
+checks:
+  dirty_fingerprint: "sha256:6e9b1247617f36204fcefb1ea88ba0deee54052d19be692ad07d7a1cd469159f"
+  last_verification:
+    result: unknown
+    task: null
+    commands: []

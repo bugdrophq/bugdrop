@@ -1,0 +1,1098 @@
+# GoalBuddy v2 state.yaml
+# Board truth lives here. goal.md is the editable charter; notes/ holds long receipts and planning artifacts.
+
+version: 2
+
+goal:
+  title: "Weekly Manual Release Cadence"
+  slug: "weekly-manual-release-cadence"
+  kind: existing_plan
+  tranche: "Execution tranche 1: land the documentation-only canary, prove the production freeze, then implement and review Work Package 1 from fresh main."
+  status: active
+  oracle:
+    signal: "PR #262 merges with zero Production Release runs, the dispatch-only freeze remains intact, and the deterministic WP1 planning/identity engine passes adversarial tests and final review without production side effects."
+    cadence: "after the canary merge, after WP1 implementation, and at final tranche audit"
+    final_proof: "Judge receipt confirms the GitHub canary audit and WP1 test/review evidence satisfy the approved plan while production remains disabled."
+  intake:
+    original_request: "After approving the weekly manual release specification and plan and merging the safety freeze, prepare the next step."
+    interpreted_outcome: "Use the planning PR as the post-freeze documentation canary, then implement the approved deterministic planning and identity engine from a fresh post-canary main snapshot."
+    input_shape: existing_plan
+    audience: "BugDrop maintainers and release implementers"
+    authority: approved
+    proof_type: test
+    completion_proof: "PR #262 has a merge SHA with no production-release workflow run; WP1 focused tests and repository gates pass from a fresh post-canary main worktree; final review finds no production mutation."
+    likely_misfire: "Skip the documentation-only canary, implement only happy-path SemVer logic, trust mutable/candidate-controlled identity, or begin workflow/deployment wiring before WP1 is proven."
+    blind_spots_considered:
+      - "Manual dispatch still permits an operator to select a non-main branch unless guarded."
+      - "Manual timing does not prove a partially merged stack is release-ready."
+      - "GitHub publication and Cloudflare deployment cannot be made fully atomic."
+      - "A red post-release workflow can already have published and deployed."
+      - "No-release pushes currently still deploy source under the previous tag."
+      - "Exact-version widget assets currently disappear on later deployments."
+      - "GITHUB_TOKEN-created releases usually do not trigger the Discord release workflow."
+      - "Production lacks environment approval, serialized concurrency, deployment records, and BUILD_SHA identity."
+    existing_plan_facts:
+      - "Current deploy.yml triggers on every push to main and couples semantic-release, production deploy, and post-deploy live tests."
+      - "Current semantic-release plugins create tags/notes/GitHub releases but do not publish npm or update package.json/CHANGELOG.md."
+      - "A weekly manual workflow should operate on an immutable reviewed main-history SHA and explicit SemVer decision."
+      - "The release design must be idempotent, serialized, permission-minimal, approval-gated, observable, and rollback-aware."
+      - "Discord notification should be invoked explicitly after successful publication rather than assumed from a GITHUB_TOKEN release event."
+      - "Exact-version asset retention is a current contract defect that must be repaired or explicitly re-specified."
+      - "The planning sequence is evidence validation, specification, specification review, detailed implementation plan, plan review, final audit."
+      - "WP0 merged through the queue as PR #263 at 57317afd387f057706ca8e36383957a774218bba; its full merge-group CI passed and no Production Release run was created."
+      - "PR #262 is documentation-only, open, green, and is the exact post-freeze canary required before WP1."
+      - "WP1 is read-only engine work with an approved file scope and no production workflow, credentials, or Cloudflare mutation."
+
+rules:
+  pm_owns_state: true
+  one_active_task: true
+  max_write_workers: 1
+  no_implementation_without_worker_or_pm_task: true
+  no_completion_without_judge_or_pm_audit: true
+  planning_is_not_completion: true
+  queued_required_worker_blocks_completion: true
+  continuous_until_full_outcome: true
+  missing_input_or_credentials_do_not_stop_goal: true
+  exact_human_approval_can_terminal_wait: true
+  preserve_and_validate_existing_plan: true
+  intake_misfire_must_be_audited: true
+  goal_pressure_requires_oracle: true
+  no_completion_on_weak_proof: true
+  slice_policy:
+    max_consecutive_tiny_tasks: 2
+    prefer_vertical_slices: true
+    judge_picks_largest_safe_slice: true
+    worker_completes_whole_slice: true
+
+agents:
+  scout: installed
+  worker: installed
+  judge: installed
+
+visual_board:
+  selected: local
+  local:
+    status: live
+    url: "http://goalbuddy.localhost:41737/weekly-manual-release-cadence/"
+    command: "node /Users/neonwatty/.codex/plugins/cache/goalbuddy/goalbuddy/0.4.2/skills/goal-prep/surfaces/local-goal-board/scripts/local-goal-board.mjs --goal docs/goals/weekly-manual-release-cadence"
+
+active_task: T016
+
+tasks:
+  - id: T001
+    type: scout
+    assignee: Scout
+    status: done
+    reasoning_hint: low
+    objective: "Revalidate the current release architecture, live behavior, verification surface, and prior audit facts from the fresh main snapshot."
+    inputs:
+      - "Fresh worktree at origin/main commit 12b139c49b157a0decf5570c723fe2935149e5f4"
+      - "Prior evidence-backed release audit summarized in goal intake"
+    constraints:
+      - "Read-only."
+      - "Do not write the specification or implementation plan."
+      - "Do not modify repository, GitHub, or Cloudflare state."
+      - "Distinguish verified facts from proposals and stale observations."
+    expected_output:
+      - "Current release/deploy/notification/versioning architecture map with file-path evidence"
+      - "Revalidated live-history and production-behavior evidence"
+      - "Verification and workflow-contract commands relevant to later implementation"
+      - "Decision inventory and strongest realistic failure modes the specification must resolve"
+    receipt:
+      result: done
+      harness: codex
+      summary: "PM fallback revalidated the fresh main release path after the dedicated Scout exceeded GoalBuddy's one-wait limit. Every push to main runs semantic-release, then deploys HEAD even when no version is created, and only afterward runs live tests. Current v1.55.0 was published and deployed in a workflow that finished red. Production lacks an environment gate, serialization, deployment records, BUILD_SHA, and production environment identity. Exact prior widget URLs return 404, release-event Discord automation is suppressed in practice, and package/changelog metadata is stale. The specification must choose immutable targeting, readiness, versioning, failure ordering, idempotency, rollback, artifact retention, and notification semantics."
+      evidence:
+        - ".github/workflows/deploy.yml:8-75"
+        - ".releaserc.json:1-8"
+        - "package.json:1-80"
+        - "scripts/build-widget.js:22-81"
+        - ".github/workflows/live-tests.yml:3-129"
+        - ".github/workflows/discord-release.yml:3-185"
+        - ".github/workflows/sync-docs.yml:3-42"
+        - "wrangler.toml:12-58"
+        - "src/routes/api.ts:116-129"
+        - "test/ci-workflow-contract.test.sh:93-124"
+        - "https://github.com/mean-weasel/bugdrop/actions/runs/30765978738"
+        - "https://github.com/mean-weasel/bugdrop/actions/runs/30724408445"
+        - "https://bugdrop.neonwatty.workers.dev/api/health"
+        - "https://bugdrop.neonwatty.workers.dev/versions.json"
+      facts:
+        - "Fresh worktree HEAD, origin/main, and GitHub main all resolved to 12b139c49b157a0decf5570c723fe2935149e5f4 during T001."
+        - "deploy.yml triggers only on push to main; release, production deploy, and post-deploy live tests are a single dependency chain with no production concurrency or environment declaration."
+        - "The explicit semantic-release plugin list analyzes commits, generates notes, and publishes to GitHub; it excludes npm/changelog/git prepare plugins, so package.json remains 1.14.0 and CHANGELOG.md stops at 1.11.0 while production is 1.55.0."
+        - "Run 30724408445 logged no relevant release changes, then built HEAD as 1.53.1 and deployed a new Cloudflare version, proving that a no-release push still deploys."
+        - "Run 30765978738 created v1.55.0 and deployed production successfully before live E2E failed; the overall workflow is red after irreversible public effects."
+        - "Current GitHub history contains 121 published releases, 96 since 2026-04-01, 25 multi-release days, and up to 12 releases in one day."
+        - "Repository API reports zero GitHub environments; the default Actions token permission is read and the release job elevates contents/issues/pull-requests explicitly."
+        - "Production health reports environment=development and omits buildSha because wrangler.toml defaults ENVIRONMENT to development and the production deploy does not pass BUILD_SHA."
+        - "The live manifest reports 1.55.0. Current widget.js, widget.v1.js, widget.v1.55.js, and widget.v1.55.0.js return 200; v1.54.1, v1.54.0, v1.53.1, and v1.1.0 exact assets return 404."
+        - "The build emits only current latest/major/minor/exact files into a gitignored public directory, so clean deployments cannot retain older exact assets without an additional durable source."
+        - "Only one recent release-event Discord workflow run exists; the notification workflow already supports workflow_dispatch but is not reusable via workflow_call."
+        - "Preview CI already deploys with BUILD_SHA and polls for exact environment/SHA; production can reuse that proof pattern without changing preview CI behavior."
+        - "docs website synchronization is independently path-filtered on main and need not be coupled to production releases."
+      contradictions:
+        - "CHANGELOG.md says publishing a GitHub Release gives maintainers explicit deployment control, but deploy.yml actually publishes and deploys automatically on every main push."
+        - "CHANGELOG.md promises exact widget URLs for strict control, but every tested prior exact version returns 404 after the newest deployment."
+        - "A failed Deploy workflow visually implies failure, while the latest three failed runs had already published/deployed before post-deploy test failure."
+        - "Production is labeled development and has no SHA identity despite preview having exact deployment identity checks."
+      ambiguity_requiring_judge:
+        - "Choose and justify the least misleading cross-system ordering: validate candidate, reserve immutable tag, deploy and verify, then publish GitHub Release; define recovery for every boundary."
+        - "Choose whether operators select a SemVer bump or enter an explicit version; both must be derived/validated against the latest reachable release tag."
+        - "Define a release-readiness mechanism beyond manual timing, including immutable target SHA, main-history ancestry, and human review of all included PRs."
+        - "Decide whether exact-version retention remains a supported contract; the evidence favors preserving and repairing the documented contract rather than silently weakening it."
+        - "Define whether notification failure fails the release record, retries independently, or records a degraded-success state without redeploying."
+      commands:
+        - cmd: "git status --short --branch; git rev-parse HEAD origin/main; git ls-remote origin refs/heads/main"
+          status: pass
+        - cmd: "inspect deploy, semantic-release, build-widget, live-test, notification, docs-sync, Wrangler, and workflow-contract sources with numbered lines and rg"
+          status: pass
+        - cmd: "gh release list; gh run list/view; gh api rulesets, environments, workflow permissions, refs, and release history"
+          status: pass
+        - cmd: "probe live production health, versions.json, and current/prior versioned widget URLs"
+          status: pass
+        - cmd: "inspect no-release and failed post-deploy workflow logs"
+          status: pass
+      note_needed: false
+  - id: T002
+    type: worker
+    assignee: Worker
+    status: done
+    reasoning_hint: medium
+    objective: "Write a decision-complete weekly manual release specification from the validated evidence and owner intent."
+    inputs:
+      - "docs/goals/weekly-manual-release-cadence/goal.md"
+      - "T001 receipt and any supporting note"
+    constraints:
+      - "Write only the specification artifact."
+      - "Do not edit release workflows, dependencies, product code, or external settings."
+      - "Separate verified current behavior, chosen policy, alternatives, and deferred work."
+      - "Do not treat workflow_dispatch or a weekly habit as proof that a partially merged stack is release-ready."
+      - "Every normative requirement needs an observable acceptance criterion."
+    expected_output:
+      - "Problem statement, outcomes, audience, scope, non-goals, and terminology"
+      - "Evidence-backed current-state architecture and failure model"
+      - "Decisions for cadence, emergency releases, immutable target SHA, release readiness, SemVer, release notes, permissions, environment approval, concurrency, and operator authority"
+      - "Lifecycle decisions for preflight, tag/release ordering, deployment, verification, notification, retry, partial failure, idempotency, and rollback"
+      - "Decision for exact-version asset retention and stale package/changelog metadata"
+      - "Acceptance criteria, unresolved owner decisions if any, migration boundaries, and explicit non-goals"
+    allowed_files:
+      - "docs/goals/weekly-manual-release-cadence/notes/T002-release-cadence-spec.md"
+    verify:
+      - "test -s docs/goals/weekly-manual-release-cadence/notes/T002-release-cadence-spec.md"
+      - "npx --yes prettier@3.8.1 --check docs/goals/weekly-manual-release-cadence/notes/T002-release-cadence-spec.md"
+      - "rg -n '^## (Problem|Outcomes|Current State|Release Policy|Release Candidate|Release Lifecycle|Failure|Artifact|Notifications|Acceptance|Non-Goals|Open Decisions)' docs/goals/weekly-manual-release-cadence/notes/T002-release-cadence-spec.md"
+    stop_if:
+      - "A policy choice materially changes release authority, supported artifacts, or rollback semantics and cannot be safely proposed with a clearly labeled recommendation."
+      - "Validated evidence contradicts the charter in a way that changes the owner outcome."
+      - "Need to write outside allowed_files."
+      - "Verification fails twice."
+    receipt:
+      result: done
+      harness: codex
+      changed_files:
+        - docs/goals/weekly-manual-release-cadence/notes/T002-release-cadence-spec.md
+      commands:
+        - cmd: "test -s docs/goals/weekly-manual-release-cadence/notes/T002-release-cadence-spec.md"
+          status: pass
+        - cmd: "npx --yes prettier@3.8.1 --check docs/goals/weekly-manual-release-cadence/notes/T002-release-cadence-spec.md"
+          status: pass
+        - cmd: "rg -n '^## (Problem|Outcomes|Current State|Release Policy|Release Candidate|Release Lifecycle|Failure|Artifact|Notifications|Acceptance|Non-Goals|Open Decisions)' docs/goals/weekly-manual-release-cadence/notes/T002-release-cadence-spec.md"
+          status: pass
+      summary: "PM fallback wrote the decision-complete release specification after the dedicated Worker exceeded GoalBuddy's one-wait limit. It defines manual-only weekly/emergency authority, explicit immutable main-history SHA and human bump, readiness attestation, protected approval, serialized/stale-plan-safe execution, build-once artifact promotion, provisional deployment with identity proof and compensating rollback, post-verification publication, idempotent retries, direct recoverable Discord notification, prospective exact-asset retention, and truthful metadata. Twenty-five acceptance criteria bind every normative requirement to observable repository, GitHub, Cloudflare, or live-service proof. It preserves preview CI, daily monitoring, and docs sync, and leaves only named operator configuration values rather than architecture decisions."
+      deviations:
+        - "The installed GoalBuddy Worker was interrupted after the single allowed wait timeout without producing the allowed file; PM fallback completed the same bounded task."
+      remaining_blockers: []
+      verification_attempts: 1
+      stopped_because: null
+  - id: T003
+    type: judge
+    assignee: Judge
+    status: done
+    reasoning_hint: high
+    objective: "Skeptically review the release-cadence specification for decision completeness, safety, internal consistency, and fidelity to the owner outcome."
+    inputs:
+      - "docs/goals/weekly-manual-release-cadence/goal.md"
+      - "T001 receipt and supporting evidence"
+      - "docs/goals/weekly-manual-release-cadence/notes/T002-release-cadence-spec.md"
+    constraints:
+      - "Read-only; do not repair the specification."
+      - "Try to disprove that the design prevents unintended publication and deployment."
+      - "Reject vague future-work language for any safety-critical decision."
+      - "Reject acceptance criteria that cannot be observed in CI, GitHub, Cloudflare, or the deployed service."
+    expected_output:
+      - "approve | revise | blocked"
+      - "Requirement-to-spec traceability"
+      - "Contradictions, ambiguities, unsafe assumptions, and missing acceptance criteria"
+      - "Strongest failure scenario walkthroughs: partial stack, wrong branch, race, duplicate dispatch, no-op release, failure before/after tag, deploy failure, live-test failure, notification failure, and rollback"
+      - "Exact bounded revision task if not approved"
+    receipt:
+      result: done
+      harness: codex
+      decision: rejected
+      full_outcome_complete: false
+      rationale: "PM Judge fallback found the specification direction strong and traceable, but not yet implementation-safe. RC-03 defines one plan identity using artifact hashes before State 2 creates them, while State 1 both precedes and claims completion of candidate verification. The build-once promise clearly covers widget assets but ambiguously claims already verified deployment artifacts although Wrangler builds the Worker during deploy. First-cutover rollback requires a prior build SHA that production does not expose. Retry behavior does not say how expired or rebuilt artifacts preserve identity, and cancellation overstates the guarantee that cleanup will run. These are bounded lifecycle/proof defects, not owner-policy blockers."
+      worker_package:
+        objective: "Revise the release specification to resolve plan-identity timing, Worker-build integrity, bootstrap rollback proof, resumable artifact semantics, and cancellation recovery."
+        allowed_files:
+          - docs/goals/weekly-manual-release-cadence/notes/T002-release-cadence-spec.md
+        verify:
+          - "test -s docs/goals/weekly-manual-release-cadence/notes/T002-release-cadence-spec.md"
+          - "npx --yes prettier@3.8.1 --check docs/goals/weekly-manual-release-cadence/notes/T002-release-cadence-spec.md"
+          - "rg -n 'request identity|release-plan identity|bootstrap baseline|Worker source|artifact retention|cancellation' docs/goals/weekly-manual-release-cadence/notes/T002-release-cadence-spec.md"
+        stop_if:
+          - "A correction requires selecting an unverified Cloudflare/Wrangler capability as fact rather than assigning it to implementation-plan validation."
+          - "Need to write outside allowed_files."
+          - "Verification fails twice."
+      evidence:
+        - "T001 receipt facts and contradictions"
+        - "notes/T002-release-cadence-spec.md:173-236"
+        - "notes/T002-release-cadence-spec.md:244-277"
+        - "notes/T002-release-cadence-spec.md:285-330"
+        - "notes/T002-release-cadence-spec.md:355-357"
+        - "notes/T002-release-cadence-spec.md:385-413"
+      subgoal_contract: null
+      parallel_safety: null
+      blocked_tasks:
+        - T004
+        - T005
+        - T999
+      missing_evidence:
+        - "A consistent identity transition from dispatch inputs to verified artifact hashes."
+        - "An explicit statement of which bytes are promoted unchanged and how immutable Worker source/build identity is proven without assuming unsupported Wrangler behavior."
+        - "A migration bootstrap baseline that can verify rollback before production exposes BUILD_SHA."
+        - "A same-plan retry rule when workflow artifacts are reusable, expired, or rebuilt."
+        - "A cancellation rule that distinguishes best-effort always cleanup from mandatory operator inspection after ambiguous mutation."
+      required_board_updates:
+        - "Activate bounded spec revision T006."
+        - "Require corrected-spec Judge review T007 before T004 implementation planning."
+  - id: T004
+    type: worker
+    assignee: Worker
+    status: done
+    reasoning_hint: medium
+    objective: "Convert the Judge-approved specification into a detailed, sequenced, implementation-ready plan without implementing it."
+    inputs:
+      - "docs/goals/weekly-manual-release-cadence/goal.md"
+      - "T001 evidence receipt"
+      - "T013 approved final specification-review receipt"
+      - "docs/goals/weekly-manual-release-cadence/notes/T002-release-cadence-spec.md"
+    constraints:
+      - "Do not proceed unless T013 approves the specification; if it does not, PM must replace this with the bounded revision task."
+      - "Write only the implementation-plan artifact."
+      - "Do not implement repository or external configuration changes."
+      - "Separate repository PR work from GitHub/Cloudflare operator actions and production cutover."
+      - "Each work package must be independently reviewable, reversible where possible, and verified against the specification."
+    expected_output:
+      - "Architecture delta and target release-state machine"
+      - "Exact anticipated files and external settings affected, validated against current main"
+      - "Ordered migration work packages with dependencies, allowed scope, code/config changes, tests, verification commands, failure handling, and rollback"
+      - "Fast safety cutover, semantic-release removal, explicit version planning, workflow contracts, live-test parameter changes, environment/concurrency setup, notification integration, deployed identity, and exact-asset retention"
+      - "Dry-run, idempotency, concurrent-dispatch, wrong-ref, partial-failure, rollback, and production proof scenarios"
+      - "Release operator runbook, emergency path, rollout sequence, observation window, and definition of done"
+      - "Spec acceptance-criterion traceability matrix"
+    allowed_files:
+      - "docs/goals/weekly-manual-release-cadence/notes/T004-implementation-plan.md"
+    verify:
+      - "test -s docs/goals/weekly-manual-release-cadence/notes/T004-implementation-plan.md"
+      - "npx --yes prettier@3.8.1 --check docs/goals/weekly-manual-release-cadence/notes/T004-implementation-plan.md"
+      - "rg -n '^## (Target Architecture|Migration|Work Package|Repository|External|Verification|Rollout|Rollback|Operator|Traceability|Definition)' docs/goals/weekly-manual-release-cadence/notes/T004-implementation-plan.md"
+    stop_if:
+      - "T013 has not approved the specification."
+      - "A work package cannot name concrete scope and proof without another read-only evidence task."
+      - "The plan requires an unapproved product, versioning, hosting, or compatibility-policy change."
+      - "Need to write outside allowed_files."
+      - "Verification fails twice."
+    receipt:
+      result: done
+      changed_files:
+        - docs/goals/weekly-manual-release-cadence/notes/T004-implementation-plan.md
+      commands:
+        - cmd: "test -s docs/goals/weekly-manual-release-cadence/notes/T004-implementation-plan.md"
+          status: pass
+        - cmd: "npx --yes prettier@3.8.1 --check docs/goals/weekly-manual-release-cadence/notes/T004-implementation-plan.md"
+          status: pass
+        - cmd: "rg -n '^## (Target Architecture|Migration|Work Package|Repository|External|Verification|Rollout|Rollback|Operator|Traceability|Definition)' docs/goals/weekly-manual-release-cadence/notes/T004-implementation-plan.md"
+          status: pass
+        - cmd: "compare unique AC IDs in spec and plan"
+          status: pass
+        - cmd: "validate every planned existing-file target exists at the main snapshot"
+          status: pass
+        - cmd: "git diff --check"
+          status: pass
+      summary: "PM fallback produced a 588-line implementation plan after the dedicated Worker timed out without an allowed-file artifact. It defines the target state machine and evidence objects, three repository PRs plus protected operator cutover, exact current/new file inventory, six repository and two operator work packages, a fast production freeze, deterministic identity/static retention, honest Wrangler capability gate, publication/recovery transitions, full workflow contracts, semantic-release cleanup, external settings, dry/failure/cutover drills, weekly/emergency runbook, rollback, observation, and definition of done. AC-01 through AC-32 trace exactly, and every named existing file was validated on main."
+      deviations:
+        - "The dispatched GoalBuddy Worker produced no allowed-file change within the single permitted wait; PM interrupted it and completed the bounded planning artifact as fallback."
+      remaining_blockers: []
+      verification_attempts: 1
+      stopped_because: null
+  - id: T006
+    type: worker
+    assignee: Worker
+    status: done
+    reasoning_hint: medium
+    objective: "Revise the release specification to resolve plan-identity timing, Worker-build integrity, bootstrap rollback proof, resumable artifact semantics, and cancellation recovery."
+    inputs:
+      - "T003 rejected specification-review receipt"
+      - "docs/goals/weekly-manual-release-cadence/notes/T002-release-cadence-spec.md"
+    constraints:
+      - "Modify only the specification artifact."
+      - "Preserve approved requirements and acceptance criteria unless the correction requires a traced replacement."
+      - "Do not claim unsupported build promotion or cancellation guarantees."
+      - "Do not implement repository or external configuration changes."
+    expected_output:
+      - "Separate pre-build request identity from post-build immutable release-plan identity"
+      - "Consistent dry-run lifecycle through candidate verification and final artifact hashes"
+      - "Explicit integrity model for prebuilt static assets and the Wrangler-built Worker"
+      - "First-cutover rollback baseline that does not require a pre-existing BUILD_SHA"
+      - "Artifact reuse/rebuild rules for retries and expired workflow artifacts"
+      - "Cancellation semantics that attempt cleanup but require authoritative inspection when cleanup cannot run"
+      - "Updated acceptance proofs for each correction"
+    allowed_files:
+      - "docs/goals/weekly-manual-release-cadence/notes/T002-release-cadence-spec.md"
+    verify:
+      - "test -s docs/goals/weekly-manual-release-cadence/notes/T002-release-cadence-spec.md"
+      - "npx --yes prettier@3.8.1 --check docs/goals/weekly-manual-release-cadence/notes/T002-release-cadence-spec.md"
+      - "rg -n 'request identity|release-plan identity|bootstrap baseline|Worker source|artifact retention|cancellation' docs/goals/weekly-manual-release-cadence/notes/T002-release-cadence-spec.md"
+    stop_if:
+      - "A correction requires selecting an unverified Cloudflare/Wrangler capability as fact rather than assigning it to implementation-plan validation."
+      - "Need to write outside allowed_files."
+      - "Verification fails twice."
+    receipt:
+      result: done
+      changed_files:
+        - docs/goals/weekly-manual-release-cadence/notes/T002-release-cadence-spec.md
+      commands:
+        - cmd: "test -s docs/goals/weekly-manual-release-cadence/notes/T002-release-cadence-spec.md"
+          status: pass
+        - cmd: "npx --yes prettier@3.8.1 --check docs/goals/weekly-manual-release-cadence/notes/T002-release-cadence-spec.md"
+          status: pass
+        - cmd: "rg -n 'request identity|release-plan identity|bootstrap baseline|Worker source|artifact retention|cancellation' docs/goals/weekly-manual-release-cadence/notes/T002-release-cadence-spec.md"
+          status: pass
+        - cmd: "git diff --check -- docs/goals/weekly-manual-release-cadence/notes/T002-release-cadence-spec.md"
+          status: pass
+      summary: "The specification now separates a pre-build request identity from the post-verification release-plan identity approved for production. Dry runs complete candidate verification. Static bytes are promoted unchanged, while Worker integrity is honestly bound to immutable source, lockfile, pinned Wrangler, configuration, digest, and live BUILD_SHA unless prebuilt support is proven. The first cutover captures a rollback baseline that does not require a prior build SHA. Retry rules cover reusable, expired, and deterministically rebuilt artifacts. Cancellation after mutation is an ambiguous critical state with best-effort cleanup and mandatory inspection/runbook recovery. Acceptance criteria now prove each correction."
+      deviations:
+        - "The dispatched GoalBuddy Worker returned blocked after looking for state.yaml at the worktree root instead of the task's exact board path; it changed nothing, and PM fallback completed the same bounded allowed-file task."
+      remaining_blockers: []
+      verification_attempts: 1
+      stopped_because: null
+  - id: T007
+    type: judge
+    assignee: Judge
+    status: done
+    reasoning_hint: high
+    objective: "Re-review the corrected specification and approve it only if every T003 defect is resolved without weakening the owner outcome."
+    inputs:
+      - "T003 rejected review receipt"
+      - "T006 revision receipt"
+      - "docs/goals/weekly-manual-release-cadence/notes/T002-release-cadence-spec.md"
+    constraints:
+      - "Read-only; do not repair."
+      - "Trace every T003 defect to corrected normative text and acceptance proof."
+      - "Reject unsupported platform assumptions or lifecycle contradictions."
+    expected_output:
+      - "approved | rejected"
+      - "Defect-by-defect traceability"
+      - "Exact implementation-plan Worker package if approved"
+      - "Exact bounded revision package if rejected"
+    receipt:
+      result: done
+      decision: rejected
+      full_outcome_complete: false
+      rationale: "PM Judge fallback confirmed that T006 resolves the six named T003 defects, but found a remaining contradiction inside the retry correction. RC-03 derives release-plan identity from verification results and a final provenance document, while NM-04 puts GitHub run ID/attempt and other execution observations in provenance. FS-06 then permits a new dispatch to reproduce the same release plan. Run-specific fields make that identity non-reproducible, and an identity-bearing document risks self-reference. The spec must separate a canonical deterministic content payload from an append-only execution/audit envelope before implementation planning."
+      worker_package:
+        objective: "Separate deterministic release content identity from run-specific audit evidence so cross-dispatch resumption is coherent."
+        allowed_files:
+          - docs/goals/weekly-manual-release-cadence/notes/T002-release-cadence-spec.md
+        verify:
+          - "test -s docs/goals/weekly-manual-release-cadence/notes/T002-release-cadence-spec.md"
+          - "npx --yes prettier@3.8.1 --check docs/goals/weekly-manual-release-cadence/notes/T002-release-cadence-spec.md"
+          - "rg -n 'content payload|audit envelope|run ID|deterministic|resume' docs/goals/weekly-manual-release-cadence/notes/T002-release-cadence-spec.md"
+        stop_if:
+          - "The correction requires weakening immutable artifact identity or omitting execution audit records."
+          - "Need to write outside allowed_files."
+          - "Verification fails twice."
+      evidence:
+        - "notes/T002-release-cadence-spec.md:206-210"
+        - "notes/T002-release-cadence-spec.md:241-245"
+        - "notes/T002-release-cadence-spec.md:328-332"
+        - "notes/T002-release-cadence-spec.md:400-404"
+        - "notes/T002-release-cadence-spec.md:435-438"
+      subgoal_contract: null
+      parallel_safety: null
+      blocked_tasks:
+        - T004
+        - T005
+        - T999
+      missing_evidence:
+        - "Normative canonicalization boundary proving release-plan identity excludes run ID, attempt, approval, timing, observed deployment state, notification, and recovery results."
+        - "Acceptance proof that a new dispatch can reproduce content identity while retaining a distinct complete audit trail."
+      required_board_updates:
+        - "Activate bounded identity/provenance revision T008."
+        - "Require final corrected-spec Judge review T009 before T004 implementation planning."
+        - "After T009 approval, update T004 and later review gates to reference the final approved specification receipt rather than T003."
+  - id: T008
+    type: worker
+    assignee: Worker
+    status: done
+    reasoning_hint: medium
+    objective: "Separate deterministic release content identity from run-specific audit evidence so cross-dispatch resumption is coherent."
+    inputs:
+      - "T007 rejected corrected-spec review receipt"
+      - "docs/goals/weekly-manual-release-cadence/notes/T002-release-cadence-spec.md"
+    constraints:
+      - "Modify only the specification artifact."
+      - "Preserve all approved T006 corrections and owner outcomes."
+      - "Do not weaken provenance; place run-specific observations in an append-only audit envelope outside the deterministic identity payload."
+      - "Do not implement repository or external configuration changes."
+    expected_output:
+      - "A canonical deterministic release-content payload and hash with no circular or run-specific fields"
+      - "A separate execution/audit envelope containing run ID, attempt, approvals, observations, and recovery results"
+      - "Coherent same-run rerun and new-dispatch resume semantics"
+      - "Acceptance proof for deterministic identity reproduction and preserved auditability"
+    allowed_files:
+      - "docs/goals/weekly-manual-release-cadence/notes/T002-release-cadence-spec.md"
+    verify:
+      - "test -s docs/goals/weekly-manual-release-cadence/notes/T002-release-cadence-spec.md"
+      - "npx --yes prettier@3.8.1 --check docs/goals/weekly-manual-release-cadence/notes/T002-release-cadence-spec.md"
+      - "rg -n 'content payload|audit envelope|run ID|deterministic|resume' docs/goals/weekly-manual-release-cadence/notes/T002-release-cadence-spec.md"
+    stop_if:
+      - "The correction requires weakening immutable artifact identity or omitting execution audit records."
+      - "Need to write outside allowed_files."
+      - "Verification fails twice."
+    receipt:
+      result: done
+      changed_files:
+        - docs/goals/weekly-manual-release-cadence/notes/T002-release-cadence-spec.md
+      commands:
+        - cmd: "test -s docs/goals/weekly-manual-release-cadence/notes/T002-release-cadence-spec.md"
+          status: pass
+        - cmd: "npx --yes prettier@3.8.1 --check docs/goals/weekly-manual-release-cadence/notes/T002-release-cadence-spec.md"
+          status: pass
+        - cmd: "rg -n 'content payload|audit envelope|run ID|deterministic|resume' docs/goals/weekly-manual-release-cadence/notes/T002-release-cadence-spec.md"
+          status: pass
+        - cmd: "git diff --check -- docs/goals/weekly-manual-release-cadence/notes/T002-release-cadence-spec.md"
+          status: pass
+      summary: "The spec now hashes a canonically serialized release content payload containing only deterministic source, version, static-artifact, Worker-input, configuration, and verification-contract fields. It excludes its own hash and all run-specific observations. Each execution instead appends a separate audit envelope referencing that identity and recording run/attempt, artifact retention, approval, deployment, publication, notification, cancellation, and recovery evidence. Reruns and new dispatches can therefore reproduce one release identity only when content is byte-equivalent while preserving distinct complete audit trails. Publication attaches both documents, and AC-30 directly tests canonicalization, sensitivity, exclusion, resumption, and auditability."
+      deviations:
+        - "The dispatched GoalBuddy Worker produced no allowed-file change within the single permitted wait; PM interrupted it and completed the bounded revision as fallback."
+      remaining_blockers: []
+      verification_attempts: 1
+      stopped_because: null
+  - id: T009
+    type: judge
+    assignee: Judge
+    status: done
+    reasoning_hint: high
+    objective: "Approve the specification only if deterministic release identity, resumption, and run-specific audit provenance are mutually consistent and all prior defects remain resolved."
+    inputs:
+      - "T003 and T007 rejected review receipts"
+      - "T006 and T008 revision receipts"
+      - "docs/goals/weekly-manual-release-cadence/notes/T002-release-cadence-spec.md"
+    constraints:
+      - "Read-only; do not repair."
+      - "Trace every prior defect and verify content identity contains no run-specific or self-referential field."
+      - "Reject any weakening of artifact, Worker, rollback, cancellation, or audit guarantees."
+    expected_output:
+      - "approved | rejected"
+      - "Defect-by-defect traceability"
+      - "Exact T004 implementation-plan Worker package if approved"
+      - "Exact bounded revision package if rejected"
+    receipt:
+      result: done
+      decision: rejected
+      full_outcome_complete: false
+      rationale: "PM Judge fallback found the deterministic content/audit split correct and all earlier defects preserved, but the publication boundary remains inconsistent. RC-03 chooses the highest stable reachable tag as the previous release. If State 6 creates the tag and Release publication then fails, FS-04 says the same plan/version may retry, yet that orphan tag would become the new frontier and cause recalculation. The spec also does not define durable proof that a tag-only or partial Release belongs to the exact release-plan identity. Frontier, annotated-tag binding, draft assembly, and partial-state recovery must be explicit."
+      worker_package:
+        objective: "Make the SemVer frontier and tag/Release partial-publication recovery mutually consistent and cryptographically attributable to one release plan."
+        allowed_files:
+          - docs/goals/weekly-manual-release-cadence/notes/T002-release-cadence-spec.md
+        verify:
+          - "test -s docs/goals/weekly-manual-release-cadence/notes/T002-release-cadence-spec.md"
+          - "npx --yes prettier@3.8.1 --check docs/goals/weekly-manual-release-cadence/notes/T002-release-cadence-spec.md"
+          - "rg -n 'published release frontier|annotated tag|draft Release|tag-only|silently increment' docs/goals/weekly-manual-release-cadence/notes/T002-release-cadence-spec.md"
+        stop_if:
+          - "The correction would require deleting/moving an immutable tag or treating an unverified tag as a published release."
+          - "Need to write outside allowed_files."
+          - "Verification fails twice."
+      evidence:
+        - "notes/T002-release-cadence-spec.md:194-204"
+        - "notes/T002-release-cadence-spec.md:285-294"
+        - "notes/T002-release-cadence-spec.md:318-322"
+        - "notes/T002-release-cadence-spec.md:423-430"
+      subgoal_contract: null
+      parallel_safety: null
+      blocked_tasks:
+        - T004
+        - T005
+        - T999
+      missing_evidence:
+        - "A version frontier that a tag-only partial publication cannot advance."
+        - "Durable identity proof for tag-only, draft, partial-asset, and lost publish-response states."
+        - "Acceptance proof that retry selects the same version and fails closed on conflicts."
+      required_board_updates:
+        - "Activate bounded publication-frontier revision T010."
+        - "Require final corrected-spec review T011 before T004."
+  - id: T010
+    type: worker
+    assignee: Worker
+    status: done
+    reasoning_hint: medium
+    objective: "Make the SemVer frontier and tag/Release partial-publication recovery mutually consistent and cryptographically attributable to one release plan."
+    inputs:
+      - "T009 rejected final-spec review receipt"
+      - "docs/goals/weekly-manual-release-cadence/notes/T002-release-cadence-spec.md"
+    constraints:
+      - "Modify only the specification artifact."
+      - "Preserve every previously approved safety requirement."
+      - "Do not delete or move routine release tags as recovery."
+      - "Do not implement repository or external configuration changes."
+    expected_output:
+      - "A published-GitHub-Release-based SemVer frontier that ignores but detects partial tag/draft states"
+      - "An annotated tag and draft Release binding to the release-plan identity"
+      - "A failure/retry state machine for tag-only, draft, partially uploaded, published, and conflicting states"
+      - "Acceptance proof that a tag-only lost-response failure resumes the same version and never silently increments"
+    allowed_files:
+      - "docs/goals/weekly-manual-release-cadence/notes/T002-release-cadence-spec.md"
+    verify:
+      - "test -s docs/goals/weekly-manual-release-cadence/notes/T002-release-cadence-spec.md"
+      - "npx --yes prettier@3.8.1 --check docs/goals/weekly-manual-release-cadence/notes/T002-release-cadence-spec.md"
+      - "rg -n 'published release frontier|annotated tag|draft Release|tag-only|silently increment' docs/goals/weekly-manual-release-cadence/notes/T002-release-cadence-spec.md"
+    stop_if:
+      - "The correction would require deleting/moving an immutable tag or treating an unverified tag as a published release."
+      - "Need to write outside allowed_files."
+      - "Verification fails twice."
+    receipt:
+      result: done
+      changed_files:
+        - docs/goals/weekly-manual-release-cadence/notes/T002-release-cadence-spec.md
+      commands:
+        - cmd: "test -s docs/goals/weekly-manual-release-cadence/notes/T002-release-cadence-spec.md"
+          status: pass
+        - cmd: "npx --yes prettier@3.8.1 --check docs/goals/weekly-manual-release-cadence/notes/T002-release-cadence-spec.md"
+          status: pass
+        - cmd: "rg -n 'published release frontier|annotated tag|draft Release|tag-only|silently increment' docs/goals/weekly-manual-release-cadence/notes/T002-release-cadence-spec.md"
+          status: pass
+        - cmd: "git diff --check -- docs/goals/weekly-manual-release-cadence/notes/T002-release-cadence-spec.md"
+          status: pass
+      summary: "The SemVer frontier now advances only for a consistent published stable GitHub Release, while orphan tags and drafts are detected partial states. Future release tags are annotated with the target and content-addressed release-plan identity. The workflow assembles an identity-bound draft, uploads and read-verifies the complete exact asset set, then publishes in one final action. Tag-only, partial-draft, complete-published, lost-response, and conflict states have explicit fail-closed resume behavior. A partial state keeps the same next version and identity after rollback; it can never silently increment. AC-06, AC-14, AC-16, and new AC-31 prove the boundary."
+      deviations:
+        - "The dispatched GoalBuddy Worker produced no allowed-file change within the single permitted wait; PM interrupted it and completed the bounded revision as fallback."
+      remaining_blockers: []
+      verification_attempts: 1
+      stopped_because: null
+  - id: T011
+    type: judge
+    assignee: Judge
+    status: done
+    reasoning_hint: high
+    objective: "Perform the final specification review across all prior defects and approve only if every publication boundary is safely resumable."
+    inputs:
+      - "T003, T007, and T009 rejected review receipts"
+      - "T006, T008, and T010 revision receipts"
+      - "docs/goals/weekly-manual-release-cadence/notes/T002-release-cadence-spec.md"
+    constraints:
+      - "Read-only; do not repair."
+      - "Trace all prior defects and walk every tag/Release partial state."
+      - "Reject version-frontier drift, unauthenticated resumption, public incomplete Releases, or weakened prior guarantees."
+    expected_output:
+      - "approved | rejected"
+      - "Complete defect and publication-state traceability"
+      - "Exact T004 implementation-plan Worker package if approved"
+      - "Exact bounded revision package if rejected"
+    receipt:
+      result: done
+      decision: rejected
+      full_outcome_complete: false
+      rationale: "PM Judge fallback found the first-run and partial-publication protocol safe, but the post-success rerun path still contradicts idempotency. After vNext is published, it becomes the frontier. Replaying the original target/bump would either calculate the following version or fail the no-op range before reaching State 6's matching-published no-op. The workflow needs an authoritative completed-plan lookup before frontier calculation, using stored release content to prove an exact original request. Exact matches must core-no-op; changed inputs or a target merely contained in a later release must fail closed."
+      worker_package:
+        objective: "Define an early completed-plan lookup so an exact post-success rerun no-ops before the advanced frontier can calculate a later version."
+        allowed_files:
+          - docs/goals/weekly-manual-release-cadence/notes/T002-release-cadence-spec.md
+        verify:
+          - "test -s docs/goals/weekly-manual-release-cadence/notes/T002-release-cadence-spec.md"
+          - "npx --yes prettier@3.8.1 --check docs/goals/weekly-manual-release-cadence/notes/T002-release-cadence-spec.md"
+          - "rg -n 'completed-plan lookup|advanced frontier|already contained|post-success|core no-op' docs/goals/weekly-manual-release-cadence/notes/T002-release-cadence-spec.md"
+        stop_if:
+          - "The correction would weaken the no-op-range rejection or permit multiple versions for one source SHA."
+          - "Need to write outside allowed_files."
+          - "Verification fails twice."
+      evidence:
+        - "notes/T002-release-cadence-spec.md:196-210"
+        - "notes/T002-release-cadence-spec.md:288-304"
+        - "notes/T002-release-cadence-spec.md:332-346"
+        - "notes/T002-release-cadence-spec.md:435-454"
+      subgoal_contract: null
+      parallel_safety: null
+      blocked_tasks:
+        - T004
+        - T005
+        - T999
+      missing_evidence:
+        - "A pre-frontier exact completed-plan recognition rule."
+        - "Proof that an exact post-success rerun performs no core or notification mutation."
+        - "Fail-closed distinction between an exact completed request and same/contained source with different inputs."
+      required_board_updates:
+        - "Activate bounded post-success idempotency revision T012."
+        - "Require final specification review T013 before T004."
+  - id: T012
+    type: worker
+    assignee: Worker
+    status: done
+    reasoning_hint: medium
+    objective: "Define an early completed-plan lookup so an exact post-success rerun no-ops before the advanced frontier can calculate a later version."
+    inputs:
+      - "T011 rejected specification-review receipt"
+      - "docs/goals/weekly-manual-release-cadence/notes/T002-release-cadence-spec.md"
+    constraints:
+      - "Modify only the specification artifact."
+      - "Preserve all prior publication-frontier and identity guarantees."
+      - "Do not allow a merely similar request or an already-contained target to publish another version."
+      - "Do not implement repository or external configuration changes."
+    expected_output:
+      - "A pre-frontier lookup against published release content that recognizes an exact completed request"
+      - "A proven core no-op with no deploy, tag, Release, or automatic notification repeat"
+      - "Fail-closed behavior for same target with different inputs and targets already contained by later releases"
+      - "Acceptance proof for post-success rerun idempotency"
+    allowed_files:
+      - "docs/goals/weekly-manual-release-cadence/notes/T002-release-cadence-spec.md"
+    verify:
+      - "test -s docs/goals/weekly-manual-release-cadence/notes/T002-release-cadence-spec.md"
+      - "npx --yes prettier@3.8.1 --check docs/goals/weekly-manual-release-cadence/notes/T002-release-cadence-spec.md"
+      - "rg -n 'completed-plan lookup|advanced frontier|already contained|post-success|core no-op' docs/goals/weekly-manual-release-cadence/notes/T002-release-cadence-spec.md"
+    stop_if:
+      - "The correction would weaken the no-op-range rejection or permit multiple versions for one source SHA."
+      - "Need to write outside allowed_files."
+      - "Verification fails twice."
+    receipt:
+      result: done
+      changed_files:
+        - docs/goals/weekly-manual-release-cadence/notes/T002-release-cadence-spec.md
+      commands:
+        - cmd: "test -s docs/goals/weekly-manual-release-cadence/notes/T002-release-cadence-spec.md"
+          status: pass
+        - cmd: "npx --yes prettier@3.8.1 --check docs/goals/weekly-manual-release-cadence/notes/T002-release-cadence-spec.md"
+          status: pass
+        - cmd: "rg -n 'completed-plan lookup|advanced frontier|already contained|post-success|core no-op' docs/goals/weekly-manual-release-cadence/notes/T002-release-cadence-spec.md"
+          status: pass
+        - cmd: "git diff --check -- docs/goals/weekly-manual-release-cadence/notes/T002-release-cadence-spec.md"
+          status: pass
+      summary: "The specification now authenticates an exact completed request before recalculating from the advanced release frontier. It verifies normalized original inputs against the published Release, annotated tag, canonical payload, final plan, checksums, and required assets. An exact match exits as a post-success core no-op before build, approval, secrets, deployment, publication mutation, or automatic notification. Same-target requests with changed or inconsistent content and targets only contained by later releases fail closed without calculating a new version. The guard is repeated after serialized approval to handle a concurrent winner, and AC-32 exercises exact and negative variants."
+      deviations:
+        - "The GoalBuddy Worker edit became visible just after the single wait timeout and interruption boundary; PM preserved it, directly inspected the result, and ran every required verification rather than replacing the valid allowed-file work."
+      remaining_blockers: []
+      verification_attempts: 1
+      stopped_because: null
+  - id: T013
+    type: judge
+    assignee: Judge
+    status: done
+    reasoning_hint: high
+    objective: "Approve the specification only after complete first-run, partial-run, retry, and post-success-rerun state-machine walkthroughs."
+    inputs:
+      - "All prior specification Judge and revision receipts"
+      - "docs/goals/weekly-manual-release-cadence/notes/T002-release-cadence-spec.md"
+    constraints:
+      - "Read-only; do not repair."
+      - "Walk first release, every publication partial state, same-run rerun, cross-dispatch retry, and post-success exact/different reruns."
+      - "Reject version drift, duplicate publication/deployment/notification, or weakened prior guarantees."
+    expected_output:
+      - "approved | rejected"
+      - "Complete state-machine and prior-defect traceability"
+      - "Exact T004 implementation-plan Worker package if approved"
+      - "Exact bounded revision package if rejected"
+    receipt:
+      result: done
+      decision: approved
+      full_outcome_complete: false
+      rationale: "PM Judge fallback approves the specification after tracing every prior defect and walking first-run, bootstrap rollback, tag-only, draft/partial-asset, complete-publish, lost-response, conflict, same-run rerun, expired-artifact cross-dispatch retry, concurrent-winner, cancellation, and post-success rerun states. Deterministic content identity is separate from audit evidence; static and Worker integrity claims are honest; incomplete Releases remain drafts; only a published consistent Release advances SemVer; exact completed requests no-op before frontier calculation; changed/already-contained requests fail closed. Each guarantee has observable acceptance proof, and no architecture-blocking decision remains."
+      worker_package:
+        objective: "Convert the Judge-approved specification into a detailed, sequenced, implementation-ready plan without implementing it."
+        allowed_files:
+          - docs/goals/weekly-manual-release-cadence/notes/T004-implementation-plan.md
+        verify:
+          - "test -s docs/goals/weekly-manual-release-cadence/notes/T004-implementation-plan.md"
+          - "npx --yes prettier@3.8.1 --check docs/goals/weekly-manual-release-cadence/notes/T004-implementation-plan.md"
+          - "rg -n '^## (Target Architecture|Migration|Work Package|Repository|External|Verification|Rollout|Rollback|Operator|Traceability|Definition)' docs/goals/weekly-manual-release-cadence/notes/T004-implementation-plan.md"
+        stop_if:
+          - "T013 has not approved the specification."
+          - "A work package cannot name concrete scope and proof without another read-only evidence task."
+          - "The plan requires an unapproved product, versioning, hosting, or compatibility-policy change."
+          - "Need to write outside allowed_files."
+          - "Verification fails twice."
+      evidence:
+        - "notes/T002-release-cadence-spec.md:159-270"
+        - "notes/T002-release-cadence-spec.md:272-368"
+        - "notes/T002-release-cadence-spec.md:370-468"
+        - "T003, T007, T009, and T011 rejected Judge receipts"
+        - "T006, T008, T010, and T012 verified revision receipts"
+      subgoal_contract: null
+      parallel_safety: null
+      blocked_tasks: []
+      missing_evidence: []
+      required_board_updates:
+        - "Use T013 as the approved specification gate for T004, T005, and T999."
+        - "Activate T004 implementation planning."
+  - id: T005
+    type: judge
+    assignee: Judge
+    status: done
+    reasoning_hint: high
+    objective: "Audit the detailed implementation plan for executability, safe sequencing, complete proof, rollback realism, and traceability to the approved specification."
+    inputs:
+      - "docs/goals/weekly-manual-release-cadence/notes/T002-release-cadence-spec.md"
+      - "T013 approved final specification-review receipt"
+      - "docs/goals/weekly-manual-release-cadence/notes/T004-implementation-plan.md"
+    constraints:
+      - "Read-only; do not repair the plan."
+      - "Try to disprove the plan using current workflow behavior and realistic operator mistakes."
+      - "Reject steps that silently depend on mutable main, local tags, implicit git describe behavior, cross-workflow GITHUB_TOKEN events, or unverified Cloudflare rollback semantics."
+      - "Reject a big-bang cutover when a smaller safe transition can preserve release control."
+    expected_output:
+      - "approve | revise | blocked"
+      - "Spec-to-plan traceability result"
+      - "Dependency and sequencing defects"
+      - "Missing repository tests, operator proofs, failure recovery, or rollback drills"
+      - "Strongest failure mode and the evidence that would disprove it during implementation"
+      - "Exact bounded revision task if not approved"
+    receipt:
+      result: done
+      decision: rejected
+      full_outcome_complete: false
+      rationale: "PM Judge fallback found the sequencing, rollback gates, file inventory, and AC traceability strong, but an older-main-ancestor release is not executable as written. The workflow repeatedly says to checkout target_sha and run new release helpers/hardened Wrangler configuration. A candidate before PR B/C may not contain those files, and using candidate scripts/config would let candidate content control release logic. The plan needs separate immutable controller and candidate checkouts, dual provenance, credential isolation, audited staging/config behavior, and a rule for partial-plan retry after the controller workflow changes."
+      worker_package:
+        objective: "Revise the implementation plan to separate immutable trusted release-controller tooling from the selected candidate source checkout."
+        allowed_files:
+          - docs/goals/weekly-manual-release-cadence/notes/T004-implementation-plan.md
+        verify:
+          - "test -s docs/goals/weekly-manual-release-cadence/notes/T004-implementation-plan.md"
+          - "npx --yes prettier@3.8.1 --check docs/goals/weekly-manual-release-cadence/notes/T004-implementation-plan.md"
+          - "rg -n 'controller SHA|controller checkout|candidate checkout|older main ancestor|credential isolation' docs/goals/weekly-manual-release-cadence/notes/T004-implementation-plan.md"
+        stop_if:
+          - "The correction would require weakening immutable target selection or executing untrusted candidate release tooling with credentials."
+          - "Need to write outside allowed_files."
+          - "Verification fails twice."
+      evidence:
+        - "notes/T002-release-cadence-spec.md RC-01 permits an older main ancestor"
+        - "notes/T004-implementation-plan.md:19-31"
+        - "notes/T004-implementation-plan.md:178-245"
+        - "notes/T004-implementation-plan.md:320-357"
+        - "notes/T004-implementation-plan.md:585-598"
+      subgoal_contract: null
+      parallel_safety: null
+      blocked_tasks:
+        - T999
+      missing_evidence:
+        - "An immutable trusted controller checkout independent of target_sha."
+        - "Proof that candidate source/config cannot replace release tooling or access write/production credentials."
+        - "A deterministic partial-plan retry rule when current workflow/controller code has changed."
+      required_board_updates:
+        - "Activate bounded implementation-plan revision T014."
+        - "Require corrected plan review T015 before final audit."
+  - id: T014
+    type: worker
+    assignee: Worker
+    status: done
+    reasoning_hint: medium
+    objective: "Revise the implementation plan to separate immutable trusted release-controller tooling from the selected candidate source checkout."
+    inputs:
+      - "T005 rejected implementation-plan review receipt"
+      - "docs/goals/weekly-manual-release-cadence/notes/T002-release-cadence-spec.md"
+      - "docs/goals/weekly-manual-release-cadence/notes/T004-implementation-plan.md"
+    constraints:
+      - "Modify only the implementation-plan artifact."
+      - "Preserve all approved specification requirements and existing plan work packages."
+      - "Do not assume an older candidate contains the new release helpers or hardened production config."
+      - "Do not execute candidate code with GitHub write or production credentials."
+    expected_output:
+      - "Two-checkout architecture using immutable workflow/controller SHA and candidate target SHA"
+      - "Explicit controller/candidate lockfile, toolchain, source, and configuration provenance"
+      - "Build/deploy staging that operates on candidate source without mutating it or trusting candidate release scripts"
+      - "Partial-plan retry behavior across later workflow/controller changes"
+      - "Tests and contracts for older-main-ancestor releases and credential isolation"
+    allowed_files:
+      - "docs/goals/weekly-manual-release-cadence/notes/T004-implementation-plan.md"
+    verify:
+      - "test -s docs/goals/weekly-manual-release-cadence/notes/T004-implementation-plan.md"
+      - "npx --yes prettier@3.8.1 --check docs/goals/weekly-manual-release-cadence/notes/T004-implementation-plan.md"
+      - "rg -n 'controller SHA|controller checkout|candidate checkout|older main ancestor|credential isolation' docs/goals/weekly-manual-release-cadence/notes/T004-implementation-plan.md"
+    stop_if:
+      - "The correction would require weakening immutable target selection or executing untrusted candidate release tooling with credentials."
+      - "Need to write outside allowed_files."
+      - "Verification fails twice."
+    receipt:
+      result: done
+      changed_files:
+        - docs/goals/weekly-manual-release-cadence/notes/T004-implementation-plan.md
+      commands:
+        - cmd: "test -s docs/goals/weekly-manual-release-cadence/notes/T004-implementation-plan.md"
+          status: pass
+        - cmd: "npx --yes prettier@3.8.1 --check docs/goals/weekly-manual-release-cadence/notes/T004-implementation-plan.md"
+          status: pass
+        - cmd: "rg -n 'controller SHA|controller checkout|candidate checkout|older main ancestor|credential isolation' docs/goals/weekly-manual-release-cadence/notes/T004-implementation-plan.md"
+          status: pass
+        - cmd: "compare unique AC IDs in spec and plan"
+          status: pass
+        - cmd: "git diff --check"
+          status: pass
+      summary: "PM fallback revised the plan after the GoalBuddy Worker timed out without an allowed-file change. Every release now uses an immutable controller checkout at the workflow SHA and a separate candidate checkout at target SHA. The plan records both trees/lockfiles/tool versions, builds and deploys through controller tooling against a content-addressed candidate staging tree, forbids candidate lifecycle/release code in credentialed jobs, and scopes secrets to named controller steps. Partial plans retain their original authenticated controller/protocol across later main changes. Older-ancestor, wrong-controller, staging, partial-retry, and credential-canary tests were added while AC-01 through AC-32 traceability remains exact."
+      deviations:
+        - "The dispatched GoalBuddy Worker produced no allowed-file change within the single permitted wait; PM interrupted it and completed the bounded revision as fallback."
+      remaining_blockers: []
+      verification_attempts: 1
+      stopped_because: null
+  - id: T015
+    type: judge
+    assignee: Judge
+    status: done
+    reasoning_hint: high
+    objective: "Re-review the implementation plan and approve only if controller/candidate separation makes older-ancestor release and retry executable without weakening safety."
+    inputs:
+      - "T005 rejected plan-review receipt"
+      - "T014 revision receipt"
+      - "docs/goals/weekly-manual-release-cadence/notes/T002-release-cadence-spec.md"
+      - "docs/goals/weekly-manual-release-cadence/notes/T004-implementation-plan.md"
+    constraints:
+      - "Read-only; do not repair."
+      - "Trace controller/candidate provenance, credential boundaries, partial retry, and every AC."
+      - "Reject mutable tooling, candidate-controlled release logic, or unproven deployment configuration behavior."
+    expected_output:
+      - "approved | rejected"
+      - "Complete plan traceability and strongest failure-mode result"
+      - "Activate T999 if approved or exact bounded revision if rejected"
+    receipt:
+      result: done
+      decision: approved
+      full_outcome_complete: false
+      rationale: "PM Judge fallback approves the corrected implementation plan. New plans pin documented github.workflow_sha as trusted controller and use a separate target_sha candidate checkout. Both trees, locks, tools, staging, and configuration are content-addressed; older candidates need no release helpers. Candidate code runs only in secretless preflight and never receives write/Cloudflare/Discord credentials. Controller-config/candidate-source Wrangler behavior remains a mandatory non-production capability gate. Partial plans retain their authenticated original controller/protocol rather than substituting current main. Freeze-first sequencing, rollback, publication states, operator cutover, and AC-01 through AC-32 remain complete and executable."
+      worker_package: null
+      evidence:
+        - "notes/T004-implementation-plan.md:8-101"
+        - "notes/T004-implementation-plan.md:178-284"
+        - "notes/T004-implementation-plan.md:320-430"
+        - "notes/T004-implementation-plan.md:459-622"
+        - "Official GitHub contexts documentation for github.workflow_sha"
+        - "T014 verification: Prettier, required-term trace, AC-set equality, and diff check"
+      subgoal_contract: null
+      parallel_safety: null
+      blocked_tasks: []
+      missing_evidence: []
+      required_board_updates:
+        - "Use T015 as the approved implementation-plan review gate."
+        - "Activate T999 final planning audit."
+  - id: T999
+    type: judge
+    assignee: Judge
+    status: done
+    reasoning_hint: high
+    objective: "Perform the final planning audit and decide whether the specification and implementation plan fully satisfy the original owner outcome."
+    inputs:
+      - "All completed task receipts and supporting notes"
+      - "docs/goals/weekly-manual-release-cadence/notes/T002-release-cadence-spec.md"
+      - "docs/goals/weekly-manual-release-cadence/notes/T004-implementation-plan.md"
+      - "Current worktree status and diff from origin/main"
+    constraints:
+      - "Read-only; do not implement or repair."
+      - "Reject completion unless T013 approved the specification and T015 approved the implementation plan."
+      - "Reject completion if any owner concern, verified risk, spec acceptance criterion, implementation step, verification, or rollback path is untraceable."
+      - "Reject completion if files outside docs/goals/weekly-manual-release-cadence changed."
+      - "This is a plan-only goal; do not demand product implementation as completion proof."
+    expected_output:
+      - "complete | not_complete"
+      - "full_outcome_complete: true | false"
+      - "Oracle traceability result"
+      - "Evidence that only planning artifacts changed"
+      - "Missing evidence and exact next task if not complete"
+      - "Starter scope for the later implementation goal if complete"
+    receipt:
+      result: done
+      decision: complete
+      full_outcome_complete: true
+      rationale: "PM Judge fallback completes the plan-only goal. T013 approved the 492-line specification after adversarial lifecycle revisions; T015 approved the 624-line implementation plan after controller/candidate separation. Both artifacts trace the same AC-01 through AC-32 set. The plan starts with a reversible production freeze, gates unverified Wrangler/Cloudflare behavior behind non-production proof, separates repository work from protected operator cutover, and covers every partial, retry, rollback, cancellation, retention, and notification state. HEAD equals origin/main, tracked diff is empty, and every new file is confined to the goal directory; no product or external state changed."
+      worker_package: null
+      evidence:
+        - docs/goals/weekly-manual-release-cadence/notes/T002-release-cadence-spec.md
+        - docs/goals/weekly-manual-release-cadence/notes/T004-implementation-plan.md
+        - "T013 receipt: approved, missing_evidence empty"
+        - "T015 receipt: approved, missing_evidence empty"
+        - "Prettier check passed for the complete goal directory"
+        - "GoalBuddy checker passed with zero errors/warnings before final receipt"
+        - "HEAD and origin/main both 12b139c49b157a0decf5570c723fe2935149e5f4"
+        - "Tracked diff from origin/main empty; all untracked paths confined to docs/goals/weekly-manual-release-cadence"
+        - "Specification/plan unique acceptance-criterion sets match exactly at 32 IDs"
+      subgoal_contract: null
+      parallel_safety: null
+      blocked_tasks: []
+      missing_evidence: []
+      required_board_updates:
+        - "Mark the planning goal done with no active task."
+        - "Use Work Package 0 as the starter scope for a later implementation goal; keep implementation and external mutations out of this goal."
+  - id: T016
+    type: pm
+    assignee: PM
+    status: active
+    reasoning_hint: medium
+    objective: "Land planning PR #262 through the merge queue as the required documentation-only canary, prove no production-release workflow starts, and create the fresh post-canary WP1 worktree."
+    inputs:
+      - "Merged WP0 PR #263 and merge SHA 57317afd387f057706ca8e36383957a774218bba"
+      - "Open documentation-only planning PR #262"
+      - "Approved Work Package 0 exit proof in notes/T004-implementation-plan.md"
+    constraints:
+      - "Before queueing, commit and push only this prep turn's tracked goal.md/state.yaml changes to the existing planning branch; never add .goalbuddy-board/."
+      - "After the push, verify every remote PR #262 path is under docs/goals/weekly-manual-release-cadence/."
+      - "External mutation is limited to updating the goal-only PR #262 branch and enrolling that PR in the merge queue."
+      - "Do not dispatch the Production Release freeze workflow."
+      - "Monitor merge-group CI through merge or a concrete blocker."
+      - "After merge, query the Production Release workflow by merge SHA and require zero runs."
+      - "Verify origin/main still contains the dispatch-only read-only freeze."
+      - "Create /Users/neonwatty/Desktop/bugdrop-weekly-release-engine-wp1 from the exact post-canary origin/main on branch codex/weekly-release-engine-wp1."
+      - "If any production-release run starts, cancel it if possible, preserve evidence, and stop before creating or editing WP1 files."
+    expected_output:
+      - "Goal-only prep commit on PR #262 with generated .goalbuddy-board/ excluded"
+      - "PR #262 merge SHA and successful merge-group run URL"
+      - "GitHub API evidence of zero Production Release runs for the canary merge SHA"
+      - "Direct inspection evidence that main retains workflow_dispatch-only and contents: read"
+      - "Fresh WP1 worktree path, branch, clean status, and exact base SHA"
+      - "Receipt that activates T017 only after every canary gate passes"
+    receipt: null
+  - id: T017
+    type: judge
+    assignee: Judge
+    status: queued
+    reasoning_hint: high
+    objective: "Revalidate the approved Work Package 1 Worker package against the exact post-canary main snapshot and approve the largest safe bounded implementation slice."
+    inputs:
+      - "T016 canary and fresh-worktree receipt"
+      - "T015 approved planning receipt"
+      - "notes/T002-release-cadence-spec.md"
+      - "notes/T004-implementation-plan.md Work Package 1"
+      - "Fresh WP1 worktree repository guidance and verification inventory"
+    constraints:
+      - "Read-only; do not implement or repair."
+      - "Preserve the approved WP1 boundary and production freeze."
+      - "Try to disprove that controller/candidate identity, tag/Release state, retries, and canonical identities can be implemented in one safe slice."
+      - "Reject any need for workflow wiring, credentials, production state, or files outside the approved scope."
+    expected_output:
+      - "approved | revise | blocked"
+      - "Exact Worker objective, allowed_files, verify, and stop_if"
+      - "Required adversarial fixture matrix mapped to AC-03, AC-04, AC-05, AC-06, AC-10, AC-14 planning cases, AC-26, AC-30, AC-31, and AC-32"
+      - "Any pre-existing red checks distinguished from tranche-owned failures"
+    receipt: null
+  - id: T018
+    type: worker
+    assignee: Worker
+    status: queued
+    reasoning_hint: medium
+    objective: "Implement the deterministic planning and identity engine defined by Work Package 1 as one coherent, read-only release-engine slice."
+    inputs:
+      - "T017 approved Worker package"
+      - "notes/T002-release-cadence-spec.md"
+      - "notes/T004-implementation-plan.md Work Package 1"
+      - "Fresh post-canary main worktree from T016"
+    constraints:
+      - "Work only in /Users/neonwatty/Desktop/bugdrop-weekly-release-engine-wp1."
+      - "Keep production disabled and do not edit any workflow except the approved .github/release.yml metadata file."
+      - "Use full immutable main-history SHAs and separate controller/candidate provenance."
+      - "Never run candidate release scripts or expose credentials."
+      - "Identity primitives must not read Date.now(), run IDs, artifact IDs, or ambient environment directly."
+      - "Network/API ambiguity must fail closed as a typed non-mutating result."
+      - "Do not add a dependency or modify package-lock.json without stopping for PM/Judge scope review."
+    expected_output:
+      - "Versioned normalized-input, request-plan, release-content, final-plan, audit-envelope, and publication-marker schemas"
+      - "Canonical JSON and SHA-256 identity primitives"
+      - "Immutable ref/controller validation, published-frontier and GitHub tag/Release/draft modeling"
+      - "Complete/partial/conflicting/no-op plan recognition and stale revalidation"
+      - "Explicit patch/minor/major calculation and complete categorized release provenance"
+      - "Adversarial fixtures and tests for every approved WP1 case"
+    allowed_files:
+      - "scripts/release/canonical-json.mjs"
+      - "scripts/release/plan.mjs"
+      - "test/release/canonical-json.test.ts"
+      - "test/release/plan.test.ts"
+      - "test/fixtures/release/"
+      - ".github/release.yml"
+      - "package.json"
+      - "Makefile"
+      - "knip.json"
+    verify:
+      - "npx vitest run test/release/canonical-json.test.ts test/release/plan.test.ts"
+      - "node scripts/release/plan.mjs --help"
+      - "npm run typecheck"
+      - "npm run lint"
+      - "npm run knip"
+      - "bash test/release-workflow-contract.test.sh"
+      - "git diff --check"
+    stop_if:
+      - "Need any file outside allowed_files."
+      - "Need workflow wiring, GitHub write access, production credentials, or Cloudflare state."
+      - "Need a new dependency or package-lock.json change."
+      - "An approved older-main-ancestor, partial-plan, or controller-separation case cannot be modeled without changing the specification."
+      - "Verification fails twice for the same tranche-owned reason."
+    receipt: null
+  - id: T019
+    type: judge
+    assignee: Judge
+    status: queued
+    reasoning_hint: high
+    objective: "Skeptically review the complete WP1 implementation for deterministic identity, fail-closed state modeling, scope fidelity, and adversarial test completeness."
+    inputs:
+      - "T017 approved package"
+      - "T018 Worker receipt and diff"
+      - "Approved specification and Work Package 1 plan"
+    constraints:
+      - "Read-only; do not repair."
+      - "Try to create identity collisions, mutable-SHA acceptance, tag/Release divergence, partial-plan corruption, nondeterministic output, and stale-winner errors."
+      - "Reject happy-path-only coverage or any hidden dependency on production credentials/state."
+      - "Reject changes outside T018 allowed_files."
+    expected_output:
+      - "approved | rejected"
+      - "Acceptance-criterion and adversarial-case traceability"
+      - "Strongest realistic failure mode and disproof evidence"
+      - "Exact bounded revision package if rejected"
+    receipt: null
+  - id: T020
+    type: pm
+    assignee: PM
+    status: queued
+    reasoning_hint: medium
+    objective: "Run the full tranche verification and prepare a clean, reviewable WP1 handoff without expanding into Work Package 2."
+    inputs:
+      - "T019 approved WP1 review"
+      - "Fresh WP1 worktree and complete diff"
+    constraints:
+      - "Do not implement fixes during this task; any failure returns to a bounded Worker revision."
+      - "Do not begin static assets, retention, deployment, publication, or workflow wiring."
+      - "Do not push or create a partial PR B unless the owner separately requests it; PR B is defined to include Work Packages 1–4."
+    expected_output:
+      - "Focused WP1 verification results"
+      - "Repository-wide gate results with pre-existing findings identified"
+      - "Clean scope/diff inventory and rollback statement"
+      - "Evidence package for T021 final tranche audit"
+    receipt: null
+  - id: T021
+    type: judge
+    assignee: Judge
+    status: queued
+    reasoning_hint: high
+    objective: "Audit whether the documentation canary and deterministic WP1 engine fully satisfy this execution tranche's oracle."
+    inputs:
+      - "T016 through T020 receipts"
+      - "Approved specification and implementation plan"
+      - "GitHub canary evidence and final WP1 diff/tests"
+    constraints:
+      - "Read-only; do not repair or continue into WP2."
+      - "Reject completion if the canary lacks zero-run proof, the freeze changed, WP1 scope expanded, an approved adversarial case is missing, or any production/publication side effect occurred."
+    expected_output:
+      - "complete | not_complete"
+      - "full_outcome_complete: true | false for this tranche"
+      - "Oracle and acceptance-criterion traceability"
+      - "Strongest realistic failure mode and direct disproof evidence"
+      - "Exact next task if incomplete, or WP2 starter boundary if complete"
+    receipt: null
+checks:
+  dirty_fingerprint: unknown
+  last_verification:
+    result: unknown
+    task: null
+    commands: []

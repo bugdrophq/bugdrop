@@ -1,0 +1,14 @@
+{
+  "name": "bugdrop-staging-dogfood",
+  "url": "https://managed-staging.bugdrop.dev",
+  "description": "Nonproduction BugDrop dogfood only; one dedicated private repository.",
+  "public": false,
+  "hook_attributes": {
+    "url": "https://managed-staging.bugdrop.dev/github/staging/webhook",
+    "active": true
+  },
+  "default_permissions": { "issues": "write" },
+  "default_events": [],
+  "request_oauth_on_install": false,
+  "setup_on_update": false
+}

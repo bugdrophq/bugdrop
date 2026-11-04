@@ -1,0 +1,323 @@
+version: 2
+
+goal:
+  title: "BugDrop Board Demo UX Polish"
+  slug: "bugdrop-board-demo-ux-polish"
+  kind: specific
+  tranche: "Make the live/demo BugDrop Board experience obvious, organic, and easy for closed-beta review."
+  status: done
+  oracle:
+    signal: "Desktop and mobile browser walkthroughs prove the board reads as a simple embeddable feature board rather than an internal dogfood artifact."
+    cadence: "after scout, after each UX implementation package, after browser proof, and at final audit"
+    final_proof: "Screenshots, DOM/visual assertions, tests, and direct critique checks prove clear purpose, easy add flow, visible upvotes, realistic content, adaptive lanes, and no debug/noisy metadata."
+  intake:
+    original_request: "great - use goalbuddy prep board to do all"
+    interpreted_outcome: "Create and execute a GoalBuddy conveyor that fixes the current BugDrop Board demo UX critique end to end."
+    input_shape: specific
+    audience: "Closed-beta evaluators and prospective self-hosters"
+    authority: requested
+    proof_type: demo
+    completion_proof: "A reviewer can open the demo on desktop and mobile and immediately understand what the board is for, how to add an idea, how voting works, and how it fits inside an app."
+    likely_misfire: "Only changing colors or screenshots while preserving dogfood language, noisy metadata, form dominance, empty lanes, and unclear voting language."
+    blind_spots_considered:
+      - "Some issues may belong in the widget package, while others belong in the BugDrop host/demo page."
+      - "Production deploy, package publish, version bump, secret changes, and destructive dogfood cleanup require explicit approval and are excluded from this board."
+      - "Realistic data may require a safe fixture/demo mode if production dogfood data should not be destructively cleaned."
+      - "A kanban layout may not be the right default when only one lane has items; adaptive behavior must be verified."
+    existing_plan_facts:
+      - "Use user-facing copy instead of Dogfood/debug copy."
+      - "Make add request less dominant, likely via a compact button or collapsible composer."
+      - "Use Upvote/Voted/votes language instead of Prioritize."
+      - "Hide or de-emphasize GitHub links in default card UI."
+      - "Use realistic product request examples instead of timestamped dogfood items."
+      - "Collapse/adapt empty kanban lanes or seed representative statuses."
+      - "Prove the demo feels embedded inside a realistic host app."
+      - "Show beta-critical states and customization proof where safe."
+
+rules:
+  pm_owns_state: true
+  one_active_task: true
+  max_write_workers: 1
+  no_implementation_without_worker_or_pm_task: true
+  no_completion_without_judge_or_pm_audit: true
+  planning_is_not_completion: true
+  queued_required_worker_blocks_completion: true
+  continuous_until_full_outcome: true
+  missing_input_or_credentials_do_not_stop_goal: true
+  preserve_and_validate_existing_plan: true
+  intake_misfire_must_be_audited: true
+  goal_pressure_requires_oracle: true
+  no_completion_on_weak_proof: true
+  slice_policy:
+    max_consecutive_tiny_tasks: 2
+    prefer_vertical_slices: true
+    judge_picks_largest_safe_slice: true
+    worker_completes_whole_slice: true
+
+agents:
+  scout: installed
+  worker: installed
+  judge: installed
+
+visual_board:
+  selected: local
+  local:
+    status: live
+    url: "http://goalbuddy.localhost:41737/bugdrop-board-demo-ux-polish/"
+    command: "npx goalbuddy board docs/goals/bugdrop-board-demo-ux-polish"
+
+active_task: null
+
+tasks:
+  - id: T001
+    type: scout
+    assignee: Scout
+    status: done
+    reasoning_hint: default
+    objective: "Map the exact UX implementation surface across bugdrop-board and bugdrop before editing."
+    inputs:
+      - "/Users/neonwatty/Desktop/bugdrop-board/src/widget"
+      - "/Users/neonwatty/Desktop/bugdrop-board/test"
+      - "/Users/neonwatty/Desktop/bugdrop/src/lib/boardDogfood.ts"
+      - "/Users/neonwatty/Desktop/bugdrop/public/board/index.html"
+      - "Live critique screenshot: /Users/neonwatty/Desktop/bugdrop/test-results/ux-review/board-dogfood-current.png"
+      - "Sub-agent critique receipts from the thread"
+    constraints:
+      - "Read-only."
+      - "Do not edit implementation files."
+      - "Prefer concrete file-path evidence and current behavior over assumptions."
+    expected_output:
+      - "Files and functions that control board layout, copy, metadata, form behavior, card rendering, and demo host shell."
+      - "Verification commands for each repo."
+      - "Which issues are widget-level versus host/demo-level."
+      - "Largest safe first Worker package with allowed_files, verification, and stop conditions."
+    receipt:
+      result: done
+      summary: "Mapped the UX surface. Widget rendering lives in bugdrop-board src/widget/dom.ts/theme.ts/config.ts/types.ts and tests in test/widget-dom.test.ts. Host framing lives in bugdrop src/lib/boardDogfood.ts and test/boardDogfood.test.ts, but this branch is behind origin/main and must be updated before editing. Landing page overclaims status filters/search."
+      evidence:
+        - "/Users/neonwatty/Desktop/bugdrop-board/src/widget/dom.ts renders header, always-visible form, kanban lanes, upvote button text, status, and GitHub issue links."
+        - "/Users/neonwatty/Desktop/bugdrop-board/src/widget/theme.ts controls kanban grid, lane/card density, form, metadata, and upvote styling."
+        - "/Users/neonwatty/Desktop/bugdrop-board/src/widget/config.ts supports copy/theme/density/layout only; no composer, issue-link visibility, metadata, or adaptive-lane config exists."
+        - "/Users/neonwatty/Desktop/bugdrop/src/lib/boardDogfood.ts on origin/main contains the live kanban dogfood config with Dogfood title, signed-in viewer copy, Prioritize labels, and GitHub issue prefix."
+        - "/Users/neonwatty/Desktop/bugdrop/public/board/index.html claims status filters and search at lines 470-471, but the live widget exposes fixed lanes/create/upvote/GitHub links."
+        - "curl https://bugdrop.dev/board-dogfood confirmed Dogfood/Signed in/Prioritize/GitHub config is live."
+      commands:
+        - "git fetch origin --prune in both repos"
+        - "git show origin/main:src/lib/boardDogfood.ts"
+        - "sed -n '1,320p' /Users/neonwatty/Desktop/bugdrop-board/src/widget/dom.ts"
+        - "sed -n '1,320p' /Users/neonwatty/Desktop/bugdrop-board/src/widget/theme.ts"
+        - "curl -fsSL https://bugdrop.dev/board-dogfood | rg -n 'Dogfood|Signed in|Prioritize|GitHub'"
+      facts:
+        - "bugdrop branch codex/bugdrop-board-demo-ux-polish was created from local main at v1.41.0; origin/main is v1.42.0 and has the current kanban dogfood source."
+        - "bugdrop-board main is current with origin/main at 1726f35."
+        - "Verification commands: bugdrop-board npm run validate, npm run knip, npm run audit, npm run build:widget; bugdrop npx vitest run test/boardDogfood.test.ts test/boardLanding.test.ts, npm run validate, optional npx knip, and browser/Playwright desktop-mobile walkthroughs."
+        - "Widget-level issues: always-visible full form, visual vote copy lacks 'votes', GitHub links are always shown when present, kanban always renders empty full lanes, card metadata competes with titles."
+        - "Host-level issues: dogfood/debug page framing, internal viewer copy, Prioritize language, operational sample content from live data, and not-yet-embedded host shell."
+      contradictions:
+        - "Local bugdrop source initially showed older panel/compact config, while live and origin/main show dark kanban config."
+      ambiguity_requiring_judge:
+        - "Whether realistic demo content should be non-mutating fixtures or production dogfood issue/status cleanup; destructive cleanup remains excluded."
+        - "Whether the first Worker should span both repos or land widget support first and host demo second."
+      note_needed: false
+
+  - id: T002
+    type: judge
+    assignee: Judge
+    status: done
+    reasoning_hint: high
+    objective: "Choose the largest safe UX implementation package that directly attacks the critique without over-scoping."
+    inputs:
+      - "T001 receipt"
+      - "Goal oracle and non-negotiable constraints"
+    constraints:
+      - "Do not implement."
+      - "Reject any package requiring npm publish, Cloudflare deploy, secret changes, destructive dogfood cleanup, hosted control plane, billing, realtime, comments, downvotes, or GitHub Projects."
+      - "Prefer one coherent vertical UX package over tiny cosmetic tasks."
+    expected_output:
+      - "Decision"
+      - "Exact Worker objective"
+      - "allowed_files"
+      - "verify"
+      - "stop_if"
+      - "Deferred tasks or blockers"
+    receipt:
+      result: done
+      decision: approved
+      full_outcome_complete: false
+      rationale: "Approve one coherent vertical UX package across bugdrop-board and bugdrop. The package should add backwards-compatible widget customization for a collapsed composer, hidden issue links, clearer vote-count text, and adaptive empty kanban lanes, then update the demo host to use user-facing embedded-app framing. It does not require publishing, deploying, secrets, destructive cleanup, or new product domains."
+      evidence:
+        - "T001 showed all core clutter controls live in bugdrop-board src/widget/dom.ts/theme.ts/config.ts/types.ts."
+        - "T001 showed demo framing lives in bugdrop src/lib/boardDogfood.ts and tests."
+        - "T001 showed bugdrop public/board/index.html overclaims status filters/search and can be tightened as part of honest demo positioning."
+      blocked_tasks: []
+      missing_evidence: []
+      required_board_updates:
+        - "T003 allowed_files and verify commands filled for both repos."
+        - "T004 narrowed to post-implementation visual state/customization proof if still needed."
+        - "T005 may be marked done by T003 if landing claim cleanup is included."
+
+  - id: T003
+    type: worker
+    assignee: Worker
+    status: done
+    reasoning_hint: default
+    objective: "Implement the approved vertical UX package: backwards-compatible widget ergonomics plus a user-facing embedded BugDrop demo shell."
+    allowed_files:
+      - "/Users/neonwatty/Desktop/bugdrop-board/src/widget/config.ts"
+      - "/Users/neonwatty/Desktop/bugdrop-board/src/widget/dom.ts"
+      - "/Users/neonwatty/Desktop/bugdrop-board/src/widget/index.ts"
+      - "/Users/neonwatty/Desktop/bugdrop-board/src/widget/theme.ts"
+      - "/Users/neonwatty/Desktop/bugdrop-board/src/widget/types.ts"
+      - "/Users/neonwatty/Desktop/bugdrop-board/test/widget-dom.test.ts"
+      - "/Users/neonwatty/Desktop/bugdrop/src/lib/boardDogfood.ts"
+      - "/Users/neonwatty/Desktop/bugdrop/test/boardDogfood.test.ts"
+      - "/Users/neonwatty/Desktop/bugdrop/public/board/index.html"
+      - "/Users/neonwatty/Desktop/bugdrop/docs/goals/bugdrop-board-demo-ux-polish/**"
+    verify:
+      - "cd /Users/neonwatty/Desktop/bugdrop-board && npm run build:widget"
+      - "cd /Users/neonwatty/Desktop/bugdrop-board && npx vitest run test/widget-dom.test.ts"
+      - "cd /Users/neonwatty/Desktop/bugdrop-board && npm run validate"
+      - "cd /Users/neonwatty/Desktop/bugdrop && npx vitest run test/boardDogfood.test.ts test/boardLanding.test.ts"
+      - "cd /Users/neonwatty/Desktop/bugdrop && npm run validate"
+      - "Desktop and mobile browser/Playwright proof against the local demo using the updated local board widget."
+    stop_if:
+      - "Need files outside allowed_files."
+      - "A change would require publishing, production deploy, credentials, destructive cleanup, or product behavior outside the approved UX scope."
+      - "Verification fails twice."
+      - "The implementation cannot be proven visually on desktop and mobile."
+    receipt:
+      result: done
+      changed_files:
+        - "/Users/neonwatty/Desktop/bugdrop-board/src/widget/config.ts"
+        - "/Users/neonwatty/Desktop/bugdrop-board/src/widget/dom.ts"
+        - "/Users/neonwatty/Desktop/bugdrop-board/src/widget/index.ts"
+        - "/Users/neonwatty/Desktop/bugdrop-board/src/widget/theme.ts"
+        - "/Users/neonwatty/Desktop/bugdrop-board/src/widget/types.ts"
+        - "/Users/neonwatty/Desktop/bugdrop-board/test/widget-dom.test.ts"
+        - "/Users/neonwatty/Desktop/bugdrop/src/lib/boardDogfood.ts"
+        - "/Users/neonwatty/Desktop/bugdrop/test/boardDogfood.test.ts"
+        - "/Users/neonwatty/Desktop/bugdrop/public/board/index.html"
+      summary: "Implemented a vertical UX cleanup: widget supports collapsed composer, hidden issue links, hidden/compact empty kanban lanes, clearer vote-count text, and less repetitive kanban card metadata. The BugDrop demo now renders as a realistic Launch Console workspace with user-facing feature-request copy and opt-in cleaner widget settings. Landing copy no longer claims search/status filters."
+      commands:
+        - command: "cd /Users/neonwatty/Desktop/bugdrop-board && npx vitest run test/widget-dom.test.ts"
+          status: pass
+          evidence: "10 widget DOM/config tests passed."
+        - command: "cd /Users/neonwatty/Desktop/bugdrop-board && npm run build:widget && npm run validate"
+          status: pass
+          evidence: "lint, format:check, typecheck, package/deploy workflow checks, and 11 Vitest files / 76 tests passed."
+        - command: "cd /Users/neonwatty/Desktop/bugdrop && npx vitest run test/boardDogfood.test.ts test/boardLanding.test.ts"
+          status: pass
+          evidence: "2 files / 8 focused host and landing tests passed."
+        - command: "cd /Users/neonwatty/Desktop/bugdrop && npm run validate"
+          status: pass
+          evidence: "lint, format:check, typecheck, and 20 Vitest files / 299 tests passed."
+        - command: "Playwright local proof with rebuilt /Users/neonwatty/Desktop/bugdrop-board/public/board.js"
+          status: pass
+          evidence: "Desktop and mobile assertions passed: no Dogfood/Signed in/Prioritize/GitHub copy, collapsed composer, no default-visible form, one active Open lane, no empty lane text, zero GitHub links, visible Upvote/Voted vote counts, no horizontal overflow."
+      evidence:
+        - "/Users/neonwatty/Desktop/bugdrop-board/test-results/board-demo-ux-polish/desktop.png"
+        - "/Users/neonwatty/Desktop/bugdrop-board/test-results/board-demo-ux-polish/mobile.png"
+
+  - id: T004
+    type: pm
+    assignee: PM
+    status: done
+    reasoning_hint: default
+    objective: "Add or update realistic demo/customization examples and state proof after the main UX package is in place."
+    allowed_files: []
+    verify: []
+    stop_if:
+      - "The required data must be mutated destructively in production."
+      - "The work duplicates T003 instead of adding missing proof."
+      - "Verification cannot prove the customization/state story."
+    receipt:
+      result: done
+      summary: "Covered by T003 visual proof. The proof harness used realistic feature-request examples and verified the cleaned state behavior without destructive production dogfood cleanup."
+      evidence:
+        - "Mock proof items: Slack alerts for new ideas; Export feedback to CSV."
+        - "/Users/neonwatty/Desktop/bugdrop-board/test-results/board-demo-ux-polish/desktop.png"
+        - "/Users/neonwatty/Desktop/bugdrop-board/test-results/board-demo-ux-polish/mobile.png"
+
+  - id: T005
+    type: worker
+    assignee: Worker
+    status: done
+    reasoning_hint: default
+    objective: "Tighten docs or marketing claims so the demo and landing page do not overpromise unavailable controls."
+    allowed_files:
+      - "/Users/neonwatty/Desktop/bugdrop/public/board/index.html"
+      - "/Users/neonwatty/Desktop/bugdrop/docs/goals/bugdrop-board-demo-ux-polish/**"
+    verify:
+      - "cd /Users/neonwatty/Desktop/bugdrop && npx vitest run test/boardLanding.test.ts"
+    stop_if:
+      - "Requires a product feature rather than honest copy/docs."
+      - "Would conflict with the closed-beta product positioning."
+    receipt:
+      result: done
+      summary: "Tightened the BugDrop Board landing page gallery copy to remove the unavailable status filters/search claim, replacing it with current request-list/status-lane/roadmap grouping language."
+      changed_files:
+        - "/Users/neonwatty/Desktop/bugdrop/public/board/index.html"
+      commands:
+        - command: "cd /Users/neonwatty/Desktop/bugdrop && npx vitest run test/boardDogfood.test.ts test/boardLanding.test.ts"
+          status: pass
+
+  - id: T999
+    type: judge
+    assignee: Judge
+    status: done
+    reasoning_hint: high
+    objective: "Final audit against the UX oracle and burden-of-proof requirement."
+    inputs:
+      - "All done task receipts"
+      - "Desktop/mobile screenshots or Chrome proof"
+      - "Current diff and repo status"
+      - "Relevant validation commands"
+    constraints:
+      - "Do not implement."
+      - "Reject completion if the demo still reads as dogfood/debug/admin tooling."
+      - "Reject completion if any required Worker task is still queued or active."
+      - "Reject completion if visual proof does not test mobile and desktop."
+    expected_output:
+      - "complete | not_complete"
+      - "full_outcome_complete: true | false"
+      - "strongest failure mode checked"
+      - "missing evidence"
+      - "next task if not complete"
+    receipt:
+      result: done
+      decision: complete
+      full_outcome_complete: true
+      summary: "Final audit passed. The cleaned demo UX now has user-facing app framing, collapsed add flow, visible Upvote/Voted vote counts, hidden GitHub issue links, hidden empty lanes, no repeated kanban status metadata, honest landing copy, and desktop/mobile visual proof with no overflow."
+      strongest_failure_mode_checked: "The realistic failure mode was that the work merely changed colors while the demo still looked like dogfood/debug tooling. Grep plus browser proof disproved that for visible product surfaces: no Dogfood/Signed in/Prioritize/GitHub issue copy appears in the rendered proof, and grep finds old terms only in internal function/test names or negative assertions."
+      evidence:
+        - "/Users/neonwatty/Desktop/bugdrop-board/test-results/board-demo-ux-polish/desktop.png"
+        - "/Users/neonwatty/Desktop/bugdrop-board/test-results/board-demo-ux-polish/mobile.png"
+        - "Playwright proof metrics: no dogfood copy, collapsed composer, default form not visible, one active Open lane, no empty lane text, zero GitHub links, Upvote 12 votes, Voted 7 votes, no horizontal overflow on desktop/mobile."
+        - "rg old-copy check found old terms only in internal Dogfood function/test names or negative assertions, not visible demo copy."
+      commands:
+        - command: "cd /Users/neonwatty/Desktop/bugdrop-board && npm run build:widget && npm run validate"
+          status: pass
+        - command: "cd /Users/neonwatty/Desktop/bugdrop-board && npm run knip && npm run audit"
+          status: pass
+        - command: "cd /Users/neonwatty/Desktop/bugdrop && npm run validate"
+          status: pass
+        - command: "cd /Users/neonwatty/Desktop/bugdrop && npx knip"
+          status: pass
+          evidence: "Exited 0 with existing knip.json configuration hints only."
+        - command: "git diff --check in both repos"
+          status: pass
+      residual_risk:
+        - "Changes are local branches only until pushed, reviewed, merged, and deployed/published through the normal release paths."
+        - "Production dogfood data was not destructively cleaned; local proof uses realistic mock data and the widget now hides empty lanes/metadata for noisy all-open data."
+
+checks:
+  dirty_fingerprint: unknown
+  last_verification:
+    result: pass
+    task: T999
+    commands:
+      - "cd /Users/neonwatty/Desktop/bugdrop-board && npm run build:widget && npm run validate"
+      - "cd /Users/neonwatty/Desktop/bugdrop-board && npm run knip && npm run audit"
+      - "cd /Users/neonwatty/Desktop/bugdrop && npm run validate"
+      - "cd /Users/neonwatty/Desktop/bugdrop && npx knip"
+      - "Playwright local desktop/mobile proof with rebuilt board.js"

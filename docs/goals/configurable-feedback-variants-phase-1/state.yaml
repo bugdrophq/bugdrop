@@ -1,0 +1,699 @@
+version: 2
+
+goal:
+  title: "Configurable Feedback Variants — Phase 1"
+  slug: "configurable-feedback-variants-phase-1"
+  kind: existing_plan
+  tranche: "Implement and prove the complete compatibility and structured-headless foundation, including one real structured merge-tip canary, before any rendered UX work."
+  status: active
+  oracle:
+    signal: "Historical v1 and current legacy contracts pass; a typed lazy headless variant submits through the isolated structured Worker contract; and one locked zero-retry exact-preview canary creates, verifies, closes, and sweeps exactly one structured GitHub Issue."
+    cadence: "after each Worker package, before canary exposure, and at final audit"
+    final_proof: "Receipt-backed compatibility goldens, full local gates, exact structured createIssue assertions, no-variant bootstrap proof, and a successful merge-group canary with Issue readback and zero-open sweep."
+  intake:
+    original_request: "Follow docs/goals/configurable-feedback-variants-phase-1/goal.md."
+    interpreted_outcome: "Ship Phase 1 of configurable feedback variants without breaking BugDrop v1, ending in a real structured Issue proof on the exact merge-tip preview."
+    input_shape: existing_plan
+    audience: "BugDrop maintainers, contributors, and host applications"
+    authority: approved
+    proof_type: test
+    completion_proof: "Historical/current v1 compatibility, typed lazy headless submission, isolated structured Worker behavior, and one independently verified and cleaned real structured canary are all proven against current state."
+    likely_misfire: "Stop after planning or types, begin Phase 2 rendering, refactor legacy code unnecessarily, accept mocked GitHub evidence as live proof, or create multiple destructive canaries."
+    blind_spots_considered:
+      - "Only the current exact production widget asset is live; older documented exact URLs currently return 404."
+      - "package.json version does not track the release tag used to build production widget assets."
+      - "Historical bundles call the newest Worker and need candidate-Worker compatibility proof."
+      - "variantId label mapping is classification rather than an authorization boundary."
+      - "Variant and legacy submissions share existing rate-limit buckets."
+      - "PR/merge-queue publication and live execution may require explicit external authority."
+    existing_plan_facts:
+      - "Normative design: docs/plans/2026-08-01-configurable-feedback-variants-design.md."
+      - "Phase 0 proof: PR #258, merge-group run 30724180366, and closed Issue #578."
+      - "Worker support lands before a widget begins sending structured payloads."
+      - "Use a lazy sidecar; do not introduce BugDropRuntime or LegacyWidgetController in Phase 1."
+      - "The structured payload carries a generic Issue draft, not field definitions."
+      - "Rendered modal/inline UX and evidence are deferred beyond Phase 1."
+      - "Reuse the existing canary lock, identity checks, verifier, token boundary, and cleanup."
+
+rules:
+  pm_owns_state: true
+  one_active_task: true
+  max_write_workers: 1
+  no_implementation_without_worker_or_pm_task: true
+  no_completion_without_judge_or_pm_audit: true
+  planning_is_not_completion: true
+  queued_required_worker_blocks_completion: true
+  continuous_until_full_outcome: true
+  missing_input_or_credentials_do_not_stop_goal: true
+  exact_human_approval_can_terminal_wait: true
+  preserve_and_validate_existing_plan: true
+  intake_misfire_must_be_audited: true
+  goal_pressure_requires_oracle: true
+  no_completion_on_weak_proof: true
+  slice_policy:
+    max_consecutive_tiny_tasks: 2
+    prefer_vertical_slices: true
+    judge_picks_largest_safe_slice: true
+    worker_completes_whole_slice: true
+
+agents:
+  scout: installed
+  worker: installed
+  judge: installed
+
+visual_board:
+  selected: local
+  local:
+    status: live
+    url: "http://goalbuddy.localhost:41737/configurable-feedback-variants-phase-1/"
+    command: "node /Users/neonwatty/.codex/plugins/cache/goalbuddy/goalbuddy/0.4.2/skills/goal-prep/surfaces/local-goal-board/scripts/local-goal-board.mjs --goal docs/goals/configurable-feedback-variants-phase-1"
+
+active_task: T007
+
+tasks:
+  - id: T001
+    type: judge
+    assignee: Judge
+    status: done
+    reasoning_hint: high
+    objective: "Validate the existing Phase 1 plan against current repository evidence and select the largest safe first Worker package."
+    inputs:
+      - "docs/plans/2026-08-01-configurable-feedback-variants-design.md"
+      - "docs/merge-queue-issue-canary.md"
+      - "docs/website/version-pinning.mdx"
+      - "Current branch, dirty diff, public API, Worker route, build, packaging, tests, and CI"
+    constraints:
+      - "Read-only; do not edit implementation or control files."
+      - "Preserve the four-package Phase 1 outcome but reject unsafe sequencing or unsupported assumptions."
+      - "Resolve how historical fixtures and the existing exact-version retention defect affect the first package."
+      - "Do not select Phase 2 renderers or evidence work."
+    expected_output:
+      - "approved | revise | blocked"
+      - "Evidence-backed Phase 1 sequencing decision"
+      - "Exact first Worker objective"
+      - "allowed_files"
+      - "verify"
+      - "stop_if"
+      - "Deferred or separately tracked compatibility work"
+    receipt:
+      result: done
+      decision: approved
+      full_outcome_complete: false
+      rationale: "PM fallback approved the four-package sequence after the Goal Judge timed out. The first package must freeze compatibility before product changes, using provenance-recorded tag reconstructions rather than claiming unavailable historical deployed bytes. The live exact-version retention defect predates Phase 1 and is deferred as separate release-policy work; candidate-Worker compatibility remains in scope."
+      worker_package:
+        objective: "Freeze the legacy compatibility contract using tag-reconstructed v1.1.0 and v1.53.1 bundles, immutable legacy goldens, API/event/bootstrap checks, and a recorded bundle budget without changing production behavior."
+        allowed_files:
+          - docs/plans/2026-08-01-configurable-feedback-variants-design.md
+          - scripts/verify-legacy-compat.mjs
+          - "test/fixtures/legacy-compat/*"
+          - test/legacyCompatibility.test.ts
+          - test/api.test.ts
+          - e2e/legacy-compat.spec.ts
+          - e2e/widget.spec.ts
+          - playwright.config.ts
+          - package.json
+          - knip.json
+        verify:
+          - "node scripts/verify-legacy-compat.mjs"
+          - "npx vitest run test/legacyCompatibility.test.ts test/api.test.ts"
+          - "npx playwright test e2e/legacy-compat.spec.ts --project=chromium --workers=1"
+          - "npm run typecheck"
+          - "npx prettier --check <all non-generated allowed files>"
+          - "git diff --check"
+        stop_if:
+          - "Need files outside allowed_files."
+          - "A baseline would be generated from changed Phase 1 code."
+          - "Artifact provenance cannot be tied to tag commit, lockfile, build command, and SHA-256."
+          - "Production exact-version retention or legacy behavior must change."
+      evidence:
+        - notes/T001-plan-validation.md
+        - "v1.1.0 commit 5ec3aead9d49a9a9573c25ccdff86aada15cadc9"
+        - "v1.53.1 commit 5cf06f4ec3eab7cc7a507fc4c4d082a84e279539"
+        - "Production widget.v1.1.0.js returned 404; widget.v1.53.1.js and widget.v1.js returned 200 with 148406 bytes on 2026-08-02"
+        - "Goal Judge dispatch timed out once and was interrupted per the execution contract; PM fallback completed the read-only decision"
+      blocked_tasks: []
+      missing_evidence:
+        - "No surviving authoritative copy of historically deployed v1.1.0 bytes is available; use a tag reconstruction and do not claim byte identity."
+      required_board_updates:
+        - "Populate and activate T002 with the compatibility package in this receipt."
+        - "Keep exact-version retention repair outside T002 and record it as deferred release-policy work."
+  - id: T002
+    type: worker
+    assignee: Worker
+    status: done
+    reasoning_hint: medium
+    objective: "Freeze the legacy compatibility contract using provenance-recorded tag reconstructions and immutable request, response, Issue, API, DOM, storage, and bundle-budget fixtures without changing production behavior."
+    allowed_files:
+      - "docs/plans/2026-08-01-configurable-feedback-variants-design.md"
+      - "scripts/verify-legacy-compat.mjs"
+      - "test/fixtures/legacy-compat/manifest.json"
+      - "test/fixtures/legacy-compat/v1.1.0/widget.js"
+      - "test/fixtures/legacy-compat/v1.53.1/widget.js"
+      - "test/fixtures/legacy-compat/legacy-payload.json"
+      - "test/fixtures/legacy-compat/legacy-response.json"
+      - "test/fixtures/legacy-compat/legacy-issue.md"
+      - "test/legacyCompatibility.test.ts"
+      - "test/api.test.ts"
+      - "e2e/legacy-compat.spec.ts"
+      - "e2e/widget.spec.ts"
+      - "e2e/widget.spec.ts"
+      - "playwright.config.ts"
+      - "package.json"
+      - "knip.json"
+      - "knip.json"
+    verify:
+      - "node scripts/verify-legacy-compat.mjs"
+      - "npx vitest run test/legacyCompatibility.test.ts test/api.test.ts"
+      - "npx playwright test e2e/legacy-compat.spec.ts --project=chromium --workers=1"
+      - "npm run typecheck"
+      - "npx prettier --check scripts/verify-legacy-compat.mjs test/fixtures/legacy-compat/manifest.json test/fixtures/legacy-compat/legacy-payload.json test/fixtures/legacy-compat/legacy-response.json test/legacyCompatibility.test.ts test/api.test.ts e2e/legacy-compat.spec.ts e2e/widget.spec.ts playwright.config.ts package.json knip.json docs/plans/2026-08-01-configurable-feedback-variants-design.md"
+      - "git diff --check"
+    stop_if:
+      - "Need files outside allowed_files."
+      - "Historical artifact provenance or support policy is ambiguous."
+      - "A proposed golden would be generated from the changed implementation rather than an immutable baseline."
+      - "A tag-reconstructed artifact cannot be tied to the tag commit, lockfile, build command, and SHA-256."
+      - "The package would repair or redefine production exact-version asset retention."
+      - "Legacy runtime, Worker, CI, or release behavior must change."
+      - "Verification fails twice for an unexplained reason."
+    receipt:
+      result: done
+      harness: codex
+      changed_files:
+        - docs/plans/2026-08-01-configurable-feedback-variants-design.md
+        - scripts/verify-legacy-compat.mjs
+        - test/fixtures/legacy-compat/manifest.json
+        - test/fixtures/legacy-compat/v1.1.0/widget.js
+        - test/fixtures/legacy-compat/v1.53.1/widget.js
+        - test/fixtures/legacy-compat/legacy-payload.json
+        - test/fixtures/legacy-compat/legacy-response.json
+        - test/fixtures/legacy-compat/legacy-issue.md
+        - test/legacyCompatibility.test.ts
+        - test/api.test.ts
+        - e2e/legacy-compat.spec.ts
+        - e2e/widget.spec.ts
+        - package.json
+        - knip.json
+      commands:
+        - cmd: "node scripts/verify-legacy-compat.mjs"
+          status: pass
+        - cmd: "npx vitest run test/legacyCompatibility.test.ts test/api.test.ts"
+          status: pass
+        - cmd: "npx playwright test e2e/legacy-compat.spec.ts --project=chromium --workers=1"
+          status: pass
+        - cmd: "npx playwright test e2e/widget.spec.ts --project=chromium --workers=1 --grep \"exact event semantics|detachable|variant-only work\""
+          status: pass
+        - cmd: "npm run typecheck"
+          status: pass
+        - cmd: "npx prettier --check <non-generated allowed files>"
+          status: pass
+        - cmd: "npx eslint scripts/verify-legacy-compat.mjs test/legacyCompatibility.test.ts test/api.test.ts e2e/legacy-compat.spec.ts e2e/widget.spec.ts"
+          status: pass
+        - cmd: "git diff --check"
+          status: pass
+      summary: "Frozen tag-reconstructed v1.1.0 and v1.53.1 bundles with commit, lockfile, output-hash, size, and gzip-budget provenance; exact legacy request/response/Issue fixtures; candidate-Worker parsing proof; open-shadow/storage checks; and current ready-event/detached-API/no-variant-work checks. No production runtime or Worker behavior changed. Exact old CDN retention remains separate release-policy work. The dedicated Goal Worker timed out once; PM fallback completed and verified the bounded package."
+  - id: T003
+    type: worker
+    assignee: Worker
+    status: done
+    reasoning_hint: medium
+    objective: "Add the isolated field-agnostic structured Worker contract and server-owned variant label mapping after compatibility foundations are green."
+    allowed_files:
+      - "src/types.ts"
+      - "src/routes/api.ts"
+      - "src/routes/structured-feedback.ts"
+      - "test/api.test.ts"
+      - "test/structuredFeedback.test.ts"
+      - "wrangler.toml"
+      - "README.md"
+      - "docs/website/configuration.mdx"
+      - "docs/plans/2026-08-01-configurable-feedback-variants-design.md"
+    verify:
+      - "npx prettier --check src/types.ts src/routes/api.ts src/routes/structured-feedback.ts test/api.test.ts test/structuredFeedback.test.ts README.md docs/website/configuration.mdx docs/plans/2026-08-01-configurable-feedback-variants-design.md"
+      - "npm run typecheck"
+      - "npx vitest run test/api.test.ts test/structuredFeedback.test.ts"
+      - "git diff --check"
+    stop_if:
+      - "The legacy route or formatter must be behaviorally rewritten."
+      - "The Worker needs field definitions or trusts browser validation."
+      - "Raw labels or labelSet must be accepted from the browser."
+      - "Need files outside allowed_files."
+    receipt:
+      result: done
+      harness: codex
+      changed_files:
+        - src/types.ts
+        - src/routes/api.ts
+        - src/routes/structured-feedback.ts
+        - test/structuredFeedback.test.ts
+        - wrangler.toml
+        - README.md
+        - docs/website/configuration.mdx
+      commands:
+        - cmd: "npx prettier --check src/types.ts src/routes/api.ts src/routes/structured-feedback.ts test/api.test.ts test/structuredFeedback.test.ts README.md docs/website/configuration.mdx docs/plans/2026-08-01-configurable-feedback-variants-design.md"
+          status: pass
+        - cmd: "npm run typecheck"
+          status: pass
+        - cmd: "npx vitest run test/api.test.ts test/structuredFeedback.test.ts"
+          status: pass
+        - cmd: "npm test"
+          status: pass
+        - cmd: "npx playwright test e2e/legacy-compat.spec.ts --project=chromium --workers=1"
+          status: pass
+        - cmd: "node scripts/verify-legacy-compat.mjs"
+          status: pass
+        - cmd: "npx eslint src/types.ts src/routes/api.ts src/routes/structured-feedback.ts test/api.test.ts test/structuredFeedback.test.ts"
+          status: pass
+        - cmd: "git diff --check"
+          status: pass
+      summary: "Added an isolated, field-agnostic structured submission handler behind the collision-resistant kind/version discriminator. It strictly validates bounded drafts and metadata, rejects raw labels, label sets, evidence, unknown policy fields, and noncanonical Issue results before reporting success, redacts URL secrets, appends attribution and a submission marker, reuses existing auth/rate-limit/GitHub infrastructure, and resolves labels only from VARIANT_LABELS with safe fallbacks. Full Vitest (404 tests) and reconstructed-v1 browser compatibility remain green. The dedicated Goal Worker timed out once; PM fallback completed and verified the bounded package."
+  - id: T004
+    type: worker
+    assignee: Worker
+    status: done
+    reasoning_hint: medium
+    objective: "Publish the public declarations and implement lazy registration plus headless structured submission without rendered variant UI."
+    allowed_files:
+      - "package.json"
+      - "knip.json"
+      - "tsconfig.widget.json"
+      - "src/widget/index.ts"
+      - "src/widget/public-api.ts"
+      - "src/widget/variants/public-types.ts"
+      - "src/widget/variants/validate-config.ts"
+      - "src/widget/variants/manager.ts"
+      - "src/widget/variants/submission.ts"
+      - "src/widget/variants/issue-draft.ts"
+      - "src/routes/structured-feedback.ts"
+      - "test/variantConfig.test.ts"
+      - "test/variantIssueDraft.test.ts"
+      - "test/variantPublicTypes.test.ts"
+      - "e2e/widget.spec.ts"
+      - "README.md"
+      - "docs/website/javascript-api.mdx"
+      - "docs/plans/2026-08-01-configurable-feedback-variants-design.md"
+    verify:
+      - "npm run typecheck"
+      - "npx vitest run test/variantConfig.test.ts test/variantIssueDraft.test.ts test/variantPublicTypes.test.ts"
+      - "npm run build:widget"
+      - "npx playwright test e2e/widget.spec.ts --project=chromium --workers=1"
+      - "npm run knip"
+      - "git diff --check"
+    stop_if:
+      - "Legacy open, close, ready, payload, storage, or screenshot behavior must change."
+      - "Variant-only DOM, UUID, listener, observer, or storage work occurs before registration."
+      - "Rendered modal, inline, rating, or choice UI is required."
+      - "Need files outside allowed_files."
+    receipt:
+      result: done
+      harness: codex
+      changed_files:
+        - package.json
+        - knip.json
+        - src/widget/index.ts
+        - src/widget/public-api.ts
+        - src/widget/variants/public-types.ts
+        - src/widget/variants/validate-config.ts
+        - src/widget/variants/manager.ts
+        - src/widget/variants/submission.ts
+        - src/widget/variants/issue-draft.ts
+        - test/variantConfig.test.ts
+        - test/variantIssueDraft.test.ts
+        - test/variantPublicTypes.test.ts
+        - e2e/widget.spec.ts
+        - README.md
+        - docs/website/javascript-api.mdx
+      commands:
+        - cmd: "npm run typecheck"
+          status: pass
+        - cmd: "npx vitest run test/variantConfig.test.ts test/variantIssueDraft.test.ts test/variantPublicTypes.test.ts"
+          status: pass
+        - cmd: "npm run build:widget"
+          status: pass
+        - cmd: "npx playwright test e2e/widget.spec.ts --project=chromium --workers=1"
+          status: pass
+        - cmd: "npm run knip"
+          status: pass
+        - cmd: "npm test"
+          status: pass
+        - cmd: "node widget-gzip-budget-check (45093 <= 52597)"
+          status: pass
+        - cmd: "npx eslint <T004 TypeScript and E2E files>"
+          status: pass
+        - cmd: "npx prettier --check <T004 non-generated allowed files>"
+          status: pass
+        - cmd: "git diff --check"
+          status: pass
+      summary: "Published package-level browser declarations and added immutable synchronous registration, pure answer/template compilation, lazy manager creation, and headless structured submission. Legacy methods remain closure-based and ignore extra arguments; no variant DOM, listeners, observers, storage, or IDs occur before registration/submission. Exact browser payload proof, config mutation isolation, 415 unit tests, and all 201 legacy Chromium widget tests pass. The 45093-byte gzip build remains below the 52597-byte ceiling. Rendered open/mount intentionally remain unavailable until Phase 2. The dedicated Goal Worker timed out once; PM fallback completed and verified the package."
+  - id: T005
+    type: judge
+    assignee: Judge
+    status: done
+    reasoning_hint: high
+    objective: "Audit the compatibility, Worker, and headless packages before exposing the structured path to the real-Issue canary."
+    inputs:
+      - "T002-T004 receipts"
+      - "Current diff and full local verification"
+      - "Phase 1 oracle and existing canary safety contract"
+    constraints:
+      - "Read-only."
+      - "Reject canary exposure if legacy compatibility, discriminator collision safety, label policy, lazy initialization, or public types are weakly proven."
+      - "Select an exact bounded canary Worker package if approved."
+    expected_output:
+      - "approved | revise | blocked"
+      - "Risk audit"
+      - "Exact canary Worker package or corrective package"
+      - "allowed_files"
+      - "verify"
+      - "stop_if"
+    receipt:
+      result: done
+      harness: codex
+      decision: approved
+      full_outcome_complete: false
+      rationale: "PM fallback approved canary exposure after direct audit of receipts, diff, packaging, 415 unit tests, the full 201-test legacy Chromium suite, the reconstructed-v1 candidate-Worker test, label/auth rejection tests, lazy-sidecar source, and bundle budget. The structured canary must replace—not add to—the existing one-Issue action and reuse every Phase 0 safety boundary."
+      worker_package:
+        objective: "Replace the existing locked legacy canary browser action with exactly one deployed headless structured submission and independently verify its structured Issue marker without creating a second canary system or Issue."
+        allowed_files:
+          - e2e/widget.issue-canary.spec.ts
+          - scripts/github-issue-canary.mjs
+          - test/githubIssueCanary.test.ts
+          - test/ci-workflow-contract.test.sh
+          - .github/workflows/ci.yml
+          - docs/merge-queue-issue-canary.md
+          - docs/plans/2026-08-01-configurable-feedback-variants-design.md
+        verify:
+          - "npx vitest run test/githubIssueCanary.test.ts test/structuredFeedback.test.ts test/variantConfig.test.ts test/variantIssueDraft.test.ts"
+          - "bash test/ci-workflow-contract.test.sh"
+          - "npm run typecheck"
+          - "npm run build:widget"
+          - "npx playwright test e2e/widget.issue-canary.spec.ts --project=chromium-issue-canary --list"
+          - "npx prettier --check e2e/widget.issue-canary.spec.ts scripts/github-issue-canary.mjs test/githubIssueCanary.test.ts .github/workflows/ci.yml docs/merge-queue-issue-canary.md docs/plans/2026-08-01-configurable-feedback-variants-design.md"
+          - "git diff --check"
+        stop_if:
+          - "More than one routine Issue could be created per merge group."
+          - "The verification token reaches Playwright, the Worker, job scope, logs, or artifacts."
+          - "Any non-merge-group, unlocked, retried, or non-preview path can submit."
+          - "Widget-byte or Worker-SHA identity proof is weakened."
+          - "Cleanup stops rediscovering by marker or the final sweep stops proving zero open reserved-prefix Issues."
+          - "The canary requires rendered Phase 2 UX or files outside allowed_files."
+      evidence:
+        - notes/T005-pre-canary-audit.md
+        - "T002-T004 done receipts"
+        - "415 Vitest tests passed"
+        - "201 Chromium widget tests passed"
+        - "tag-reconstructed v1.1.0 candidate-Worker browser test passed"
+        - "widget gzip 45093 <= 52597"
+      blocked_tasks: []
+      missing_evidence:
+        - "A live merge-group run of the structured canary is still required before Phase 1 completion."
+      required_board_updates:
+        - "Populate T006 from this Worker package and activate it."
+        - "Keep T999 queued until local canary checks pass and live merge-group evidence exists."
+  - id: T006
+    type: worker
+    assignee: Worker
+    status: done
+    reasoning_hint: medium
+    objective: "Replace the existing locked legacy canary browser action with exactly one deployed headless structured submission and independently verify its structured Issue marker without creating a second canary system or Issue."
+    allowed_files:
+      - "e2e/widget.issue-canary.spec.ts"
+      - "scripts/github-issue-canary.mjs"
+      - "test/githubIssueCanary.test.ts"
+      - "test/structuredFeedback.test.ts"
+      - "test/ci-workflow-contract.test.sh"
+      - ".github/workflows/ci.yml"
+      - "docs/merge-queue-issue-canary.md"
+      - "docs/plans/2026-08-01-configurable-feedback-variants-design.md"
+    verify:
+      - "npx vitest run test/githubIssueCanary.test.ts test/structuredFeedback.test.ts test/variantConfig.test.ts test/variantIssueDraft.test.ts"
+      - "bash test/ci-workflow-contract.test.sh"
+      - "npm run typecheck"
+      - "npm run build:widget"
+      - "npx playwright test e2e/widget.issue-canary.spec.ts --project=chromium-issue-canary --list"
+      - "npx prettier --check e2e/widget.issue-canary.spec.ts scripts/github-issue-canary.mjs test/githubIssueCanary.test.ts .github/workflows/ci.yml docs/merge-queue-issue-canary.md docs/plans/2026-08-01-configurable-feedback-variants-design.md"
+      - "git diff --check"
+    stop_if:
+      - "More than one routine Issue could be created per merge group."
+      - "The verification token reaches Playwright, the Worker, job scope, logs, or artifacts."
+      - "Any non-merge-group, unlocked, retried, or non-preview path can submit."
+      - "Widget-byte or Worker-SHA identity proof is weakened."
+      - "Cleanup stops rediscovering by marker or the final sweep stops proving zero open reserved-prefix Issues."
+      - "The canary requires rendered Phase 2 UX or files outside allowed_files."
+    receipt:
+      result: done
+      harness: codex
+      changed_files:
+        - e2e/widget.issue-canary.spec.ts
+        - scripts/github-issue-canary.mjs
+        - test/githubIssueCanary.test.ts
+        - .github/workflows/ci.yml
+        - docs/merge-queue-issue-canary.md
+      commands:
+        - cmd: "npx vitest run test/githubIssueCanary.test.ts test/structuredFeedback.test.ts test/variantConfig.test.ts test/variantIssueDraft.test.ts"
+          status: pass
+        - cmd: "bash test/ci-workflow-contract.test.sh"
+          status: pass
+        - cmd: "npm run typecheck"
+          status: pass
+        - cmd: "npm run build:widget"
+          status: pass
+        - cmd: "npx playwright test e2e/widget.issue-canary.spec.ts --project=chromium-issue-canary --list"
+          status: pass
+        - cmd: "npx prettier --check e2e/widget.issue-canary.spec.ts scripts/github-issue-canary.mjs test/githubIssueCanary.test.ts .github/workflows/ci.yml docs/merge-queue-issue-canary.md docs/plans/2026-08-01-configurable-feedback-variants-design.md"
+          status: pass
+        - cmd: "git diff --check"
+          status: pass
+      summary: "Replaced the single locked legacy canary browser action with one deployed headless structured submission while preserving the fixed venue, exact widget hash, Worker SHA, zero retries, one-POST guard, server-only token, independent readback, marker cleanup, prefix sweep, and required bridge. The verifier now requires the structured section and exact submission marker and rejects legacy body shape. Local discovery lists exactly one canary test; it was not executed locally. A live merge-group run remains required for final Phase 1 proof. The dedicated Goal Worker timed out once; PM fallback completed and verified the package."
+  - id: T999
+    type: judge
+    assignee: Judge
+    status: done
+    reasoning_hint: high
+    objective: "Audit the complete Phase 1 outcome against every oracle clause and reject completion without current local and live proof."
+    inputs:
+      - "All task receipts"
+      - "Full oracle verification"
+      - "Current branch, dirty diff, and external canary evidence"
+    constraints:
+      - "Read-only."
+      - "Reject completion if any required Worker remains queued, active, blocked without replacement, or weakly verified."
+      - "Reject completion if only mocked GitHub evidence exists for the structured path."
+      - "Reject completion if legacy compatibility was inferred rather than proven."
+    expected_output:
+      - "complete | not_complete"
+      - "full_outcome_complete: true | false"
+      - "Requirement-by-requirement evidence map"
+      - "Missing evidence and next task if incomplete"
+    receipt:
+      result: done
+      harness: codex
+      decision: not_complete
+      full_outcome_complete: false
+      rationale: "PM fallback rejects final completion. Compatibility, structured Worker, typed lazy headless API, one-Issue canary replacement, and all local gates are receipt-backed, but the oracle explicitly requires a successful locked merge-group run with real structured Issue readback, cleanup, and zero-open sweep. No such run exists for this uncommitted branch."
+      worker_package:
+        objective: "Publish the verified branch as a pull request, obtain one successful locked merge-group structured canary, and record the run, Issue verification, cleanup, and zero-open sweep evidence."
+        allowed_files:
+          - docs/goals/configurable-feedback-variants-phase-1/notes/T007-live-proof.md
+        verify:
+          - "All required PR and merge-group checks are green."
+          - "Exact widget bytes and Worker SHA match the merge-group checkout."
+          - "Exactly one structured Issue is independently verified, closed, and followed by a zero-open reserved-prefix sweep."
+        stop_if:
+          - "Commit, push, or pull-request authority is absent."
+          - "Unrelated user-owned changes cannot be separated safely."
+          - "Any destructive canary boundary changes."
+      evidence:
+        - "T002 compatibility receipt"
+        - "T003 structured Worker receipt"
+        - "T004 headless API receipt"
+        - "T005 pre-canary audit"
+        - "T006 canary implementation receipt"
+        - "415 unit tests passed"
+        - "201 Chromium widget tests passed"
+        - "One structured canary test is discoverable only in the merge-group project"
+      blocked_tasks:
+        - T007
+      missing_evidence:
+        - "Published pull request and successful merge_group run for the structured canary."
+        - "Live structured Issue number/URL, independent verifier result, closure readback, and zero-open sweep."
+      required_board_updates:
+        - "Activate T007 and obtain explicit user authorization before commit, push, or pull-request creation."
+        - "After live proof, run a fresh final Judge audit rather than reusing this not-complete receipt."
+  - id: T007
+    type: worker
+    assignee: Worker
+    status: active
+    reasoning_hint: medium
+    objective: "Publish the verified Phase 1 branch as a pull request, obtain one successful locked merge-group structured canary, and record the run, Issue verification, cleanup, and zero-open sweep evidence."
+    allowed_files:
+      - "docs/goals/configurable-feedback-variants-phase-1/notes/T007-live-proof.md"
+    verify:
+      - "The pull request reports all required local and CI checks green."
+      - "One merge_group Deploy Preview run uses the exact merge-group widget bytes and Worker SHA."
+      - "The structured canary creates exactly one Issue, independently verifies it, closes it, and proves zero reserved-prefix Issues remain open."
+    stop_if:
+      - "The user has not authorized commit, push, and pull-request creation."
+      - "The branch contains unrelated user-owned changes that cannot be separated safely."
+      - "Any canary safety boundary would be weakened or more than one Issue could be created."
+    receipt: null
+  - id: T008
+    type: worker
+    assignee: Worker
+    status: done
+    reasoning_hint: medium
+    objective: "Close the independent pre-PR review gaps in package type publication, complete runtime config validation, multi-registration isolation, canary exact-value verification, and required compatibility CI coverage."
+    allowed_files:
+      - "package.json"
+      - "knip.json"
+      - "src/widget/public-api.ts"
+      - "src/widget/public-api.d.ts"
+      - "src/widget/variants/public-types.ts"
+      - "src/widget/variants/public-types.d.ts"
+      - "src/widget/variants/validate-config.ts"
+      - "src/widget/variants/issue-draft.ts"
+      - "src/routes/structured-feedback.ts"
+      - "test/variantPublicTypes.test.ts"
+      - "test/variantConfig.test.ts"
+      - "test/variantIssueDraft.test.ts"
+      - "test/variantManager.test.ts"
+      - "test/githubIssueCanary.test.ts"
+      - "test/structuredFeedback.test.ts"
+      - "scripts/github-issue-canary.mjs"
+      - "e2e/legacy-compat.spec.ts"
+      - "e2e/widget.spec.ts"
+      - ".github/workflows/ci.yml"
+      - "test/ci-workflow-contract.test.sh"
+    verify:
+      - "An actual packed-package TypeScript consumer resolves BugDrop's public declarations."
+      - "Malformed values for every public variant config surface reject synchronously before registration."
+      - "Two distinct registrations submit isolated drafts and a duplicate cannot corrupt the original handle."
+      - "The canary verifier rejects an Issue whose structured section contains the wrong value even when the marker remains in the submission comment."
+      - "The Worker rejects a request whose escaped final Issue body would exceed GitHub's body limit before calling GitHub."
+      - "Required text answers reject whitespace-only values after normalization."
+      - "Required CI runs the provenance verifier, and both reconstructed legacy bundles pass the browser compatibility contract."
+      - "npm test"
+      - "npm run typecheck"
+      - "npm run lint"
+      - "git diff --check"
+    stop_if:
+      - "Fixing a review gap requires rendered Phase 2 UI or a breaking legacy API change."
+      - "Packed declarations require a new publishing service or release infrastructure."
+      - "The real-Issue canary would create more than one Issue or weaken cleanup."
+    receipt:
+      result: done
+      harness: codex
+      changed_files:
+        - package.json
+        - knip.json
+        - src/widget/public-api.d.ts
+        - src/widget/variants/public-types.d.ts
+        - src/widget/variants/validate-config.ts
+        - src/widget/variants/issue-draft.ts
+        - src/routes/structured-feedback.ts
+        - test/variantPublicTypes.test.ts
+        - test/variantConfig.test.ts
+        - test/variantIssueDraft.test.ts
+        - test/structuredFeedback.test.ts
+        - test/githubIssueCanary.test.ts
+        - scripts/github-issue-canary.mjs
+        - e2e/legacy-compat.spec.ts
+        - e2e/widget.spec.ts
+        - .github/workflows/ci.yml
+        - test/ci-workflow-contract.test.sh
+      commands:
+        - cmd: "npm test"
+          status: pass
+          evidence: "30 files and 442 tests passed, including an actual packed-package TypeScript consumer."
+        - cmd: "npm run typecheck"
+          status: pass
+        - cmd: "npm run lint"
+          status: pass
+        - cmd: "npm run knip"
+          status: pass
+          evidence: "Exit 0; only existing configuration hints remain."
+        - cmd: "bash test/ci-workflow-contract.test.sh"
+          status: pass
+        - cmd: "node scripts/verify-legacy-compat.mjs"
+          status: pass
+        - cmd: "npx playwright test e2e/legacy-compat.spec.ts --project=chromium --workers=1"
+          status: pass
+          evidence: "Both tag-reconstructed v1.1.0 and v1.53.1 browser contracts passed."
+        - cmd: "npx playwright test e2e/widget.spec.ts --project=chromium --workers=1 --grep \"registers multiple isolated variants|rejects failed and noncanonical\""
+          status: pass
+          evidence: "Two focused cases passed: isolated multiple registration and failed/noncanonical response rejection."
+        - cmd: "npx playwright test e2e/widget.issue-canary.spec.ts --project=chromium-issue-canary --list"
+          status: pass
+          evidence: "Exactly one real-Issue canary remains selected."
+        - cmd: "git diff --check"
+          status: pass
+      summary: "Independent pre-PR review gaps are closed: actual conditional .d.ts package exports resolve from a packed artifact; complete runtime config validation rejects malformed JavaScript values; empty-section semantics are explicit; required whitespace-only text is rejected; post-format Issue bodies are bounded; multiple registrations remain isolated; malformed responses fail closed; exact canary section values are independently verified; provenance runs in required CI; and both reconstructed legacy bundles have browser coverage. The final widget is 46,440 gzip bytes within the 52,597-byte budget."
+  - id: T009
+    type: worker
+    assignee: Worker
+    status: done
+    reasoning_hint: low
+    objective: "Keep immutable compatibility goldens outside automatic formatting so required CI validates rather than rewrites their exact bytes."
+    allowed_files:
+      - ".prettierignore"
+    verify:
+      - "npm run format:check"
+      - "node scripts/verify-legacy-compat.mjs"
+      - "npm test"
+      - "git diff --check"
+    stop_if:
+      - "The fix would weaken hash verification or change any frozen fixture byte."
+    receipt:
+      result: done
+      harness: codex
+      changed_files:
+        - .prettierignore
+      commands:
+        - cmd: "npm run format:check"
+          status: pass
+        - cmd: "node scripts/verify-legacy-compat.mjs"
+          status: pass
+        - cmd: "npm test"
+          status: pass
+          evidence: "30 files and 442 tests passed after the ignore rule."
+        - cmd: "git diff --check"
+          status: pass
+      summary: "Required CI had tried to enforce Prettier on immutable tag bundles and the exact Issue golden. The compatibility fixture directory is now explicitly ignored by formatting while its dedicated hash, size, gzip, provenance, and behavior checks remain required. No frozen fixture byte changed."
+  - id: T010
+    type: worker
+    assignee: Worker
+    status: done
+    reasoning_hint: low
+    objective: "Give the required provenance job access to the release tags it verifies and lock that checkout requirement into the CI contract."
+    allowed_files:
+      - ".github/workflows/ci.yml"
+      - "test/ci-workflow-contract.test.sh"
+    verify:
+      - "bash test/ci-workflow-contract.test.sh"
+      - "node scripts/verify-legacy-compat.mjs"
+      - "npm run format:check"
+      - "git diff --check"
+    stop_if:
+      - "The change would skip tag-to-commit verification or weaken the required Unit job."
+    receipt:
+      result: done
+      harness: codex
+      changed_files:
+        - .github/workflows/ci.yml
+        - test/ci-workflow-contract.test.sh
+      commands:
+        - cmd: "bash test/ci-workflow-contract.test.sh"
+          status: pass
+        - cmd: "node scripts/verify-legacy-compat.mjs"
+          status: pass
+        - cmd: "npm run format:check"
+          status: pass
+        - cmd: "git diff --check"
+          status: pass
+      summary: "The required Unit job now uses checkout fetch-depth 0, making v1.1.0 and v1.53.1 tag commits available to the provenance verifier. The CI contract fails if that tag-history checkout is removed."
+checks:
+  dirty_fingerprint: unknown
+  last_verification:
+    result: unknown
+    task: null
+    commands: []

@@ -34,10 +34,7 @@ private-key*.pem
 .plans/
 .superpowers/
 .playwright-mcp/
-
-# Only published website documentation belongs in version control.
-/docs/*
-!/docs/website/
+docs/superpowers/
 
 # OS files
 .DS_Store

@@ -1,0 +1,1046 @@
+# GoalBuddy v2 state.yaml
+# Board truth lives here. goal.md is the editable charter; notes/ holds long receipts only.
+
+version: 2
+
+goal:
+  title: "Implement Issue #300 form prefills"
+  slug: "issue-300-form-prefill"
+  kind: existing_plan # specific | open_ended | existing_plan | recovery | audit
+  tranche: "Validate the existing plan, implement the complete built-in form prefill feature and user documentation, then prove compatibility and safety."
+  status: done # active | blocked | done
+  oracle:
+    signal: "Browser walkthrough and tests prove host-supplied prefills, category templates, edited-text preservation, email disclosure, and legacy behavior; API tests prove submitter formatting is safe."
+    cadence: "after each Worker package and at final audit"
+    final_proof: "Receipt-backed unit, API, typecheck, lint, and E2E evidence on the final diff; user-facing docs show a working host callback and say identity is unverified; final Judge audit finds no required work left."
+  intake:
+    original_request: "Implement Issue #300 as a GoalBuddy prep board, including user documentation and honest unverified-identity guidance."
+    interpreted_outcome: "Ship optional built-in form prefills for nickname, email, and category-specific description templates, with safe rendering and complete integration docs."
+    input_shape: existing_plan # vague | specific | existing_plan | recovery | audit
+    audience: "BugDrop integrators and feedback submitters"
+    authority: requested # requested | approved | inferred | needs_approval | blocked
+    proof_type: test # test | demo | artifact | metric | review | source_backed_answer | decision
+    completion_proof: "Working default widget behavior, safe Issue body output, and published-source documentation verified against the final implementation diff."
+    likely_misfire: "A plan-only or custom-variant-only change is reported complete, or prefills are presented as verified identity."
+    blind_spots_considered:
+      - "Legacy BugDrop.open() must keep ignoring arguments."
+      - "A category switch must not overwrite reporter-edited text."
+      - "Email in a GitHub Issue may be visible to everyone when the repository is public."
+      - "The fresh worktree has the plan only; the original checkout contains unrelated dirty changes."
+    existing_plan_facts:
+      - "Validate docs/plans/2026-09-30-issue-300-form-prefill.md before implementation."
+      - "Use a per-open host callback rather than repurposing BugDrop.open() arguments."
+      - "Update configuration, JavaScript API, and security/FAQ documentation."
+      - "Treat name and email as untrusted, unverified suggestions."
+
+rules:
+  pm_owns_state: true
+  one_active_task: true
+  max_write_workers: 1
+  no_implementation_without_worker_or_pm_task: true
+  no_completion_without_judge_or_pm_audit: true
+  planning_is_not_completion: true
+  queued_required_worker_blocks_completion: true
+  continuous_until_full_outcome: true
+  missing_input_or_credentials_do_not_stop_goal: true
+  exact_human_approval_can_terminal_wait: true
+  preserve_and_validate_existing_plan: true
+  intake_misfire_must_be_audited: true
+  goal_pressure_requires_oracle: true
+  no_completion_on_weak_proof: true
+  slice_policy:
+    max_consecutive_tiny_tasks: 2
+    prefer_vertical_slices: true
+    judge_picks_largest_safe_slice: true
+    worker_completes_whole_slice: true
+
+agents:
+  # installed | bundled_not_installed | missing | unknown
+  # missing and bundled_not_installed use PM fallback; unknown requires one exact-role attempt before fallback.
+  scout: installed
+  worker: installed
+  judge: installed
+
+visual_board:
+  # none | local | unknown
+  selected: local
+  local:
+    status: live # not_requested | starting | live | generated | blocked
+    url: "http://goalbuddy.localhost:41737/issue-300-form-prefill/"
+    command: "node /Users/neonwatty/.codex/plugins/cache/goalbuddy/goalbuddy/0.4.3/skills/goal-prep/surfaces/local-goal-board/scripts/local-goal-board.mjs --goal docs/goals/issue-300-form-prefill"
+
+active_task: null
+
+tasks:
+  - id: T001
+    type: pm
+    assignee: PM
+    status: done
+    reasoning_hint: default # default | low | medium | high | xhigh
+    objective: "Validate the existing Issue #300 plan against the fresh worktree and turn any gaps into bounded implementation tasks."
+    inputs:
+      - "docs/plans/2026-09-30-issue-300-form-prefill.md"
+      - "Issue #300"
+      - "Current source, public API contract, and tests"
+    constraints:
+      - "Read-only validation before any Worker implementation."
+      - "Preserve the existing plan facts and check them against current code."
+    expected_output:
+      - "Plan validity decision and any corrections"
+      - "Baseline gate inventory: targeted/full unit, API, protocol, typecheck, lint, build, and E2E; classify pre-existing failures separately"
+      - "Exact first Worker package, allowed files, verification, and stop conditions"
+    receipt:
+      result: done
+      harness: codex
+      summary: "Validated the existing Issue #300 plan against origin/main. The built-in form has no host prefill path; a named per-open callback is feasible without changing BugDrop.open() arguments. The Judge must resolve the v1 legacy-payload compatibility boundary before server hardening. Fresh worktree dependencies are not installed, so gate baselines are not yet known."
+      evidence:
+        - "GitHub Issue #300 remains open and asks for nickname and category-specific body templates."
+        - "src/widget/index.ts:909 exposes an argument-free open method; lines 1169 and 1251 route both default runtimes to the same form helper."
+        - "src/widget/index.ts:1423-1477 initializes name/email/description only from previous form state."
+        - "docs/plans/2026-08-01-configurable-feedback-variants-design.md:158-164 requires legacy open() arguments to remain ignored."
+        - "src/routes/api.ts:865-881 currently places submitter strings directly in Issue Markdown."
+        - "package.json defines test, protocol, typecheck, lint, build:widget, and E2E gates; node_modules is absent in this worktree."
+      next_task: "T002 Judge should specify a widget-and-docs Worker package, require dependency setup and baseline proof, and decide how to reconcile server safety with the legacy payload contract."
+  - id: T002
+    type: judge
+    assignee: Judge
+    status: done
+    reasoning_hint: default
+    objective: "Skeptically review T001 plan validation and specify the largest safe widget-and-documentation implementation package."
+    inputs:
+      - "T001 receipt"
+      - "Existing Issue #300 implementation plan"
+    constraints:
+      - "Do not implement."
+      - "Pick the largest safe useful slice with clear allowed_files, verify commands, and stop conditions."
+    expected_output:
+      - "Decision"
+      - "Exact Worker objective"
+      - "allowed_files"
+      - "verify"
+      - "stop_if"
+      - "Backend trust-boundary work that remains for the next package"
+    receipt:
+      result: done
+      decision: approved
+      full_outcome_complete: false
+      rationale: "T001’s plan validation is credible, but no verification baseline exists because dependencies are absent. T003 is a safe, useful widget-and-documentation slice: both default runtimes reach the same form helper, and the existing argument-free open method can remain intact. The Worker must preserve the description’s edited state across screenshot return, not merely restore its text. Server hardening belongs to T005. The v1 contract promises unchanged validation and Issue-body behavior for existing payloads; T004 must resolve that conflict before approving rejection of previously accepted submitter values. Escaping untrusted values while preserving representative valid legacy submissions is the safer starting point."
+      worker_package:
+        objective: "First run npm ci and record pre-edit results for the relevant unit, protocol, compatibility, typecheck, lint, build, and browser gates; classify pre-existing failures. Then implement the plan’s complete opt-in, synchronous per-opening prefill provider for the built-in form across floating-trigger and BugDrop.open() paths and both default runtimes. Normalize and bound each supplied field without logging personal values; keep hidden fields hidden; preserve reporter edits, including a cleared description, through category changes and screenshot return; refresh values on a new opening. Add the visible prefilled-email disclosure, focused adversarial and compatibility tests, and the plan’s integration and privacy documentation. Leave the Worker API and frozen compatibility fixtures unchanged."
+        allowed_files:
+          - src/widget/
+          - src/widget/index.ts
+          - docs/website/configuration.mdx
+          - docs/website/javascript-api.mdx
+          - docs/website/security.mdx
+          - docs/website/faq.mdx
+          - test/
+          - e2e/
+        verify:
+          - "Before edits: npm ci"
+          - "Before edits, record results: npm run test -- test/widgetAuthToken.test.ts test/defaultFlowRuntime.test.ts test/legacyCompatibility.test.ts"
+          - "Before edits, record results: npm run test:protocol && npm run verify:legacy-compat && npm run typecheck && npm run lint && npm run build:widget"
+          - "Before edits, run the relevant Chromium compatibility browser baseline using a manually started server at bugdrop.localhost and PLAYWRIGHT_BASE_URL=http://bugdrop.localhost:8787"
+          - "After edits: npm run test"
+          - "After edits: npm run test:protocol && npm run verify:legacy-compat && npm run typecheck && npm run lint && npm run format:check && npm run build:widget"
+          - "After edits, run focused prefill and legacy-compat Chromium E2E against bugdrop.localhost, exercising both default runtimes, trigger and open(), ignored open arguments, category edits and clearing, screenshot return, reopening, hidden fields, and broken providers"
+        stop_if:
+          - "Dependency installation or baseline failure prevents distinguishing new failures from pre-existing failures."
+          - "Implementation requires files outside allowed_files, changes frozen fixtures, or changes BugDrop.open() argument or submission-payload behavior."
+          - "Provider values would be persisted or logged, hidden fields would become visible, or reporter edits cannot be preserved through screenshot return."
+          - "A verification failure persists after two focused repair attempts."
+      evidence:
+        - "[Issue #300](https://github.com/bugdrophq/bugdrop/issues/300) requests nickname and category-specific description defaults."
+        - "The written plan names src/widget/, src/widget/index.ts, configuration and JavaScript API documentation, and security/FAQ guidance for this slice."
+        - "src/widget/index.ts routes the fixed and private default journeys to showFeedbackFormWithScreenshotOption; both pass prior form results on return."
+        - "src/widget/index.ts exposes open with no arguments and currently initializes name, email, and description from prior form values only."
+        - "docs/plans/2026-08-01-configurable-feedback-variants-design.md requires ignored open arguments and unchanged existing FeedbackPayload validation, response, Issue body, label, and error behavior."
+        - "src/routes/api.ts currently interpolates submitter name and email directly into Issue Markdown."
+        - "package-lock.json exists, node_modules is absent, and no baseline gate has been run in this worktree."
+      missing_evidence:
+        - "Dependency installation and pre-edit gate results."
+        - "T003 implementation and adversarial browser proof."
+        - "A T004 decision reconciling server-side safety with the normative v1 payload contract."
+      required_board_updates:
+        - "Copy this Worker package into T003 before activation."
+        - "Make T004 explicitly decide whether T005 can retain v1 acceptance while escaping Issue Markdown, or requires an approved compatibility-contract change for rejecting previously accepted payloads."
+  - id: T003
+    type: worker
+    assignee: Worker
+    status: blocked
+    reasoning_hint: default
+    objective: "Establish the pre-edit baseline, then implement the complete opt-in per-opening built-in form prefill path, edited-text preservation, visible email disclosure, focused tests, and integration documentation."
+    inputs:
+      - "T002 decision and exact allowed_files/verify specification"
+      - "Existing Issue #300 implementation plan"
+    constraints:
+      - "Do not change legacy BugDrop.open() argument behavior."
+      - "Do not present supplied name or email as verified identity."
+      - "Keep default behavior unchanged when no provider is configured."
+      - "Run npm ci and record relevant unit, protocol, legacy compatibility, typecheck, lint, build, and focused browser baselines before edits; classify pre-existing failures."
+      - "Keep Worker API, submission payload, and frozen compatibility fixtures unchanged."
+      - "Use bugdrop.localhost for any local server."
+    expected_output:
+      - "Working callback integration for floating trigger and BugDrop.open()"
+      - "Category templates preserve reporter edits and screenshot-return values"
+      - "Configuration and JavaScript API docs show a working host-app example and privacy boundary"
+      - "Focused positive, negative, and compatibility evidence"
+    allowed_files:
+      - "src/widget/"
+      - "src/widget/index.ts"
+      - "src/widget/prefill.ts"
+      - "docs/website/configuration.mdx"
+      - "docs/website/javascript-api.mdx"
+      - "docs/website/security.mdx"
+      - "docs/website/faq.mdx"
+      - "test/"
+      - "e2e/"
+    verify:
+      - "npm run test"
+      - "npm run test:protocol"
+      - "npm run verify:legacy-compat"
+      - "npm run typecheck"
+      - "npm run lint"
+      - "npm run format:check"
+      - "npm run build:widget"
+      - "PLAYWRIGHT_BASE_URL=http://bugdrop.localhost:8787 npx playwright test e2e/widget-prefill.spec.ts e2e/legacy-compat.spec.ts --project=chromium"
+    stop_if:
+      - "Dependency installation or baseline failure prevents distinguishing new failures from pre-existing failures."
+      - "Need files outside allowed_files, a frozen fixture change, or a change to BugDrop.open() arguments or submission payload."
+      - "Provider values would be persisted or logged, hidden fields become visible, or edits cannot survive screenshot return."
+      - "Verification fails after two focused repair attempts."
+    receipt:
+      result: blocked
+      changed_files:
+        - src/widget/index.ts
+        - src/widget/prefill.ts
+        - test/widgetPrefill.test.ts
+        - e2e/widget-prefill.spec.ts
+        - docs/website/configuration.mdx
+        - docs/website/javascript-api.mdx
+        - docs/website/security.mdx
+        - docs/website/faq.mdx
+      commands:
+        - "npm ci"
+        - "npm run test -- test/widgetAuthToken.test.ts test/defaultFlowRuntime.test.ts test/legacyCompatibility.test.ts"
+        - "npm run test:protocol"
+        - "npm run verify:legacy-compat"
+        - "npm run typecheck"
+        - "npm run lint"
+        - "npm run build:widget"
+        - "PLAYWRIGHT_BASE_URL=http://bugdrop.localhost:8787 npx playwright test e2e/legacy-compat.spec.ts e2e/default-flow-compatibility.spec.ts --project=chromium"
+        - "PLAYWRIGHT_BASE_URL=http://bugdrop.localhost:8787 npx playwright test e2e/legacy-compat.spec.ts --project=chromium"
+        - "npm run test"
+        - "npm run test:protocol"
+        - "npm run verify:legacy-compat"
+        - "npm run typecheck"
+        - "npm run lint"
+        - "npm run format:check"
+        - "npm run build:widget"
+      summary: "Implemented the widget prefill path, draft preservation, disclosure, tests, and docs in allowed files. Pre-edit targeted gates passed; the broader Chromium baseline had six existing screenshot failures. Post-edit protocol, legacy compatibility, typecheck, lint, format, and build passed. Full unit verification failed because a cross-plane test requires all tracked src/ bytes to match a frozen baseline. A separate new unit failure was patched but not rerun. Focused prefill E2E remains unrun."
+      deviations: []
+      remaining_blockers:
+        - "The required npm run test gate cannot pass after changing src/widget/index.ts without updating the cross-plane baseline fixture or test, which T003 does not permit."
+        - "The async-provider unit fix and focused browser tests need verification."
+      verification_attempts: 1
+      stopped_because: "A file outside allowed_files is needed to resolve a required verification failure."
+  - id: T004
+    type: judge
+    assignee: Judge
+    status: done
+    reasoning_hint: high
+    objective: "Review T003's blocked widget slice, diagnose the cross-plane baseline gate, specify a safe repair-and-verification Worker package, and resolve the later server-side v1 compatibility boundary."
+    inputs:
+      - "T003 receipt and diff"
+      - "Cross-plane source-hash test and frozen baseline ownership"
+      - "API format and validation contract"
+    constraints:
+      - "Read-only review; do not implement."
+      - "Do not authorize blindly regenerating a baseline fixture without checking what it proves."
+      - "Identify legacy-payload compatibility risk and an adversarial proof."
+    expected_output:
+      - "Accept or reject T003 slice with specific evidence"
+      - "Exact repair Worker objective, allowed_files, verify, and stop_if"
+      - "Decision on whether T005 can preserve v1 acceptance while escaping Markdown or needs an explicit compatibility-contract change"
+    receipt:
+      result: done
+      decision: rejected
+      full_outcome_complete: false
+      rationale: "T003 is a promising implementation, but its slice is not verified. The new async-provider unit test now passes; focused browser tests remain unrun. Direct inspection found that clearing a prefilled name or email can restore the old value after screenshot return, and the security-doc edit interrupts a bullet list. The cross-plane failure is expected from an intentional public widget change, but its fixture is a reviewed safety baseline. Refreshing it is legitimate only after behavioral proof, with the new source file included in the fingerprint and the approved delta recorded. T005 needs an explicit narrow v1 contract exception: escaping Markdown can preserve acceptance, but changes Issue-body bytes."
+      worker_package:
+        objective: "Complete the T003 widget milestone. Fix preservation of cleared prefilled name and email across screenshot return; add browser assertions for those cases and for reporter-edited description text; associate the email disclosure with its input; repair the security-document list. Rerun the async-provider unit test and focused browser tests for both default runtimes. After those pass and the source diff is reviewed, explicitly refresh the cross-plane public-source baseline to include the new prefill source file, recording Issue #300 as an approved delta from the original base commit. Keep the fingerprint test strict and leave frozen legacy and protocol fixtures untouched. Report remaining broad-suite failures separately."
+        allowed_files:
+          - src/widget/
+          - src/widget/index.ts
+          - docs/website/configuration.mdx
+          - docs/website/javascript-api.mdx
+          - docs/website/security.mdx
+          - docs/website/faq.mdx
+          - test/
+          - e2e/
+          - test/cross-plane/fixtures/current-public-baseline.v1.json
+          - docs/protocol/cross-plane-safety.md
+        verify:
+          - "npm run test -- test/widgetPrefill.test.ts test/defaultFlowRuntime.test.ts test/legacyCompatibility.test.ts"
+          - "npm run build:widget"
+          - "Start the test Worker at bugdrop.localhost with BUGDROP_TEST_HOOKS=1, then run LIVE_TARGET=local PLAYWRIGHT_BASE_URL=http://bugdrop.localhost:8787 npx playwright test e2e/widget-prefill.spec.ts e2e/legacy-compat.spec.ts --project=chromium"
+          - "Only after focused proof: use git add -N src/widget/prefill.ts so git ls-files includes the new source in the baseline calculation; review the complete included path set and fingerprint before updating the fixture"
+          - "npm run test -- test/cross-plane/current-public.test.ts"
+          - "npm run test && npm run test:protocol && npm run verify:legacy-compat && npm run typecheck && npm run lint && npm run format:check && npm run build:widget"
+          - "git diff --check"
+        stop_if:
+          - "Focused browser tests expose a behavioral failure that persists after two focused repair attempts."
+          - "The baseline refresh would omit new public source, require weakening the fingerprint test, or lack an honest record of the approved change."
+          - "Any fix requires changing BugDrop.open() argument behavior, the submission payload, frozen compatibility fixtures, or files outside allowed_files."
+          - "A new broad-suite failure cannot be distinguished from the pre-edit baseline."
+      evidence:
+        - "T003 reports protocol, legacy compatibility, typecheck, lint, format, and widget build passing, with focused prefill E2E unrun."
+        - "A direct rerun of the prefill, default-flow, and legacy unit files passed: 13 tests."
+        - "A direct rerun of test/cross-plane/current-public.test.ts failed only its fingerprint assertion: current c077ba30… versus frozen ac7c93c9…; its three mutation checks passed."
+        - "test/cross-plane/current-public.test.ts hashes only git ls-files paths. The new src/widget/prefill.ts is currently untracked and therefore absent from the current fingerprint."
+        - "docs/protocol/cross-plane-safety.md explicitly requires review for intentional public changes and forbids refreshing the fingerprint merely to clear a failure."
+        - "src/widget/index.ts restores name and email with initialValues?.name ?? prefill.name and initialValues?.email ?? prefill.email; cleared values are saved as undefined, allowing old prefills to reappear."
+        - "docs/website/security.mdx inserts paragraphs between the Issue-content list bullets."
+      blocked_tasks:
+        - T003
+        - T005
+      missing_evidence:
+        - "Focused prefill and legacy browser results on the repaired diff."
+        - "Full unit result after an explicitly reviewed, provenance-correct cross-plane baseline refresh."
+        - "An approved v1 compatibility-contract exception for changed rendering or rejection of previously accepted submitter strings."
+      required_board_updates:
+        - "Keep T003 incomplete and assign this repair package before T005."
+        - "For T005, amend the normative v1 contract explicitly before changing Issue-body rendering or rejecting previously accepted string values. Preserve HTTP acceptance and exact output for ordinary valid legacy submissions; document and test the narrow security exception for Markdown and control characters."
+        - "Refresh the cross-plane baseline again against the final public-source diff if T005 changes src/routes/api.ts."
+  - id: T005
+    type: worker
+    assignee: Worker
+    status: done
+    reasoning_hint: default
+    objective: "First amend the normative v1 compatibility contract and Issue #300 plan to document a narrow server-side submitter safety exception, including why it does not change the widget API. Then validate untrusted submitter name and email values from every legacy feedback request with permissive, explicit type, length, email, and control-character rules; use caps at least as generous as the widget’s 100-character name and 254-character email limits. Escape accepted name and email for their inline GitHub Markdown positions. Preserve acceptance, response, and exact Issue-body output for ordinary valid legacy submissions, including the frozen fixture. Add API tests that prove Markdown, links, headings, HTML-like text, line breaks, and control characters cannot spoof Issue structure; prove invalid inputs cannot create an Issue. Update security and FAQ guidance without claiming identity verification. Only after API and legacy proof, review and refresh the strict cross-plane fingerprint for the src/routes/api.ts delta, preserving the prior hash and provenance."
+    inputs:
+      - "T004 decision and exact allowed_files/verify specification"
+      - "Existing Issue #300 implementation plan"
+    constraints:
+      - "Treat provider and direct API values alike as untrusted and unverified."
+      - "Preserve representative valid legacy submissions and state any malformed-payload behavior change."
+      - "First amend the normative v1 contract with a narrow, explicit security exception before changing Issue-body bytes or rejecting previously accepted submitter strings."
+    expected_output:
+      - "Bounded server validation and safe name/email Issue rendering"
+      - "API tests for adversarial Markdown and line breaks"
+      - "Security/FAQ docs state visibility and absence of identity proof"
+    allowed_files:
+      - "docs/plans/2026-08-01-configurable-feedback-variants-design.md"
+      - "docs/plans/2026-09-30-issue-300-form-prefill.md"
+      - "src/routes/api.ts"
+      - "test/api.test.ts"
+      - "docs/website/security.mdx"
+      - "docs/website/faq.mdx"
+      - "test/cross-plane/fixtures/current-public-baseline.v1.json"
+      - "docs/protocol/cross-plane-safety.md"
+    verify:
+      - "Before changing the fingerprint: npm run test -- test/api.test.ts test/legacyCompatibility.test.ts"
+      - "Before changing the fingerprint: npm run verify:legacy-compat && npm run test:protocol"
+      - "Before changing the fingerprint: run focused local Chromium API and legacy compatibility E2E against bugdrop.localhost"
+      - "Review git diff and the complete git ls-files public-source set; verify src/routes/api.ts is the only new protected-source delta before refreshing the fingerprint and provenance"
+      - "npm run test -- test/cross-plane/current-public.test.ts"
+      - "npm run test && npm run test:cross-plane && npm run test:protocol && npm run verify:legacy-compat"
+      - "npm run typecheck && npm run lint && npm run format:check && npm run build:widget && git diff --check"
+    stop_if:
+      - "A rule rejects a common valid legacy name or address, or changes ordinary legacy Issue-body output."
+      - "The proposed exception extends beyond submitter validation and safe rendering, or the normative v1 contract cannot be amended honestly."
+      - "An adversarial value can create a forged heading, link, or attribution despite escaping, or an invalid value still reaches createIssue."
+      - "The fingerprint refresh includes unreviewed public-source changes, omits a tracked source file, or weakens the mutation checks."
+      - "A fix needs files outside allowed_files or verification fails after two focused repair attempts."
+    receipt:
+      result: done
+      changed_files:
+        - docs/plans/2026-08-01-configurable-feedback-variants-design.md
+        - docs/plans/2026-09-30-issue-300-form-prefill.md
+        - src/routes/api.ts
+        - test/api.test.ts
+        - docs/website/security.mdx
+        - docs/website/faq.mdx
+        - test/cross-plane/fixtures/current-public-baseline.v1.json
+        - docs/protocol/cross-plane-safety.md
+      commands:
+        - cmd: "npm run test -- test/api.test.ts test/legacyCompatibility.test.ts"
+          status: pass
+        - cmd: "npm run verify:legacy-compat"
+          status: pass
+        - cmd: "npm run test:protocol"
+          status: pass
+        - cmd: "LIVE_TARGET=local PLAYWRIGHT_BASE_URL=http://bugdrop.localhost:8787 npx playwright test e2e/api.spec.ts e2e/legacy-compat.spec.ts --project=chromium"
+          status: pass
+        - cmd: "npm run test -- test/cross-plane/current-public.test.ts"
+          status: pass
+        - cmd: "npm run test"
+          status: pass
+        - cmd: "npm run test:cross-plane"
+          status: pass
+        - cmd: "npm run typecheck"
+          status: pass
+        - cmd: "npm run lint"
+          status: pass
+        - cmd: "npm run format:check"
+          status: pass
+        - cmd: "npm run build:widget"
+          status: pass
+        - cmd: "git diff --check"
+          status: pass
+      summary: "The v1 contract now records a narrow submitter safety exception. The API rejects malformed, overlong, control, and bidi-affected submitter values before Issue creation and escapes accepted Markdown, HTML entities, and URL markers inline. Tests preserve ordinary and frozen legacy output and disprove forged Issue structure. Final gates passed: 2,530 unit, 51 cross-plane, 115 protocol, 15 Chromium API/legacy tests, plus typecheck, lint, format, build, and diff checks. An initial lint error was repaired. The strict 146-file fingerprint was refreshed with prior provenance retained."
+      deviations: []
+      remaining_blockers: []
+      verification_attempts: 2
+      stopped_because: null
+  - id: T006
+    type: pm
+    assignee: PM
+    status: done
+    reasoning_hint: default
+    objective: "Run the final cross-path proof, repair gaps through bounded Worker follow-ups, complete the repository pre-PR review gate, and create a reviewable PR with docs and evidence."
+    inputs:
+      - "T003 and T005 receipts and final diff"
+      - "Goal oracle and repository review instructions"
+    constraints:
+      - "Do not claim completion from happy-path tests or a green summary alone."
+      - "Do not merge or deploy."
+      - "Run the required parallel pre-PR review agents before creating the PR."
+    expected_output:
+      - "Final unit, API, typecheck, lint, build, and browser evidence with baseline comparison"
+      - "Adversarial proof of edit preservation and safe Issue formatting"
+      - "Pre-PR review findings resolved or explicit blockers"
+      - "Reviewable PR with user documentation and verification notes"
+    receipt:
+      result: done
+      full_outcome_complete: false
+      summary: "Completed the repository pre-PR parallel review gate, resolved all high/medium findings through T009/T010, and obtained clean targeted re-reviews. Committed, rebased onto current main, reran final gates, pushed the branch, and created mergeable PR #418 with integration docs, safety notes, and verification evidence. CI is running; no merge or deployment occurred."
+      evidence:
+        - "PR https://github.com/bugdrophq/bugdrop/pull/418 targets main from codex/issue-300-prefill-plan and GitHub reports MERGEABLE."
+        - "Required code-reviewer, test-analyzer, and simplifier agents ran in parallel; silent-failure and type-design analyzers also ran. Targeted code and test re-reviews after T010 reported no remaining high/medium findings."
+        - "The final combined Chromium API, legacy, and prefill suite passed 30/30 after the rebase, covering both widget runtimes and both opening paths."
+        - "After rebasing onto origin/main 79a6336c, full unit 2540/2540, cross-plane 51/51, protocol 115/115, legacy fixtures, typecheck, lint, format, widget build, and whitespace checks passed."
+        - "GitHub Markdown renderer confirmed a name with @ and backticks is displayed without an active mention; API tests preserve ordinary legacy body bytes and reject malformed values before Issue creation."
+        - "PR documentation contains a working host callback and states that nickname/email are editable unverified suggestions and retained email may be public."
+      commands:
+        - cmd: "npm run test && npm run test:cross-plane && npm run test:protocol && npm run verify:legacy-compat && npm run typecheck && npm run lint && npm run format:check && npm run build:widget && git diff --check"
+          status: pass
+        - cmd: "LIVE_TARGET=local PLAYWRIGHT_BASE_URL=http://bugdrop.localhost:8787 npx playwright test e2e/widget-prefill.spec.ts e2e/api.spec.ts e2e/legacy-compat.spec.ts --project=chromium --workers=4 --reporter=line"
+          status: pass
+        - cmd: "gh pr view 418 --json number,title,url,baseRefName,headRefName,mergeable,statusCheckRollup,body"
+          status: pass
+      facts:
+        - "CI jobs were in progress at PR creation; they are not merge authorization."
+      contradictions: []
+      ambiguity_requiring_judge: []
+      note_needed: false
+  - id: T007
+    type: worker
+    assignee: Worker
+    status: done
+    reasoning_hint: default
+    objective: "Complete and prove the blocked widget milestone: preserve cleared prefills, fix disclosure/docs, run focused browser tests, then review and refresh the cross-plane source baseline without weakening it."
+    inputs:
+      - "T003 blocked receipt and its uncommitted diff"
+      - "T004 Judge decision and exact repair package"
+      - "docs/protocol/cross-plane-safety.md"
+    constraints:
+      - "You are repairing T003; do not reimplement it from scratch or revert its useful changes."
+      - "Run focused behavior proof before refreshing the baseline; include the new source file in git ls-files with intent-to-add."
+      - "Record the approved Issue #300 source delta and keep the fingerprint test strict."
+      - "Preserve legacy open arguments, submission payload, and frozen fixtures."
+      - "Use bugdrop.localhost for any local server."
+    expected_output:
+      - "Cleared prefilled name/email and edited or cleared descriptions survive screenshot return and category changes"
+      - "Accessible email disclosure and repaired security documentation"
+      - "Focused unit and browser results for both default runtimes"
+      - "Reviewed cross-plane source baseline including new prefill source, full gate results, and any baseline-attributed failures"
+    allowed_files:
+      - "src/widget/"
+      - "src/widget/index.ts"
+      - "src/widget/prefill.ts"
+      - "docs/website/configuration.mdx"
+      - "docs/website/javascript-api.mdx"
+      - "docs/website/security.mdx"
+      - "docs/website/faq.mdx"
+      - "test/"
+      - "test/widgetPrefill.test.ts"
+      - "e2e/"
+      - "e2e/widget-prefill.spec.ts"
+      - "test/cross-plane/fixtures/current-public-baseline.v1.json"
+      - "docs/protocol/cross-plane-safety.md"
+    verify:
+      - "npm run test -- test/widgetPrefill.test.ts test/defaultFlowRuntime.test.ts test/legacyCompatibility.test.ts"
+      - "npm run build:widget"
+      - "LIVE_TARGET=local PLAYWRIGHT_BASE_URL=http://bugdrop.localhost:8787 npx playwright test e2e/widget-prefill.spec.ts e2e/legacy-compat.spec.ts --project=chromium"
+      - "npm run test -- test/cross-plane/current-public.test.ts"
+      - "npm run test"
+      - "npm run test:protocol"
+      - "npm run verify:legacy-compat"
+      - "npm run typecheck"
+      - "npm run lint"
+      - "npm run format:check"
+      - "npm run build:widget"
+      - "git diff --check"
+    stop_if:
+      - "Focused browser failures persist after two focused repair attempts."
+      - "Baseline refresh omits new public source, weakens the fingerprint test, or lacks reviewed provenance."
+      - "A fix requires changing BugDrop.open() arguments, payload, frozen fixtures, or files outside allowed_files."
+      - "A broad-suite failure cannot be distinguished from the pre-edit baseline."
+    receipt:
+      result: done
+      changed_files:
+        - src/widget/index.ts
+        - src/widget/prefill.ts
+        - e2e/widget-prefill.spec.ts
+        - test/widgetPrefill.test.ts
+        - docs/website/configuration.mdx
+        - docs/website/javascript-api.mdx
+        - docs/website/security.mdx
+        - docs/website/faq.mdx
+        - docs/protocol/cross-plane-safety.md
+        - test/cross-plane/fixtures/current-public-baseline.v1.json
+      commands:
+        - cmd: "npm run test -- test/widgetPrefill.test.ts test/defaultFlowRuntime.test.ts test/legacyCompatibility.test.ts"
+          status: pass
+        - cmd: "npm run build:widget"
+          status: pass
+        - cmd: "LIVE_TARGET=local PLAYWRIGHT_BASE_URL=http://bugdrop.localhost:8787 npx playwright test e2e/widget-prefill.spec.ts e2e/legacy-compat.spec.ts --project=chromium"
+          status: pass
+        - cmd: "git add -N src/widget/prefill.ts"
+          status: pass
+        - cmd: "npm run test -- test/cross-plane/current-public.test.ts"
+          status: pass
+        - cmd: "npm run test"
+          status: pass
+        - cmd: "npm run test:protocol"
+          status: pass
+        - cmd: "npm run verify:legacy-compat"
+          status: pass
+        - cmd: "npm run typecheck"
+          status: pass
+        - cmd: "npm run lint"
+          status: pass
+        - cmd: "npm run format:check"
+          status: pass
+        - cmd: "npm run build:widget"
+          status: pass
+        - cmd: "git diff --check"
+          status: pass
+      summary: "Cleared name, email, and description values now survive screenshot return; reporter-authored descriptions survive category changes. The email disclosure is associated with its input, and the security list is repaired. Focused browser tests passed 9/9 across both runtimes and entry paths. Full unit tests passed 2514/2514; protocol, legacy compatibility, typecheck, lint, format, build, and diff checks passed. After behavior proof, the reviewed strict public-source fingerprint was refreshed with Issue #300 provenance and the new source file included."
+      deviations: []
+      remaining_blockers: []
+      verification_attempts: 1
+      stopped_because: null
+  - id: T008
+    type: judge
+    assignee: Judge
+    status: done
+    reasoning_hint: high
+    objective: "Audit T007's repaired widget proof, then specify the largest safe T005 server trust-boundary package with an explicit narrow v1 compatibility exception and final fingerprint handling."
+    inputs:
+      - "T007 receipt, implementation diff, and source fingerprint provenance"
+      - "docs/plans/2026-08-01-configurable-feedback-variants-design.md v1 compatibility contract"
+      - "src/routes/api.ts submitter rendering and test/api.test.ts"
+    constraints:
+      - "Read-only; do not implement or update board."
+      - "Preserve ordinary valid legacy payload acceptance and output."
+      - "Specify exact allowed_files, verify, and stop_if for T005."
+      - "Require another reviewed cross-plane baseline refresh if src/routes/api.ts changes."
+    expected_output:
+      - "Accept or reject T007 with concrete evidence"
+      - "Decision on narrow security exception and documented legacy behavior"
+      - "Exact T005 Worker package"
+      - "Remaining full-goal proof gaps"
+    receipt:
+      result: done
+      decision: approved
+      full_outcome_complete: false
+      rationale: "T007 repairs the identified restore bug and supplies focused browser and full-unit proof. The strict public-source fingerprint includes the new prefill file and records the reviewed Issue #300 delta. T005 can now address the server boundary. The v1 exception must be explicit and narrow: ordinary valid legacy submissions retain acceptance and exact Issue-body output; unsafe submitter strings may receive escaped rendering or a documented validation error. Escaping Markdown cannot preserve the prior Issue-body bytes for those strings, so the normative contract must state this security exception before implementation. Any API source change requires another reviewed fingerprint refresh."
+      worker_package:
+        objective: "First amend the normative v1 compatibility contract and Issue #300 plan to document a narrow server-side submitter safety exception, including why it does not change the widget API. Then validate untrusted submitter name and email values from every legacy feedback request with permissive, explicit type, length, email, and control-character rules; use caps at least as generous as the widget’s 100-character name and 254-character email limits. Escape accepted name and email for their inline GitHub Markdown positions. Preserve acceptance, response, and exact Issue-body output for ordinary valid legacy submissions, including the frozen fixture. Add API tests that prove Markdown, links, headings, HTML-like text, line breaks, and control characters cannot spoof Issue structure; prove invalid inputs cannot create an Issue. Update security and FAQ guidance without claiming identity verification. Only after API and legacy proof, review and refresh the strict cross-plane fingerprint for the src/routes/api.ts delta, preserving the prior hash and provenance."
+        allowed_files:
+          - docs/plans/2026-08-01-configurable-feedback-variants-design.md
+          - docs/plans/2026-09-30-issue-300-form-prefill.md
+          - src/routes/api.ts
+          - test/api.test.ts
+          - docs/website/security.mdx
+          - docs/website/faq.mdx
+          - test/cross-plane/fixtures/current-public-baseline.v1.json
+          - docs/protocol/cross-plane-safety.md
+        verify:
+          - "Before changing the fingerprint: npm run test -- test/api.test.ts test/legacyCompatibility.test.ts"
+          - "Before changing the fingerprint: npm run verify:legacy-compat && npm run test:protocol"
+          - "Before changing the fingerprint: run focused local Chromium API and legacy compatibility E2E against bugdrop.localhost"
+          - "Review git diff and the complete git ls-files public-source set; verify src/routes/api.ts is the only new protected-source delta before refreshing the fingerprint and provenance"
+          - "npm run test -- test/cross-plane/current-public.test.ts"
+          - "npm run test && npm run test:cross-plane && npm run test:protocol && npm run verify:legacy-compat"
+          - "npm run typecheck && npm run lint && npm run format:check && npm run build:widget && git diff --check"
+        stop_if:
+          - "A rule rejects a common valid legacy name or address, or changes ordinary legacy Issue-body output."
+          - "The proposed exception extends beyond submitter validation and safe rendering, or the normative v1 contract cannot be amended honestly."
+          - "An adversarial value can create a forged heading, link, or attribution despite escaping, or an invalid value still reaches createIssue."
+          - "The fingerprint refresh includes unreviewed public-source changes, omits a tracked source file, or weakens the mutation checks."
+          - "A fix needs files outside allowed_files or verification fails after two focused repair attempts."
+      evidence:
+        - "T007 reports 9/9 focused Chromium tests across both default runtimes and entry paths, 2514/2514 full unit tests, and passing protocol, legacy, typecheck, lint, format, build, and diff checks."
+        - "Direct rerun of the prefill and cross-plane fingerprint tests passed 7/7; git ls-files includes src/widget/prefill.ts."
+        - "The widget diff stores draftName and draftEmail separately, preserving cleared values on screenshot return; E2E covers clearing, reporter edits, reopening, and ignored open arguments."
+        - "The fingerprint fixture records a 145-to-146 file increase, previous hash, and exactly src/widget/index.ts and src/widget/prefill.ts as the approved source delta."
+        - "src/routes/api.ts still interpolates submitter values directly into Issue Markdown."
+        - "The normative v1 contract promises unchanged validation and Issue-body behavior for existing FeedbackPayload requests; unsafe-string escaping or rejection requires a stated exception."
+      missing_evidence:
+        - "Server-side adversarial API proof and documented narrow v1 exception."
+        - "Final reviewed cross-plane fingerprint after the API source change."
+        - "Final cross-path verification, pre-PR review, and reviewable PR."
+      required_board_updates:
+        - "Link T007’s completed repair receipt to T003’s formerly blocked milestone, then activate T005 with this package."
+        - "Require T005 to refresh the cross-plane baseline only after server behavior and legacy compatibility pass."
+        - "Keep final completion gated on T006 and T999."
+  - id: T009
+    type: worker
+    assignee: Worker
+    status: done
+    reasoning_hint: default
+    objective: "Repair confirmed pre-PR findings in the Issue #300 slice: keep personal prefills out of HTML attributes; ignore malformed host email and control/bidi values; localize the email disclosure; handle rejecting async providers without unhandled rejection; preserve independently valid fields when one provider getter throws; neutralize GitHub mentions in untrusted submitter names; and strengthen browser tests for actual submitted values and all category templates. Preserve legacy API and existing valid output, then refresh the strict public-source fingerprint only after behavior proof."
+    inputs:
+      - "T006 pre-PR code, test, simplification, silent-failure, and type-design reviews"
+      - "GitHub Markdown renderer confirmed **@bugdrophq** creates an active organization mention; both &#64; and backslash still mention, but a code span does not."
+      - "Final combined Chromium suite passed 20/20 after restarting the local Worker."
+    constraints:
+      - "You are not alone in the codebase; preserve all prior worker edits and the untracked goal/plan files."
+      - "Do not put supplied personal values in markup attributes, URLs, storage, or logs; assigning the input value property after creating the form is acceptable."
+      - "Keep BugDrop.open() synchronous and ignore its arguments. Keep both default-flow runtimes equivalent."
+      - "Preserve ordinary valid legacy Issue-body bytes; treat dangerous mention text as part of the documented narrow safety exception."
+      - "Retain a strict fingerprint and prior provenance; review complete protected-source set before refresh."
+      - "Use bugdrop.localhost for browser proof."
+    expected_output:
+      - "Resolved review findings and expanded payload/category/adversarial proof"
+      - "Localized disclosure in every shipped locale"
+      - "Final passing unit, browser, protocol, compatibility, typecheck, lint, format, build, fingerprint gates"
+    allowed_files:
+      - "src/widget/index.ts"
+      - "src/widget/prefill.ts"
+      - "src/widget/i18n.ts"
+      - "src/widget/locales/en.ts"
+      - "src/widget/locales/de.ts"
+      - "src/widget/locales/nl.ts"
+      - "src/widget/locales/pl.ts"
+      - "test/widgetPrefill.test.ts"
+      - "e2e/widget-prefill.spec.ts"
+      - "src/routes/api.ts"
+      - "test/api.test.ts"
+      - "docs/website/configuration.mdx"
+      - "docs/website/security.mdx"
+      - "docs/protocol/cross-plane-safety.md"
+      - "test/cross-plane/fixtures/current-public-baseline.v1.json"
+    verify:
+      - "Prove no name/email appears in input value attributes, including screenshot return."
+      - "Prove async rejection is handled and a throwing field getter does not discard other valid fields."
+      - "Use GitHub Markdown rendering or equivalent direct evidence that dangerous @name cannot create a mention while ordinary legacy output remains exact."
+      - "npm run test -- test/widgetPrefill.test.ts test/api.test.ts test/legacyCompatibility.test.ts"
+      - "npm run build:widget"
+      - "LIVE_TARGET=local PLAYWRIGHT_BASE_URL=http://bugdrop.localhost:8787 npx playwright test e2e/widget-prefill.spec.ts e2e/api.spec.ts e2e/legacy-compat.spec.ts --project=chromium --workers=4"
+      - "npm run test -- test/cross-plane/current-public.test.ts"
+      - "npm run test && npm run test:cross-plane && npm run test:protocol && npm run verify:legacy-compat"
+      - "npm run typecheck && npm run lint && npm run format:check && npm run build:widget && git diff --check"
+    stop_if:
+      - "A fix needs files outside allowed_files."
+      - "A common valid legacy submission changes its exact Issue-body output."
+      - "GitHub Markdown still creates active mention or forged structure from untrusted name."
+      - "The final fingerprint requires weakening checks, omits a protected source, or lacks provenance."
+      - "Focused verification fails after two repair attempts."
+    receipt:
+      result: done
+      changed_files:
+        - src/widget/index.ts
+        - src/widget/prefill.ts
+        - src/widget/i18n.ts
+        - src/widget/locales/en.ts
+        - src/widget/locales/de.ts
+        - src/widget/locales/nl.ts
+        - src/widget/locales/pl.ts
+        - test/widgetPrefill.test.ts
+        - e2e/widget-prefill.spec.ts
+        - src/routes/api.ts
+        - test/api.test.ts
+        - docs/website/configuration.mdx
+        - docs/website/security.mdx
+        - docs/protocol/cross-plane-safety.md
+        - test/cross-plane/fixtures/current-public-baseline.v1.json
+      commands:
+        - cmd: "npm run test -- test/widgetPrefill.test.ts test/api.test.ts test/legacyCompatibility.test.ts"
+          status: pass
+        - cmd: "npm run build:widget"
+          status: pass
+        - cmd: "LIVE_TARGET=local PLAYWRIGHT_BASE_URL=http://bugdrop.localhost:8787 npx playwright test e2e/widget-prefill.spec.ts e2e/api.spec.ts e2e/legacy-compat.spec.ts --project=chromium --workers=4"
+          status: pass
+        - cmd: "gh api markdown --method POST -f 'text=**`@bugdrophq`**' -f mode=gfm -f context=bugdrophq/bugdrop"
+          status: pass
+        - cmd: "npm run test -- test/cross-plane/current-public.test.ts"
+          status: pass
+        - cmd: "npm run test && npm run test:cross-plane && npm run test:protocol && npm run verify:legacy-compat"
+          status: pass
+        - cmd: "npm run typecheck && npm run lint && npm run format:check && npm run build:widget && git diff --check"
+          status: pass
+      summary: "Repaired prefill privacy, validation, localization, async rejection handling, independent getter recovery, and mention-safe Issue rendering. Browser tests verify submitted values, every category template, screenshot return, and disclosure locales. GitHub rendered the dangerous name without an active mention; ordinary legacy output remains exact. Focused unit tests passed 130/130, Chromium 26/26, full unit tests 2534/2534, cross-plane 51/51, and protocol 115/115. The strict 146-file fingerprint was refreshed with prior provenance retained."
+      deviations: []
+      remaining_blockers: []
+      verification_attempts: 2
+      stopped_because: null
+  - id: T010
+    type: worker
+    assignee: Worker
+    status: done
+    reasoning_hint: default
+    objective: "Close the second pre-PR review gaps: reject or ignore host email defaults that Chromium considers invalid (including a@bad/domain and a@a..b) so an uneditable host value cannot block submit; keep direct API email validation honest and compatible; add browser proof that switching untouched to a missing category template clears the description and that clearing a prefilled email before submit omits it from the payload; test mention-safe rendering for a submitter name containing both @ and backticks using GitHub Markdown semantics. Preserve ordinary valid legacy output and refresh the strict public-source fingerprint only if protected source changes."
+    inputs:
+      - "T009 receipt and final code/test diff"
+      - "Targeted code and test re-review findings from T006"
+    constraints:
+      - "You are not alone in the codebase; preserve prior edits and board files."
+      - "Do not broaden the public callback or change BugDrop.open() behavior."
+      - "Keep ordinary valid legacy submitter Issue-body bytes exact."
+      - "Do not place personal values in attributes, URLs, storage, or logs."
+      - "Use bugdrop.localhost for browser proof."
+    expected_output:
+      - "Malformed host email cannot block form submission"
+      - "Missing-template and cleared-email payload browser assertions"
+      - "Dynamic backtick mention rendering proof"
+      - "Final suites and strict fingerprint proven on changed source"
+    allowed_files:
+      - "src/widget/prefill.ts"
+      - "test/widgetPrefill.test.ts"
+      - "e2e/widget-prefill.spec.ts"
+      - "src/routes/api.ts"
+      - "test/api.test.ts"
+      - "docs/website/configuration.mdx"
+      - "docs/website/security.mdx"
+      - "docs/protocol/cross-plane-safety.md"
+      - "test/cross-plane/fixtures/current-public-baseline.v1.json"
+    verify:
+      - "Direct Chromium validation shows a@bad/domain and a@a..b are invalid and no longer appear as host prefills."
+      - "npm run test -- test/widgetPrefill.test.ts test/api.test.ts test/legacyCompatibility.test.ts"
+      - "npm run build:widget"
+      - "LIVE_TARGET=local PLAYWRIGHT_BASE_URL=http://bugdrop.localhost:8787 npx playwright test e2e/widget-prefill.spec.ts e2e/api.spec.ts e2e/legacy-compat.spec.ts --project=chromium --workers=4"
+      - "GitHub Markdown rendering confirms @ plus backticks creates no active mention."
+      - "npm run test -- test/cross-plane/current-public.test.ts"
+      - "npm run test && npm run test:cross-plane && npm run test:protocol && npm run verify:legacy-compat"
+      - "npm run typecheck && npm run lint && npm run format:check && npm run build:widget && git diff --check"
+    stop_if:
+      - "A common valid legacy email is rejected or its Issue-body output changes."
+      - "A dangerous name can still create an active mention."
+      - "The new browser tests cannot distinguish omission from a stale retained value."
+      - "A source fingerprint refresh is unreviewed, omits a protected source, or weakens the test."
+      - "A fix needs files outside allowed_files or focused verification fails after two attempts."
+    receipt:
+      result: done
+      changed_files:
+        - src/widget/prefill.ts
+        - test/widgetPrefill.test.ts
+        - e2e/widget-prefill.spec.ts
+        - src/routes/api.ts
+        - test/api.test.ts
+        - docs/website/configuration.mdx
+        - docs/website/security.mdx
+        - docs/protocol/cross-plane-safety.md
+        - test/cross-plane/fixtures/current-public-baseline.v1.json
+      commands:
+        - cmd: "npm run test -- test/widgetPrefill.test.ts test/api.test.ts test/legacyCompatibility.test.ts"
+          status: pass
+        - cmd: "npm run build:widget"
+          status: pass
+        - cmd: "LIVE_TARGET=local PLAYWRIGHT_BASE_URL=http://bugdrop.localhost:8787 npx playwright test e2e/widget-prefill.spec.ts e2e/api.spec.ts e2e/legacy-compat.spec.ts --project=chromium --workers=4"
+          status: pass
+        - cmd: "gh api markdown --method POST -f 'text=**`` @bugdrophq `tag` ``**' -f mode=gfm -f context=bugdrophq/bugdrop"
+          status: pass
+        - cmd: "npm run test -- test/cross-plane/current-public.test.ts"
+          status: pass
+        - cmd: "npm run test && npm run test:cross-plane && npm run test:protocol && npm run verify:legacy-compat"
+          status: pass
+        - cmd: "npm run typecheck && npm run lint && npm run format:check && npm run build:widget && git diff --check"
+          status: pass
+      summary: "Rejected malformed host and API email addresses that Chromium rejects. Browser tests prove missing-template clearing and omission of a cleared email from the submitted payload. GitHub rendered a name containing @ and backticks as code without a mention link; ordinary valid legacy output remains exact. Focused unit tests passed 135/135, Chromium 30/30, full unit tests 2539/2539, cross-plane 51/51, and protocol 115/115. Refreshed the strict 146-file fingerprint while retaining prior provenance."
+      deviations: []
+      remaining_blockers: []
+      verification_attempts: 2
+      stopped_because: null
+  - id: T011
+    type: worker
+    assignee: Worker
+    status: done
+    reasoning_hint: low
+    objective: "Make the Issue #300 implementation plan truthful and commit-ready: update its stale Proposed/not-started status to implemented pending review, preserve the original plan facts and date/base provenance, and replace the three Markdown hard-break trailing-space lines with a clean format that passes both Prettier and git diff --check."
+    inputs:
+      - "docs/plans/2026-09-30-issue-300-form-prefill.md"
+      - "T005/T009/T010 completed implementation receipts"
+    constraints:
+      - "You are not alone in the codebase; change only the allowed plan file and do not revert prior edits."
+      - "Do not change implementation code, tests, or board files."
+    expected_output:
+      - "Plan header accurately reflects implemented pending PR review"
+      - "Plan has no trailing whitespace and Prettier remains clean"
+    allowed_files:
+      - "docs/plans/2026-09-30-issue-300-form-prefill.md"
+    verify:
+      - "npx prettier --check docs/plans/2026-09-30-issue-300-form-prefill.md"
+      - "git diff --check -- docs/plans/2026-09-30-issue-300-form-prefill.md"
+      - "git diff --no-index --check /dev/null docs/plans/2026-09-30-issue-300-form-prefill.md"
+    stop_if:
+      - "A clean format cannot preserve the plan facts."
+      - "A fix needs files outside allowed_files."
+    receipt:
+      result: done
+      changed_files:
+        - docs/plans/2026-09-30-issue-300-form-prefill.md
+      commands:
+        - cmd: "npx prettier --check docs/plans/2026-09-30-issue-300-form-prefill.md"
+          status: pass
+        - cmd: "git diff --check -- docs/plans/2026-09-30-issue-300-form-prefill.md"
+          status: pass
+        - cmd: "git diff --no-index --check /dev/null docs/plans/2026-09-30-issue-300-form-prefill.md"
+          status: pass
+        - cmd: "check_output=$(git diff --no-index --check /dev/null docs/plans/2026-09-30-issue-300-form-prefill.md 2>&1); check_status=$?; test \"$check_status\" -eq 1 && test -z \"$check_output\""
+          status: pass
+      summary: "Updated the plan status to implemented pending PR review and replaced three trailing-space Markdown breaks with clean paragraph spacing. Date, base, issue, and plan facts remain intact. Prettier and whitespace checks pass. The no-index check returned the expected diff exit code 1 with no whitespace diagnostics. The edit remains unstaged."
+      deviations: []
+      remaining_blockers: []
+      verification_attempts: 1
+      stopped_because: null
+  - id: T999
+    type: judge
+    assignee: Judge
+    status: done
+    reasoning_hint: default
+    objective: "Audit the full Issue #300 implementation, docs, safety boundary, tests, and PR against the owner outcome and goal oracle."
+    inputs:
+      - "All done task receipts"
+      - "Last verification"
+      - "Current dirty diff"
+    constraints:
+      - "Do not implement."
+      - "Reject completion if required Worker work is still queued or active."
+      - "Reject completion if the broader original outcome still has safe local follow-up slices."
+      - "Reject stopping only because a slice needs owner input, credentials, production access, destructive operations, or policy decisions."
+    expected_output:
+      - "complete | not_complete"
+      - "full_outcome_complete: true | false"
+      - "missing evidence"
+      - "next task if not complete"
+    receipt:
+      result: done
+      decision: not_complete
+      full_outcome_complete: false
+      rationale: "The committed feature and PR #418 map well to the owner outcome: receipts and tests cover both opening paths, both runtimes, category templates, edited drafts, privacy, malformed email, and safe Issue rendering. Completion is blocked by a PR-scoped CI failure. The required “Lint, Typecheck, Knip, Audit” job failed, skipping downstream CI. I reproduced Knip’s two errors locally: `PrefillCategory` and `BugDropPrefillProvider` are exported only for use within `src/widget/prefill.ts`. The repair is bounded, but changing that protected source requires a reviewed fingerprint refresh, a pushed PR update, successful CI, and another final audit."
+      worker_package:
+        objective: "Remove the unnecessary exports from the two locally used types in src/widget/prefill.ts without changing runtime behavior or the public callback contract. After confirming Knip passes, review the protected source set and refresh its strict SHA-256 fixture with an explicit CI-repair provenance entry; update the cross-plane safety document with the new hash. Run the CI-equivalent local checks. Return the diff and proof to the PM for a PR #418 update and fresh CI run."
+        allowed_files:
+          - src/widget/prefill.ts
+          - test/cross-plane/fixtures/current-public-baseline.v1.json
+          - docs/protocol/cross-plane-safety.md
+        verify:
+          - "npx knip"
+          - "make check"
+          - "npm run test && npm run test:cross-plane && npm run test:protocol && npm run verify:legacy-compat"
+          - "npm run build:widget && git diff --check"
+          - "Review git ls-files protected paths and confirm src/widget/prefill.ts is the only changed protected source before refreshing the fingerprint"
+          - "npm run test -- test/cross-plane/current-public.test.ts"
+        stop_if:
+          - "The type changes alter emitted widget behavior or require a broader public API change."
+          - "Knip or make check still fails after two focused repair attempts."
+          - "The fingerprint refresh omits a protected source, weakens mutation checks, or lacks the previous hash and reviewed provenance."
+          - "A fix requires files outside allowed_files."
+      evidence:
+        - "PR #418 is open and mergeable at head 474daf5b208d3886cf85659b590b3eff11b94279, with the implementation and user documentation committed."
+        - "T006 records 30/30 final local Chromium tests, 2540/2540 units, 51/51 cross-plane tests, 115/115 protocol tests, and passing local typecheck, lint, format, build, and legacy checks."
+        - "The committed browser tests assert both runtimes and opening paths, all three submitted category templates, preserved edits, cleared email omission, hidden fields, and no personal values in input attributes."
+        - "API tests cover ordinary legacy output and adversarial submitter values; the documented v1 exception limits changed behavior to submitter safety."
+        - "The PR’s required CI check “Lint, Typecheck, Knip, Audit” failed, and downstream unit, E2E, and preview jobs were skipped."
+        - "Direct local `npx knip` exits 1 with two new unused exported types at src/widget/prefill.ts:1 and :8; its 22 configuration hints are nonfatal."
+      missing_evidence:
+        - "A repaired PR head with passing Knip and required CI checks."
+        - "Final verification and Judge audit on that exact repaired head."
+      required_board_updates:
+        - "Keep the goal active; add and run the bounded CI-repair Worker package."
+        - "Have the PM update PR #418 and wait for the new CI results, then reactivate T999 for final audit."
+        - "Do not merge or deploy as part of this goal."
+  - id: T012
+    type: worker
+    assignee: Worker
+    status: done
+    reasoning_hint: default
+    objective: "Remove the unnecessary exports from the two locally used types in src/widget/prefill.ts without changing runtime behavior or the public callback contract. After confirming Knip passes, review the protected source set and refresh its strict SHA-256 fixture with an explicit CI-repair provenance entry; update the cross-plane safety document with the new hash. Run the CI-equivalent local checks. Return the diff and proof to the PM for a PR #418 update and fresh CI run."
+    inputs:
+      - "T999 not_complete audit and CI job log for PR #418"
+      - "Two unused exported types: PrefillCategory and BugDropPrefillProvider"
+    constraints:
+      - "You are not alone in the codebase; preserve previous edits and do not edit the board or PR."
+      - "Keep runtime and public callback behavior unchanged."
+      - "Preserve strict fingerprint test and prior provenance."
+    expected_output:
+      - "Knip and make check pass locally"
+      - "Reviewed fingerprint refresh for only the changed protected source"
+      - "All final local gates pass"
+    allowed_files:
+      - "src/widget/prefill.ts"
+      - "test/cross-plane/fixtures/current-public-baseline.v1.json"
+      - "docs/protocol/cross-plane-safety.md"
+    verify:
+      - "npx knip"
+      - "make check"
+      - "npm run test && npm run test:cross-plane && npm run test:protocol && npm run verify:legacy-compat"
+      - "npm run build:widget && git diff --check"
+      - "Review git ls-files protected paths and confirm src/widget/prefill.ts is the only changed protected source before refreshing the fingerprint"
+      - "npm run test -- test/cross-plane/current-public.test.ts"
+    stop_if:
+      - "The type changes alter emitted widget behavior or require a broader public API change."
+      - "Knip or make check still fails after two focused repair attempts."
+      - "The fingerprint refresh omits a protected source, weakens mutation checks, or lacks the previous hash and reviewed provenance."
+      - "A fix requires files outside allowed_files."
+    receipt:
+      result: done
+      changed_files:
+        - src/widget/prefill.ts
+        - test/cross-plane/fixtures/current-public-baseline.v1.json
+        - docs/protocol/cross-plane-safety.md
+      commands:
+        - cmd: "npx knip"
+          status: pass
+        - cmd: "make check"
+          status: pass
+        - cmd: "npm run test && npm run test:cross-plane && npm run test:protocol && npm run verify:legacy-compat"
+          status: pass
+        - cmd: "npm run build:widget && git diff --check"
+          status: pass
+        - cmd: "npm run test -- test/cross-plane/current-public.test.ts"
+          status: pass
+      summary: "Removed two unused type exports. Knip and make check pass. The built widget’s SHA-256 remained identical before and after the edit, proving no emitted runtime change. Review of all 146 protected paths found only src/widget/prefill.ts changed. Refreshed the strict fingerprint with its previous hash and PR #418 provenance; mutation checks remain intact. Full unit, cross-plane, protocol, legacy, build, and whitespace gates pass. No commit or push was made."
+      deviations: []
+      remaining_blockers: []
+      verification_attempts: 1
+      stopped_because: null
+  - id: T013
+    type: pm
+    assignee: PM
+    status: done
+    reasoning_hint: default
+    objective: "Commit and push the T012 CI repair to PR #418, verify its new required CI checks and final diff, and route any remaining PR-scoped failures to bounded repair before final audit."
+    inputs:
+      - "T012 receipt and final diff"
+      - "PR #418 CI results on repaired head"
+    constraints:
+      - "Do not merge or deploy."
+      - "Do not treat pending or skipped required checks as success."
+      - "Keep the GoalBuddy board synchronized with the PR update."
+    expected_output:
+      - "Repaired PR head and passing required CI"
+      - "Final local proof against exact pushed head"
+    receipt:
+      result: done
+      full_outcome_complete: false
+      summary: "Updated PR #418 with the Knip repair and a CI-only E2E readiness fix. The exact pushed head 1b9d94cb is mergeable. All applicable pull-request checks now pass: quality gate, unit/build, both E2E shards, Chromium/Firefox/WebKit, CodeQL, dependency review, and coverage upload. Deploy Preview and Live Preview are intentionally merge-group-only in ci.yml and were skipped on this PR event. No merge or deployment occurred."
+      evidence:
+        - "PR https://github.com/bugdrophq/bugdrop/pull/418 head 1b9d94cb301b389dfa02e4078c2f75b372ba9c6f targets base 79a6336c90654a9be3080becd5b7f7b27239b3d8 and GitHub reports MERGEABLE."
+        - "gh pr checks 418 exited 0: Lint/Typecheck/Knip/Audit, Unit Tests & Build, both E2E shards, three Radix cross-browser jobs, CodeQL, dependency review, and coverage upload all passed."
+        - "The previous E2E shard-1 failure was one hidden-fields test calling open before widget readiness. T014 kept all assertions, passed 10/10 repeats and 30/30 combined local browser tests; the new CI shard-1 run passed."
+        - ".github/workflows/ci.yml gates Deploy Preview and Live Preview Tests on github.event_name == merge_group, so their pull_request skip is expected and does not establish merge-queue success."
+        - "T012 recorded identical built widget SHA-256 before/after the type-only Knip repair and a reviewed strict protected-source fingerprint update."
+      commands:
+        - cmd: "npx knip && npm run test -- test/cross-plane/current-public.test.ts && git show --format= --check HEAD"
+          status: pass
+        - cmd: "gh pr checks 418"
+          status: pass
+        - cmd: "gh pr view 418 --json headRefOid,baseRefOid,mergeable,url"
+          status: pass
+      facts:
+        - "Merge-group-only preview checks remain unrun; no merge was requested."
+      contradictions: []
+      ambiguity_requiring_judge: []
+      note_needed: false
+  - id: T014
+    type: worker
+    assignee: Worker
+    status: done
+    reasoning_hint: default
+    objective: "Repair PR #418 E2E shard-1 initialization race in the hidden-fields prefill test by waiting for window.BugDrop readiness before calling BugDrop.open(); preserve the actual hidden-field and broken-provider assertions. Verify the exact failed test repeatedly and rerun the full relevant browser suite against bugdrop.localhost."
+    inputs:
+      - "CI run 36737692654 E2E shard 1 failed only e2e/widget-prefill.spec.ts hidden fields case with #description element not found on all retries."
+      - "Other prefill E2E cases wait for window.BugDrop readiness before opening."
+    constraints:
+      - "You are not alone in the codebase; change only the allowed test file and preserve prior assertions."
+      - "No product source change or protected fingerprint refresh."
+      - "Use bugdrop.localhost for local browser tests."
+    expected_output:
+      - "Deterministic hidden-fields test after widget initialization"
+      - "Relevant browser suite passes and diff is whitespace clean"
+    allowed_files:
+      - "e2e/widget-prefill.spec.ts"
+    verify:
+      - "LIVE_TARGET=local PLAYWRIGHT_BASE_URL=http://bugdrop.localhost:8787 npx playwright test e2e/widget-prefill.spec.ts --project=chromium --grep 'hidden fields' --repeat-each=10 --workers=4"
+      - "LIVE_TARGET=local PLAYWRIGHT_BASE_URL=http://bugdrop.localhost:8787 npx playwright test e2e/widget-prefill.spec.ts e2e/api.spec.ts e2e/legacy-compat.spec.ts --project=chromium --workers=4"
+      - "npm run lint && npm run format:check && git diff --check"
+    stop_if:
+      - "Readiness wait does not resolve the failure or the same failure repeats locally."
+      - "The test requires weakening hidden-field or broken-provider assertions."
+      - "A fix needs files outside allowed_files."
+    receipt:
+      result: done
+      changed_files:
+        - e2e/widget-prefill.spec.ts
+      commands:
+        - cmd: "LIVE_TARGET=local PLAYWRIGHT_BASE_URL=http://bugdrop.localhost:8787 npx playwright test e2e/widget-prefill.spec.ts --project=chromium --grep 'hidden fields' --repeat-each=10 --workers=4"
+          status: pass
+        - cmd: "LIVE_TARGET=local PLAYWRIGHT_BASE_URL=http://bugdrop.localhost:8787 npx playwright test e2e/widget-prefill.spec.ts e2e/api.spec.ts e2e/legacy-compat.spec.ts --project=chromium --workers=4"
+          status: pass
+        - cmd: "npm run lint && npm run format:check && git diff --check"
+          status: pass
+      summary: "Waited for widget initialization before the hidden-fields test calls open(). Its hidden-field and broken-provider assertions remain intact. The formerly failing test passed 10/10 repeats with four workers; the combined Chromium suite passed 30/30. Lint, formatting, and whitespace checks pass. No commit or push was made."
+      deviations: []
+      remaining_blockers: []
+      verification_attempts: 1
+      stopped_because: null
+  - id: T998
+    type: judge
+    assignee: Judge
+    status: done
+    reasoning_hint: high
+    objective: "Final audit of Issue #300 owner outcome on repaired PR #418 head after required CI passes."
+    inputs:
+      - "All receipts including T999, T012, and T013"
+      - "Exact PR head, CI results, docs, tests, and goal oracle"
+    constraints:
+      - "Read-only; do not implement."
+      - "Reject completion if required CI is failing, queued, or skipped from a failed upstream job."
+      - "Do not merge or deploy."
+    expected_output:
+      - "complete | not_complete"
+      - "full_outcome_complete: true | false"
+      - "concrete remaining gaps if any"
+    receipt:
+      result: done
+      decision: complete
+      full_outcome_complete: true
+      rationale: "The original outcome is implemented on PR #418 at the exact pushed head 1b9d94cb. The T003 blocker was repaired and verified by T007; later review and CI failures were repaired by T009–T014. Browser tests cover both runtimes and opening paths, all category templates, edited and cleared drafts, disclosure, and actual submitted values. API tests and GitHub Markdown checks cover malformed identity fields and Issue spoofing while preserving ordinary legacy output. The integration and privacy docs are included. All applicable PR checks pass. Preview jobs are merge-group-only; merge and deployment were outside the requested outcome. No required local work remains."
+      worker_package: null
+      evidence:
+        - "PR [#418](https://github.com/bugdrophq/bugdrop/pull/418) is open and mergeable at head 1b9d94cb301b389dfa02e4078c2f75b372ba9c6f."
+        - "Direct `gh pr checks 418` exits 0: quality gate, unit/build, both E2E shards, Chromium/Firefox/WebKit Radix E2E, CodeQL, dependency review, and coverage upload pass on that head."
+        - "T013 records the repaired hidden-fields E2E test passing 10/10 repeats and the combined local Chromium suite passing 30/30; the subsequent CI shard also passed."
+        - "Direct local Knip and strict cross-plane fingerprint tests pass on the exact head; `git show --check HEAD` is clean."
+        - "The widget tests assert both default runtimes and opening paths, all three submitted category templates, screenshot return, preserved edits, cleared email omission, hidden fields, localized disclosure, and absence of personal values in input attributes."
+        - "API tests cover ordinary legacy Issue-body bytes and adversarial submitter values; the v1 contract documents the narrow safety exception, and receipts record GitHub Markdown rendering without an active mention."
+        - "Configuration, JavaScript API, security, and FAQ docs include a host callback example and state that supplied identity is editable, unverified, and potentially public."
+        - "The CI workflow restricts Deploy Preview and Live Preview Tests to merge_group, explaining their pull-request skips."
+      required_board_updates:
+        - "Record this final audit and the exact PR head as the last verification, then mark the goal done."
+        - "Link the historical T003 blocked receipt to its completed T007 repair; preserve the audit trail."
+        - "Leave PR #418 unmerged and undeployed."
+checks:
+  dirty_fingerprint: unknown
+  last_verification:
+    result: pass
+    task: T998
+    commands:
+      - "PR #418 head 1b9d94cb301b389dfa02e4078c2f75b372ba9c6f: gh pr checks 418 exited 0; all applicable PR checks passed."
+      - "T014: hidden-fields E2E 10/10 repeats, combined local browser suite 30/30."
+      - "T012/T013: Knip, make check, strict cross-plane fingerprint, full unit/protocol/legacy gates passed."

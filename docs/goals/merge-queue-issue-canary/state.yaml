@@ -1,0 +1,347 @@
+version: 2
+
+goal:
+  title: "Merge-Queue Real-Issue Canary"
+  slug: "merge-queue-issue-canary"
+  kind: existing_plan
+  tranche: "Close the exact legacy automated Issue population, then produce and audit an implementation-ready canary plan without implementing product changes."
+  status: done
+  oracle:
+    signal: "GitHub API readback proves zero open exact-title legacy CI Issues and no collateral closures; a final Judge accepts a plan that proves the merge-group preview path and zero-leak cleanup."
+    cadence: "after cleanup, after architecture mapping, after plan authoring, and at final audit"
+    final_proof: "Cleanup receipt with before/after Issue identities and nonmatch protection, plus a Judge-approved implementation plan mapped to repository evidence and failure-mode verification."
+  intake:
+    original_request: "Clean up the old preview-test Issues, then develop a granular grounded implementation plan using GoalBuddy prep."
+    interpreted_outcome: "Remove the clearly attributable historical CI Issue leak safely and prepare the merge-queue real-Issue canary for an informed implementation decision."
+    input_shape: existing_plan
+    audience: "BugDrop maintainers and merge-queue operators"
+    authority: approved
+    proof_type: artifact
+    completion_proof: "Zero open exact-title legacy automated Issues with unrelated Issues untouched, plus an implementation-ready plan accepted by final audit."
+    likely_misfire: "Closing fuzzy-title or human Issues, or producing a generic plan that does not solve hard cancellation, duplicate creation, shared-preview replacement, and Worker SHA identity."
+    blind_spots_considered:
+      - "Hard workflow cancellation can bypass Playwright cleanup."
+      - "A job mutex does not protect a deploy-to-test gap across separate jobs."
+      - "The existing production-scheduled live spec can create unmanaged Issues."
+      - "Widget byte hashing does not prove Worker code identity."
+      - "The verification credential must not become an alternate Issue-creation path."
+      - "The related variants design is untracked and may be unavailable in another checkout."
+    existing_plan_facts:
+      - "Target repository: mean-weasel/bugdrop-widget-test."
+      - "Legacy cleanup selector: open non-PR Issues with exact title Live E2E test submission."
+      - "Prior evidence snapshot found 394 total exact-title Issues and 332 open, but execution must refresh rather than trust the snapshot."
+      - "Canary is merge-group-only and must wait for local lint, unit, build, E2E, and browser gates."
+      - "The deployed widget and Worker must both correspond to github.sha."
+      - "One real Issue must be created through the legacy widget and existing GitHub App with screenshots disabled."
+      - "Readback must assert number, canonical URL, exact title/body/labels, attribution, unique marker, and exactly one match."
+      - "Retries are disabled and cleanup discovers all marker matches after partial failure."
+      - "The shared preview is serialized across deploy, proof, tests, and cleanup with no cancel-in-progress."
+      - "No new storage/services and no configurable UX variants."
+
+rules:
+  pm_owns_state: true
+  one_active_task: true
+  max_write_workers: 1
+  no_implementation_without_worker_or_pm_task: true
+  no_completion_without_judge_or_pm_audit: true
+  planning_is_not_completion: false
+  queued_required_worker_blocks_completion: true
+  continuous_until_full_outcome: true
+  missing_input_or_credentials_do_not_stop_goal: true
+  exact_human_approval_can_terminal_wait: true
+  preserve_and_validate_existing_plan: true
+  intake_misfire_must_be_audited: true
+  goal_pressure_requires_oracle: true
+  no_completion_on_weak_proof: true
+  slice_policy:
+    max_consecutive_tiny_tasks: 2
+    prefer_vertical_slices: true
+    judge_picks_largest_safe_slice: true
+    worker_completes_whole_slice: true
+
+agents:
+  scout: installed
+  worker: installed
+  judge: installed
+
+visual_board:
+  selected: local
+  local:
+    status: live
+    url: "http://goalbuddy.localhost:41737/merge-queue-issue-canary/"
+    command: "node /Users/neonwatty/.codex/plugins/cache/goalbuddy/goalbuddy/0.4.2/skills/goal-prep/surfaces/local-goal-board/scripts/local-goal-board.mjs --goal docs/goals/merge-queue-issue-canary"
+
+active_task: null
+
+tasks:
+  - id: T001
+    type: worker
+    assignee: Worker
+    status: done
+    reasoning_hint: medium
+    objective: "Inventory, close, and verify only the exact legacy automated Issues in mean-weasel/bugdrop-widget-test."
+    allowed_files:
+      - "/Users/neonwatty/Desktop/bugdrop/docs/goals/merge-queue-issue-canary/**"
+    verify:
+      - "GitHub API dry-run lists exact target Issue numbers before mutation."
+      - "GitHub API readback reports zero open, non-PR Issues with title exactly Live E2E test submission."
+      - "Before/after evidence proves this task did not close any nonmatching Issue."
+    stop_if:
+      - "The authenticated repository is not mean-weasel/bugdrop-widget-test."
+      - "The selector includes a pull request, fuzzy title, or any title other than the exact legacy title."
+      - "A mutation response is ambiguous and readback cannot establish current Issue state."
+      - "Verification cannot distinguish task mutations from concurrent external changes."
+    receipt:
+      result: done
+      changed_files:
+        - /Users/neonwatty/Desktop/bugdrop/docs/goals/merge-queue-issue-canary/notes/T001-cleanup-evidence.md
+      commands:
+        - cmd: "GitHub API dry-run inventory for open, non-PR Issues with exact title Live E2E test submission"
+          status: pass
+          evidence: "Repository identity matched mean-weasel/bugdrop-widget-test; 332 targets, selector-invalid count 0; explicit target-number SHA-256 e776533febf29b36802889f7761bf1da1e0fba61922c62be8b85090cfece2f81."
+        - cmd: "PATCH each of the 332 reviewed Issue numbers to state=closed and state_reason=not_planned with response/readback guards"
+          status: pass
+          evidence: "332/332 explicit targets returned or read back as the expected number, closed state, and exact title; final target was #576."
+        - cmd: "Independent paginated GitHub API post-cleanup verification"
+          status: pass
+          evidence: "remaining_exact_open=0; all 394 exact-title Issues are closed; nonmatching open Issue count remained 119 and number-set SHA-256 remained beebb8f75fb74bcc3c6a44f41796d4691dfecfd7fc26a925d5370f1cd1212945."
+      summary: "Closed all 332 open, non-PR Issues whose title was exactly Live E2E test submission in mean-weasel/bugdrop-widget-test. Independent paginated readback found zero exact-title Issues open and all 394 historical exact-title Issues closed. The unrelated-open baseline remained exactly 119 Issues with the identical before/after number-set SHA-256, disproving collateral closure by this task."
+      deviations:
+        - "The dedicated GoalBuddy Worker was interrupted after the required first wait timeout showed no external progress; the PM completed the task as deterministic fallback."
+        - "The first local mutation loop failed closed before any PATCH because zsh did not split newline-delimited numbers. The guarded Bash rerun used the same reviewed target and nonmatch fingerprints and completed successfully."
+      remaining_blockers: []
+      verification_attempts: 2
+      stopped_because: null
+      harness: codex
+  - id: T002
+    type: scout
+    assignee: Scout
+    status: done
+    reasoning_hint: low
+    objective: "Map the current CI, preview deployment, live-test, Worker identity, GitHub Issue, and test-repository surfaces needed by the canary plan."
+    inputs:
+      - "/Users/neonwatty/Desktop/bugdrop/.github/workflows/ci.yml"
+      - "/Users/neonwatty/Desktop/bugdrop/.github/workflows/live-tests.yml"
+      - "/Users/neonwatty/Desktop/bugdrop/playwright.config.ts"
+      - "/Users/neonwatty/Desktop/bugdrop/e2e/widget.live.spec.ts"
+      - "/Users/neonwatty/Desktop/bugdrop/src/routes/api.ts"
+      - "/Users/neonwatty/Desktop/bugdrop/src/types.ts"
+      - "/Users/neonwatty/Desktop/bugdrop/wrangler.toml"
+      - "/Users/neonwatty/Desktop/bugdrop/test/ci-workflow-contract.test.sh"
+      - "/Users/neonwatty/Desktop/bugdrop/docs/plans/2026-08-01-configurable-feedback-variants-design.md"
+      - "Read-only GitHub metadata for mean-weasel/bugdrop and mean-weasel/bugdrop-widget-test"
+      - "T001 cleanup receipt"
+    constraints:
+      - "Read-only; do not edit repository files or mutate GitHub state."
+      - "Inspect the existing live-test architecture before proposing changes."
+      - "Distinguish widget-byte identity from Worker-code identity."
+      - "Trace every existing path that can make a real feedback POST, including scheduled production workflows."
+      - "Do not design or implement configurable feedback variants."
+    expected_output:
+      - "Current workflow DAG and exact local gates that must precede preview deployment."
+      - "Shared-preview replacement windows and all preview consumers covered by a mutex."
+      - "Existing widget-SHA proof and missing Worker-SHA proof."
+      - "Existing real-Issue side effects, retry inheritance, and cleanup gaps."
+      - "Credential boundary and exact GitHub fields available to an Issues read/write verifier."
+      - "Candidate files, tests, documentation, verification commands, and rollback boundaries."
+      - "Contradictions or decisions requiring Judge resolution."
+    receipt:
+      result: done
+      summary: "Mapped the current preview path. Deployment races unit/E2E gates, one shared Worker has no mutex, widget bytes are strongly hashed but Worker code has no SHA identity, and one regular live test creates unmanaged Issues with two CI retries across merge-group, production, schedule, and manual paths. The plan needs an uninterrupted queued preview critical section, actual-response Worker SHA, an isolated zero-retry canary, server-side Issues-only verification, and marker-based close-all cleanup."
+      note: notes/T002-architecture-map.md
+      evidence:
+        - ".github/workflows/ci.yml:285-519"
+        - ".github/workflows/live-tests.yml:1-116"
+        - "playwright.config.ts:5-81"
+        - "e2e/widget.live.spec.ts:815-864"
+        - "src/routes/api.ts:108-288"
+        - "wrangler.toml:43-57"
+        - "GitHub ruleset 11303548"
+        - "mean-weasel/bugdrop-widget-test issue #576"
+        - notes/T001-cleanup-evidence.md
+      facts:
+        - "deploy-preview needs only check, while unit/build, two Chromium E2E shards, and the Radix browser matrix run independently."
+        - "The fixed bugdrop-preview Worker can be replaced by up to five concurrently built merge groups; no workflow declares concurrency."
+        - "The actual venue script URL and bytes are checked against the locally built widget SHA-256."
+        - "Health exposes no build identity and preview deploy passes no Git SHA."
+        - "The unmanaged live submission accepts success or error, performs no readback/cleanup, and inherits two CI retries."
+        - "The regular live suite runs from merge-group CI, production deploy, daily schedule, and manual dispatch."
+        - "A repository-scoped fine-grained token with Issues write can list/get and close Issues without Contents access; it must remain outside browser and Worker contexts."
+      contradictions:
+        - "The requested canary is merge-group-only, but the current real feedback POST is shared with production, scheduled, and manual live workflows."
+        - "The prompt requires local gates before preview work, but preview deployment currently starts after check alone."
+        - "The prompt requires exact Worker SHA proof, but health only proves that some Worker answered."
+      ambiguity_requiring_judge:
+        - "Workflow-level queued serialization versus restructuring preview jobs while preserving required check names."
+        - "Whether queue:max is required along with cancel-in-progress:false for merge-queue health."
+        - "Direct BUILD_SHA variable/header versus Cloudflare version metadata/tag."
+        - "Next-run stale sweep versus an additional scheduled stale janitor for hard cancellation."
+        - "Whether all local gates includes the Radix browser matrix."
+        - "Exact marker and attribution assertions."
+      commands:
+        - "Inspected numbered CI, live workflow, Playwright, Worker, type, Wrangler, and workflow-contract sources."
+        - "Read active GitHub ruleset 11303548 and test-repository venue configuration/Issue #576."
+        - "Consulted official GitHub Actions concurrency, merge_group, Issues API, and Cloudflare Wrangler/version-metadata documentation."
+      note_needed: true
+      harness: codex
+  - id: T003
+    type: judge
+    assignee: Judge
+    status: done
+    reasoning_hint: high
+    objective: "Validate the proposed canary architecture and choose an implementation breakdown that closes the strongest realistic failure modes."
+    inputs:
+      - "Original canary prompt preserved in the goal intake"
+      - "T001 cleanup receipt"
+      - "T002 architecture receipt"
+      - "AGENTS.md and CLAUDE.md burden-of-proof requirements"
+    constraints:
+      - "Read-only; do not implement or mutate GitHub state."
+      - "Resolve the mutex as one uninterrupted deploy-through-cleanup critical section or provide equally strong proof."
+      - "Require Worker identity on the actual feedback response, not health-only readiness."
+      - "Require cleanup independent of the Playwright happy path and resilient to a lost POST response."
+      - "Keep Issue creation on the existing GitHub App; verification credentials are readback/cleanup only."
+      - "Keep implementation additive, merge-group-only, variant-free, and free of new storage/services."
+    expected_output:
+      - "Approved or rejected architecture with rationale."
+      - "Exact concurrency and cancellation design."
+      - "Exact widget and Worker SHA proof contract."
+      - "Exact unique marker, response, readback, duplicate, and cleanup contract."
+      - "Dedicated canary isolation from production, scheduled, PR, and manually dispatched live suites."
+      - "Granular implementation task sequence with allowed files, verify commands, stop conditions, and rollback notes."
+      - "Deferred decisions and any owner approval required before implementation."
+    receipt:
+      result: done
+      decision: approved
+      full_outcome_complete: false
+      rationale: "Approve a single post-gate, job-level preview critical section that preserves required check names while holding a queued non-cancelling mutex through deploy, all live consumers, canary verification, and cleanup. Use byte-level widget proof plus BUILD_SHA on the actual feedback response, a dedicated zero-retry canary, Issues-only server-side readback, marker-based close-all cleanup, next-run preflight, and a lock-coordinated daily stale janitor. This closes the mapped leak, duplicate, wrong-SHA, and hard-cancellation gaps without new services or variant work."
+      worker_package:
+        objective: "Author the approved implementation-ready merge-queue real-Issue canary plan and proof matrix without changing product or workflow behavior."
+        allowed_files:
+          - /Users/neonwatty/Desktop/bugdrop/docs/plans/2026-08-01-merge-queue-real-issue-canary-plan.md
+          - "/Users/neonwatty/Desktop/bugdrop/docs/goals/merge-queue-issue-canary/**"
+        verify:
+          - "cd /Users/neonwatty/Desktop/bugdrop && npx prettier --check docs/plans/2026-08-01-merge-queue-real-issue-canary-plan.md docs/goals/merge-queue-issue-canary/goal.md"
+          - "Map every original must-have to concrete files, assertions, commands, rollback, and proof."
+          - "Include negative tests for leak, duplicate, lost response, cleanup failure, wrong widget bytes, wrong actual-response Worker SHA, and preview mutex omission."
+          - "Keep implementation deferred pending owner plan review."
+        stop_if:
+          - "The plan requires GitHub ruleset mutation, new infrastructure, a new GitHub App, or broader than repository-scoped Issues read/write."
+          - "Cleanup relies only on Playwright/process-local hooks or search indexing."
+          - "Any normal live, production, scheduled, manual, PR, or local path can create a real canary Issue."
+          - "The task begins implementing canary behavior instead of documenting it."
+      evidence:
+        - notes/T001-cleanup-evidence.md
+        - notes/T002-architecture-map.md
+        - notes/T003-architecture-decision.md
+        - "GitHub ruleset 11303548 required checks and five-entry build concurrency"
+        - "Official GitHub concurrency queue:max and merge_group SHA contracts"
+        - "Official Cloudflare Wrangler --var and version-metadata contracts"
+      subgoal_contract: null
+      parallel_safety: "One plan-writing Worker only; implementation packages are sequentially dependent and are not active in this tranche."
+      blocked_tasks: []
+      missing_evidence: []
+      required_board_updates:
+        - "Activate T004 with its existing plan-only allowed files and use notes/T003-architecture-decision.md as normative architecture input."
+        - "Do not activate implementation packages in this tranche."
+      harness: codex
+  - id: T004
+    type: worker
+    assignee: Worker
+    status: done
+    reasoning_hint: medium
+    objective: "Author the Judge-approved, implementation-ready merge-queue canary plan and supporting test/proof matrix without changing product or workflow behavior."
+    allowed_files:
+      - "/Users/neonwatty/Desktop/bugdrop/docs/plans/2026-08-01-merge-queue-real-issue-canary-plan.md"
+      - "/Users/neonwatty/Desktop/bugdrop/docs/goals/merge-queue-issue-canary/**"
+    verify:
+      - "cd /Users/neonwatty/Desktop/bugdrop && npx prettier --check docs/plans/2026-08-01-merge-queue-real-issue-canary-plan.md docs/goals/merge-queue-issue-canary/goal.md"
+      - "Every original must-have requirement maps to at least one concrete task, file, assertion, and verification command."
+      - "Plan explicitly simulates or tests leaked Issue, duplicate Issue, lost response, cleanup partial failure, wrong widget bytes, wrong Worker SHA, and concurrent preview replacement."
+      - "Plan identifies the current unmanaged real-Issue live test and prevents the new canary from production/scheduled/manual paths."
+    stop_if:
+      - "The plan requires files or product decisions outside the Judge-approved architecture."
+      - "A proposed verification needs broader than repository-scoped Issues read/write permission."
+      - "A proposed cleanup guarantee relies only on Playwright hooks or process-local finally blocks."
+      - "The plan begins implementing canary behavior instead of documenting the approved execution tranche."
+      - "Verification fails twice."
+    receipt:
+      result: done
+      changed_files:
+        - /Users/neonwatty/Desktop/bugdrop/docs/plans/2026-08-01-merge-queue-real-issue-canary-plan.md
+      commands:
+        - cmd: "npx prettier --check docs/plans/2026-08-01-merge-queue-real-issue-canary-plan.md docs/goals/merge-queue-issue-canary/goal.md"
+          status: pass
+          evidence: "Both the implementation plan and goal charter use Prettier formatting."
+        - cmd: "Requirement and failure-mode traceability audit"
+          status: pass
+          evidence: "The plan maps every original requirement to packages, files, executable assertions, and verification; it explicitly covers leaks, duplicates, lost responses, partial and ambiguous close failures, wrong widget bytes, wrong health and actual-response Worker SHA, concurrency, retry drift, search lag, accidental invocation, hard cancellation, and token failure."
+        - cmd: "Scope and side-effect audit"
+          status: pass
+          evidence: "The plan identifies e2e/widget.live.spec.ts as the existing unmanaged real-Issue path, requires it to become mocked or nonmutating, isolates the new canary from production/scheduled/manual/PR/local paths, and makes no product, test, or workflow changes in this tranche."
+      summary: "Authored an implementation-ready four-package plan for the merge-queue real-Issue canary. It preserves required check names, puts deployment through cleanup under one queued mutex after every local gate, proves both widget bytes and actual-response Worker SHA, isolates a one-shot zero-retry legacy-widget submission, independently verifies the complete Issue contract, and supplies marker-based immediate and hard-cancellation cleanup paths."
+      deviations:
+        - "The dedicated GoalBuddy Worker was interrupted after the required first wait timeout showed no plan artifact; the PM authored the approved plan as deterministic fallback."
+      remaining_blockers:
+        - "Owner review is required before implementation, including token ownership, Radix gating, marker contract, stale janitor, and first live canary acceptance."
+      verification_attempts: 1
+      stopped_because: null
+      harness: codex
+  - id: T999
+    type: judge
+    assignee: Judge
+    status: done
+    reasoning_hint: high
+    objective: "Audit the cleanup evidence and implementation plan against the original outcome and strongest failure modes."
+    inputs:
+      - "All completed task receipts"
+      - "/Users/neonwatty/Desktop/bugdrop/docs/plans/2026-08-01-merge-queue-real-issue-canary-plan.md"
+      - "Fresh GitHub API readback of mean-weasel/bugdrop-widget-test"
+      - "Current git diff and status"
+    constraints:
+      - "Read-only; do not implement or mutate GitHub state."
+      - "Reject completion if any exact-title legacy automated Issue remains open."
+      - "Reject completion if cleanup evidence cannot show nonmatching Issues were preserved."
+      - "Reject completion if the plan can leak on partial failure, create duplicates through retries, or test the wrong widget/Worker."
+      - "Reject completion if implementation began before owner review."
+      - "Reject completion if any required task remains queued, active, or blocked."
+    expected_output:
+      - "complete | not_complete"
+      - "full_outcome_complete: true | false"
+      - "Cleanup selection and collateral-mutation proof"
+      - "Strongest failure mode checked"
+      - "Requirement-to-task coverage gaps"
+      - "Recommended implementation approval decision or next corrective task"
+    receipt:
+      result: done
+      decision: complete
+      full_outcome_complete: true
+      rationale: "The cleanup and planning tranche is complete. Fresh paginated API readback found zero open exact-title legacy Issues and all 394 closed; the 119 unrelated open Issue numbers retain the pre-cleanup SHA-256 fingerprint. The plan is implementation-ready, keeps creation on the existing App, isolates a zero-retry merge-group canary, proves widget bytes and the actual feedback Worker SHA, serializes the shared preview through cleanup, closes all marker matches after partial failure, and adds lock-coordinated recovery after hard cancellation. No product, workflow, or test implementation changed. Owner review should approve the plan before Packages A-D begin."
+      worker_package:
+        objective: ""
+        allowed_files: []
+        verify: []
+        stop_if: []
+      evidence:
+        - "Fresh GitHub API readback: repo=mean-weasel/bugdrop-widget-test, open_exact=0, all_exact=394, closed_exact=394."
+        - "Fresh unrelated-open proof: count=119 and number-set SHA-256 beebb8f75fb74bcc3c6a44f41796d4691dfecfd7fc26a925d5370f1cd1212945, identical to the pre-mutation baseline."
+        - "Plan contract audit found 21/21 required safety anchors, including marker list pagination, duplicate and response-loss handling, partial cleanup, actual-response Worker SHA, zero retries, shared mutex, hard-cancellation recovery, and non-canary live-path isolation."
+        - "Official GitHub concurrency documentation confirms queue:max retains up to 100 pending runs and cannot be combined with cancel-in-progress:true."
+        - "Prettier check passed for the plan and goal charter; GoalBuddy state checker passed without warnings."
+        - "git status contains only the goal artifacts and planning documents; git diff reports zero tracked product, workflow, or test changes."
+      subgoal_contract: null
+      parallel_safety: null
+      blocked_tasks: []
+      missing_evidence: []
+      required_board_updates:
+        - "Mark T999 done, clear active_task, and mark the planning-and-cleanup goal done."
+      harness: codex-pm-fallback
+checks:
+  dirty_fingerprint: 3c382c0df02bfebc0b8bcee491c1c352c2d97a2e0d9c4bf415439516247db5f5
+  last_verification:
+    result: pass
+    task: T999
+    commands:
+      - "Fresh paginated GitHub API readback: 0 open exact-title, 394/394 closed, unrelated-open fingerprint unchanged."
+      - "Plan contract audit: 21/21 safety and traceability anchors found."
+      - "Prettier and GoalBuddy state validation passed; check-can-stop reported full_outcome_complete."

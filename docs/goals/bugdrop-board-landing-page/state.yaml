@@ -1,0 +1,186 @@
+version: 2
+
+goal:
+  title: 'BugDrop Board Landing Page'
+  slug: 'bugdrop-board-landing-page'
+  kind: specific
+  tranche: 'Add a /board marketing landing page to bugdrop.dev using the BugDrop Board gallery.'
+  status: done
+  oracle:
+    signal: 'Local /board route renders a polished responsive landing page with honest Board positioning and a working custom UX gallery.'
+    cadence: 'after site scout, after implementation, after browser screenshot proof, and before PR handoff'
+    final_proof: 'Commands, screenshots, and direct inspection prove /board exists, gallery images load, copy is honest, and repo gates pass.'
+  intake:
+    original_request: 'ok plan this out with goalbuddy prep and lets do it'
+    interpreted_outcome: 'Create and execute a GoalBuddy board to add the BugDrop Board landing page and gallery to the BugDrop site.'
+    input_shape: specific
+    audience: 'Potential BugDrop Board beta users and self-hosters visiting bugdrop.dev'
+    authority: requested
+    proof_type: demo
+    completion_proof: 'A local browser walkthrough and screenshots prove /board renders correctly with all gallery assets, alongside passing repo gates.'
+    likely_misfire: 'Only adding repo docs or static screenshots without exposing a real /board page on the BugDrop marketing site.'
+    blind_spots_considered:
+      - 'The BugDrop site architecture may be static HTML, Worker-served, or custom; the implementation must follow the existing stack.'
+      - 'The gallery screenshots are source artifacts from a sibling repo and must be copied intentionally without creating fragile relative paths.'
+      - 'Marketing copy must not overpromise hosted control-plane behavior that is intentionally excluded.'
+      - 'Visual proof must check image loading and responsive layout, not just build success.'
+
+rules:
+  pm_owns_state: true
+  one_active_task: true
+  max_write_workers: 1
+  no_implementation_without_worker_or_pm_task: true
+  no_completion_without_judge_or_pm_audit: true
+  goal_pressure_requires_oracle: true
+  no_completion_on_weak_proof: true
+
+agents:
+  scout: installed
+  worker: installed
+  judge: installed
+
+visual_board:
+  selected: local
+  local:
+    status: running
+    url: 'http://goalbuddy.localhost:41737/bugdrop-board-landing-page/'
+    command: 'npx goalbuddy board docs/goals/bugdrop-board-landing-page'
+
+active_task: null
+
+tasks:
+  - id: T001
+    type: scout
+    assignee: Scout
+    status: done
+    objective: 'Map the BugDrop site architecture, routing, asset handling, test/build gates, and existing marketing page style before editing.'
+    allowed_files:
+      - 'package.json'
+      - 'README.md'
+      - 'public/**'
+      - 'src/**'
+      - 'test/**'
+      - 'e2e/**'
+      - 'docs/**'
+      - 'wrangler.toml'
+    verify:
+      - 'rg --files'
+      - 'sed -n "1,240p" public/index.html'
+      - 'sed -n "1,240p" src/index.ts'
+      - 'cat package.json'
+    acceptance:
+      - 'Identify how / and static assets are served.'
+      - 'Identify whether /board should be static HTML, Worker route, or both.'
+      - 'Identify where public gallery images should live.'
+      - 'Identify local commands for build/test/browser proof.'
+      - 'Recommend the smallest implementation plan that follows the existing site.'
+    stop_if:
+      - 'The BugDrop site cannot be inspected locally.'
+      - 'The only viable implementation would require deploys, credentials, DNS, or unrelated product behavior.'
+    receipt:
+      result: done
+      summary: 'The BugDrop Worker serves custom routes from src/index.ts and static files through the ASSETS binding. The smallest fit is a static public/board/index.html plus public/board/assets screenshots, with /board and /board/ routed to the asset and /board/assets/* passed through.'
+      evidence:
+        - 'package.json exposes dev, build, validate, test, and test:e2e scripts; there is no npm run knip script.'
+        - 'src/index.ts already serves /board-dogfood and static widget/local-config assets.'
+        - 'wrangler.toml uses [assets] directory public with binding ASSETS.'
+        - 'public/index.html is only a root redirect placeholder; /board should be a new public page.'
+
+  - id: T002
+    type: judge
+    assignee: Judge
+    status: done
+    needs:
+      - T001
+    objective: 'Approve the /board page shape and asset strategy before implementation.'
+    acceptance:
+      - 'Confirm route approach.'
+      - 'Confirm asset copy/public path approach.'
+      - 'Confirm copy boundaries and CTAs.'
+      - 'Confirm responsive/browser proof expectations.'
+    stop_if:
+      - 'The plan overpromises hosted control plane, billing, realtime, comments, downvotes, or GitHub Projects.'
+    receipt:
+      result: done
+      decision: approved
+      summary: 'Approved static /board page served by the existing Worker/ASSETS pattern, with copied gallery screenshots under public/board/assets and honest self-host/GitHub-backed beta copy. No deploy, credential, billing, realtime, comments, downvotes, or hosted-control-plane work is included.'
+
+  - id: T003
+    type: worker
+    assignee: Worker
+    status: done
+    needs:
+      - T002
+    objective: 'Implement /board landing page and gallery assets in the BugDrop site.'
+    allowed_files:
+      - 'public/**'
+      - 'src/**'
+      - 'test/**'
+      - 'e2e/**'
+      - 'docs/goals/bugdrop-board-landing-page/**'
+      - 'README.md'
+      - 'package.json'
+      - 'wrangler.toml'
+    verify:
+      - 'npm run build'
+      - 'npm run test'
+      - 'npm run lint'
+      - 'npm run format:check'
+      - 'browser or Playwright desktop/mobile walkthrough of /board'
+    acceptance:
+      - '/board renders locally.'
+      - 'All gallery images load from stable site-owned paths.'
+      - 'Desktop and mobile layouts have no overlap, broken images, or unreadable text.'
+      - 'Page copy honestly describes current self-host/GitHub-backed beta model.'
+      - 'No excluded product/deploy/credential scope is changed.'
+    receipt:
+      result: done
+      changed_files:
+        - 'src/index.ts'
+        - 'wrangler.toml'
+        - 'public/board/index.html'
+        - 'public/board/assets/*.png'
+        - 'test/boardLanding.test.ts'
+      summary: 'Implemented /board landing page, copied all ten BugDrop Board marketing screenshots into the BugDrop public assets tree, added Worker route coverage for /board and /board/assets/*, and added focused route tests.'
+      commands:
+        - command: 'npx vitest run test/boardLanding.test.ts'
+          status: pass
+          evidence: '1 test file and 3 tests passed for /board, /board/, and /board/assets/compact-saas.png.'
+        - command: 'npm run validate'
+          status: pass
+          evidence: 'lint, format:check, typecheck, and 20 Vitest files / 298 tests passed.'
+        - command: 'npm run build'
+          status: pass
+          evidence: 'tsc completed.'
+        - command: 'Playwright script against http://localhost:8787/board'
+          status: pass
+          evidence: 'Desktop and mobile checks saw title, H1, 10 gallery cards, 13 loaded images, no broken images, and no horizontal overflow.'
+      evidence:
+        - 'npx knip exited 0 and reported existing knip.json configuration hints only.'
+        - 'npm run test:e2e was attempted: 188 passed, 2 skipped, 42 failed in existing widget/live screenshot and missing Firefox/WebKit browser paths; no /board-specific failures.'
+
+  - id: T004
+    type: judge
+    assignee: Judge
+    status: done
+    needs:
+      - T003
+    objective: 'Final audit against the oracle and burden-of-proof requirement.'
+    acceptance:
+      - 'Verify repo gates passed or document blockers.'
+      - 'Verify screenshots prove /board and gallery rendering.'
+      - 'Verify all ten gallery images are present and requested by the page.'
+      - 'Verify final diff excludes deploy, secret, hosted-control-plane, billing, realtime, comments, downvotes, GitHub Projects, and package publish changes.'
+      - 'Record final proof and any residual beta limitations.'
+    receipt:
+      result: done
+      decision: complete
+      summary: 'Final audit passed for the /board oracle. The landing page renders locally on desktop and mobile, all ten gallery images are present and loaded, route tests/build/validate passed, and the broad E2E failure is outside the /board scope.'
+      evidence:
+        - 'test-results/board-landing/desktop.png'
+        - 'test-results/board-landing/mobile.png'
+        - 'find public/board/assets -type f -name "*.png" prints ten files.'
+        - 'No secret, deploy, hosted-control-plane, billing, realtime, comments, downvotes, GitHub Projects, or package publish files changed.'
+      residual_risk:
+        - 'The page is committed but not deployed in this run.'
+        - 'Full npm run test:e2e remains red for unrelated widget/live screenshot suites and missing non-Chromium Playwright browsers.'

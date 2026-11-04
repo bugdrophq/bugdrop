@@ -1,0 +1,2485 @@
+# GoalBuddy v2 state.yaml
+version: 2
+
+goal:
+  title: "Expand BugDrop Test Coverage Safely"
+  slug: "expand-test-coverage-safely"
+  kind: existing_plan
+  tranche: "Validate the existing audit plan, then complete successive safe verified coverage packages until the risk-weighted oracle is met."
+  status: done
+  oracle:
+    signal: "Commit-pinned coverage improves from 64.23% lines / 63.52% branches to at least 72% lines / 67% branches while critical gaps close and all unit, static, build, and targeted browser gates pass."
+    cadence: "after each Worker package and at final audit"
+    final_proof: "Receipt-backed baseline/delta report, targeted adversarial proof, full gate results, real-browser evidence, and final Judge full_outcome_complete: true."
+  intake:
+    original_request: "Prepare a detailed GoalBuddy implementation plan in a fresh worktree off GitHub main for safely and efficiently expanding test coverage."
+    interpreted_outcome: "A validated, executable board drives risk-first coverage improvements without gaming metrics or regressing browser behavior."
+    input_shape: existing_plan
+    audience: "BugDrop maintainers and contributors"
+    authority: requested
+    proof_type: test
+    completion_proof: "All planned high-risk boundaries have direct meaningful tests, the coverage oracle is met, and repository plus browser verification remains green."
+    likely_misfire: "Increase aggregate coverage through brittle mocks, exclusions, or low-risk script tests while production-critical gaps remain."
+    blind_spots_considered:
+      - "Codecov counts partial lines more strictly than Vitest."
+      - "Playwright behavior is currently absent from uploaded unit LCOV."
+      - "Subprocess execution can appear as zero Vitest coverage."
+      - "Release scripts can mask weak product-code coverage."
+      - "Coverage-driven source extraction can introduce regressions."
+      - "Public forks, docs-only PRs, and merge queue events need reporting proof."
+    existing_plan_facts:
+      - "Current main e0c5ece: 56 files and 895 tests pass; Vitest 64.23% lines and 63.52% branches."
+      - "Current Codecov main: 55.25%, with 762 partial lines."
+      - "Direct GitHub/JWT tests are the highest-risk first package."
+      - "Submission/form, capture/privacy, interaction primitives, bootstrap seams, and branch debt follow in that order subject to Judge validation."
+      - "Keep Codecov reporting informational until representative event/fork evidence exists."
+      - "Trusted post-T014 baseline: 58 files and 909 tests pass; Vitest is 65.92% lines (4660/7069) and 64.27% branches (3692/5744)."
+      - "Trusted post-T004 baseline: 60 files and 923 tests pass; Vitest is 66.72% lines (4717/7069) and 65.16% branches (3743/5744)."
+      - "Trusted post-T017 baseline: 64 files and 949 tests plus three targeted Chromium cases pass; Vitest is 69.17% lines and 66.36% branches."
+
+rules:
+  pm_owns_state: true
+  one_active_task: true
+  max_write_workers: 1
+  no_implementation_without_worker_or_pm_task: true
+  no_completion_without_judge_or_pm_audit: true
+  planning_is_not_completion: true
+  queued_required_worker_blocks_completion: true
+  continuous_until_full_outcome: true
+  missing_input_or_credentials_do_not_stop_goal: true
+  exact_human_approval_can_terminal_wait: true
+  preserve_and_validate_existing_plan: true
+  intake_misfire_must_be_audited: true
+  goal_pressure_requires_oracle: true
+  no_completion_on_weak_proof: true
+  slice_policy:
+    max_consecutive_tiny_tasks: 2
+    prefer_vertical_slices: true
+    judge_picks_largest_safe_slice: true
+    worker_completes_whole_slice: true
+
+agents:
+  scout: installed
+  worker: installed
+  judge: installed
+
+visual_board:
+  selected: local
+  local:
+    status: live
+    url: "http://goalbuddy.localhost:41737/expand-test-coverage-safely/"
+    command: "node /Users/neonwatty/.codex/plugins/cache/goalbuddy/goalbuddy/0.4.3/skills/goal-prep/surfaces/local-goal-board/scripts/local-goal-board.mjs --goal docs/goals/expand-test-coverage-safely"
+
+active_task: null
+
+tasks:
+  - id: T001
+    type: judge
+    assignee: Judge
+    status: done
+    reasoning_hint: high
+    objective: "Validate the two-audit coverage plan against fresh origin/main and specify the largest safe first implementation package."
+    inputs:
+      - "goal.md existing plan facts and oracle"
+      - "origin/main at execution time"
+      - "Vitest, Playwright, CI, and Codecov configuration"
+    constraints:
+      - "Read-only."
+      - "Preserve risk priority over percentage maximization."
+      - "Reproduce the current-main baseline and distinguish genuine gaps from measurement blind spots."
+    expected_output:
+      - "Validated or corrected baseline"
+      - "Decision on first Worker package"
+      - "Exact allowed_files"
+      - "Exact verification and adversarial disproof commands"
+      - "Stop conditions and deferred risks"
+    receipt:
+      result: done
+      decision: approved
+      full_outcome_complete: false
+      rationale: "Fresh remote main, local HEAD, and origin/main all resolve to e0c5ece8edbbe5692cb5c540555fe6f3154130a7. Commit-pinned CI and its LCOV artifact validate 64.23% lines and 63.52% branches; Codecov independently reports 55.25% with 762 partials. JWT is genuinely untested and GitHub is only incidentally executed while route tests mock the boundary. The largest safe first slice is the complete JWT/GitHub contract package in two new tests. It needs no production seam; any collision or concurrent-branch defect must stop the Worker rather than be characterized as acceptable behavior."
+      worker_package:
+        objective: "Add direct, network-free tests for the complete GitHub authentication and persistence boundary: cryptographically verify PKCS#8 and PKCS#1 RS256 JWTs with frozen claims and malformed-key failures; assert exact installation lookup/token, issue, visibility, branch, screenshot, attachment, sanitization, and failure contracts; actively disprove safety under concurrent first upload and same-millisecond filename collision. Do not change production code or coverage configuration."
+        allowed_files:
+          - test/jwt.test.ts
+          - test/github.test.ts
+        verify:
+          - "test \"$(git ls-remote origin refs/heads/main | cut -f1)\" = \"$(git rev-parse HEAD)\""
+          - "npx vitest run test/jwt.test.ts test/github.test.ts --coverage"
+          - "npx vitest run test/jwt.test.ts -t 'cryptographically verifies RS256 and rejects altered signing input'"
+          - "npx vitest run test/github.test.ts -t 'fails closed when the observed URL, method, authorization header, API version, or body is mutated'"
+          - "npx vitest run test/github.test.ts -t 'does not silently accept concurrent first-upload or same-millisecond collisions'"
+          - "npm run typecheck"
+          - "npm run lint"
+          - "npx prettier --check test/jwt.test.ts test/github.test.ts"
+          - "npm test -- --coverage"
+          - "node -e \"const c=require('./coverage/coverage-summary.json').total; console.log(JSON.stringify(c))\""
+          - "git diff --check"
+          - "git diff --exit-code e0c5ece8edbbe5692cb5c540555fe6f3154130a7 -- src/lib/jwt.ts src/lib/github.ts vitest.config.ts playwright.config.ts codecov.yml .github/workflows/ci.yml"
+        stop_if:
+          - "Remote main no longer equals the execution commit; return for PM reorientation."
+          - "A production source change or new seam is required for deterministic contract testing."
+          - "The concurrency or timestamp-collision disproof demonstrates unsafe current behavior; preserve the failing test, do not encode the defect as expected success, and return the smallest production-fix proposal."
+          - "The real GitHub response contract is ambiguous, including classification of concurrent branch-creation 422 responses."
+          - "Ephemeral RSA generation, PKCS#1 conversion, or public-key signature verification cannot be deterministic on Node 22."
+          - "Any test attempts a real network request."
+          - "Verification fails twice for the same unexplained reason."
+          - "Either allowed file contains overlapping user changes."
+      evidence:
+        - kind: commit_pin
+          detail: "git ls-remote origin refs/heads/main, git rev-parse origin/main, and git rev-parse HEAD all returned e0c5ece8edbbe5692cb5c540555fe6f3154130a7."
+        - kind: native_baseline
+          detail: "GitHub Actions run 31106093302, Unit Tests & Build job 92631752105: 56 files and 895 tests passed; coverage was 63.44% statements, 63.52% branches, 66.26% functions, and 64.23% lines."
+        - kind: lcov_counts
+          detail: "Downloaded artifact unit-coverage-31106093302-1: 4535/7060 lines, 3644/5736 branches, and 878/1325 functions. Recursive components were scripts 2516/3332 lines and 2192/3111 branches; src 2019/3728 lines and 1452/2625 branches; src/widget 1267/2799 lines and 910/1925 branches; src/lib 78/202 lines and 60/112 branches."
+        - kind: critical_gap
+          detail: "LCOV records src/lib/jwt.ts at 0/48 lines and 0/10 branches, and src/lib/github.ts at 3/74 lines and 0/33 branches. No test directly references their exported functions; test/api.test.ts and test/structuredFeedback.test.ts mock the GitHub module."
+        - kind: codecov_baseline
+          detail: "Codecov API report for the pinned SHA returned 80 files, 7531 line statuses, 4161 hits, 2608 misses, 762 partials, and 55.25% coverage. Its pinned file totals are JWT 0/48 and GitHub 3/75."
+        - kind: measurement_blind_spot
+          detail: "Vitest excludes e2e/** and CI uploads only coverage/lcov.info under the unit flag. Playwright executes the real bundle but contributes no uploaded coverage; Codecov therefore reports src/widget/index.ts as 0/639 despite browser execution."
+        - kind: semantic_difference
+          detail: "The LCOV artifact has 7060 DA lines plus 482 branch-only source lines; Codecov parses branch-aware line states into a 7531-line denominator and keeps 762 partials separate from hits. The 64.23% and 55.25% figures are not interchangeable."
+        - kind: fresh_main_gates
+          detail: "Pinned merge-group run 31106093302 passed unit/build, both E2E shards, Chromium/Firefox/WebKit Radix E2E, deploy preview, live preview, and reporting-only coverage upload."
+        - kind: adversarial_source_inspection
+          detail: "uploadScreenshotAsAsset and uploadAttachmentAsAsset derive names solely from Date.now(), while ensureScreenshotBranch independently checks then creates the branch. Same-millisecond names and concurrent first creation are realistic failure modes that must be disproved before claiming risk closure."
+        - kind: read_only_proof
+          detail: "Final repository status matched the initial status exactly: only the pre-existing untracked GoalBuddy directory was present."
+      blocked_tasks: []
+      missing_evidence:
+        - "An independent local rerun was not performed because this read-only worktree has no node_modules and Judge may not install dependencies; the exact-commit CI execution and downloadable LCOV artifact provide the baseline execution proof."
+        - "No trustworthy Playwright-to-src/widget coverage mapping exists; browser coverage must remain a separate deferred reporting question."
+        - "The intended recovery contract for concurrent branch creation and filename collision is not established; T002 must stop if its disproof exposes a production defect."
+      required_board_updates:
+        - "Record T001 done with this corrected, count-backed baseline."
+        - "Activate T002 using this exact worker_package, including the commit-pin, mutation-focused commands, prettier check, and collision stop condition."
+        - "Preserve the 64.23% line / 63.52% branch oracle and the distinct Codecov 55.25% baseline; do not compare them as equivalent denominators."
+        - "Keep Playwright coverage, Codecov components, thresholds, and production collision fixes deferred until their scheduled Judge boundaries or a T002 stop receipt requires reorientation."
+  - id: T002
+    type: worker
+    assignee: Worker
+    status: blocked
+    reasoning_hint: medium
+    objective: "Add direct, network-free tests for the complete GitHub authentication and persistence boundary: cryptographically verify PKCS#8 and PKCS#1 RS256 JWTs with frozen claims and malformed-key failures; assert exact installation lookup/token, issue, visibility, branch, screenshot, attachment, sanitization, and failure contracts; actively disprove safety under concurrent first upload and same-millisecond filename collision. Do not change production code or coverage configuration."
+    inputs:
+      - "T001 validated plan and exact paths"
+      - "src/lib/jwt.ts"
+      - "src/lib/github.ts"
+      - "Existing route tests that mock the GitHub boundary"
+    constraints:
+      - "Test production behavior without changing it."
+      - "Use real ephemeral RSA key pairs and verify signatures cryptographically."
+      - "Assert exact URLs, methods, authorization headers, bodies, and error classification."
+      - "Cover concurrent first upload or timestamp collision as the strongest realistic failure mode."
+      - "Do not make network calls."
+    expected_output:
+      - "JWT tests for PKCS#8, PKCS#1, claims, signature, frozen clock, and malformed key failures"
+      - "GitHub tests for installation lookup/token, public/private visibility, label 422 handling, branch paths, sanitization, concurrency, and upload failures"
+      - "Before/after file and component coverage receipt"
+      - "A deliberate signature/header/method mutation is detected by the new tests"
+    allowed_files:
+      - "test/jwt.test.ts"
+      - "test/github.test.ts"
+    verify:
+      - "test \"$(git ls-remote origin refs/heads/main | cut -f1)\" = \"$(git rev-parse HEAD)\""
+      - "npx vitest run test/jwt.test.ts test/github.test.ts --coverage"
+      - "npx vitest run test/jwt.test.ts -t 'cryptographically verifies RS256 and rejects altered signing input'"
+      - "npx vitest run test/github.test.ts -t 'fails closed when the observed URL, method, authorization header, API version, or body is mutated'"
+      - "npx vitest run test/github.test.ts -t 'does not silently accept concurrent first-upload or same-millisecond collisions'"
+      - "npm run typecheck"
+      - "npm run lint"
+      - "npx prettier --check test/jwt.test.ts test/github.test.ts"
+      - "npm test -- --coverage"
+      - "node -e \"const c=require('./coverage/coverage-summary.json').total; console.log(JSON.stringify(c))\""
+      - "git diff --check"
+      - "git diff --exit-code e0c5ece8edbbe5692cb5c540555fe6f3154130a7 -- src/lib/jwt.ts src/lib/github.ts vitest.config.ts playwright.config.ts codecov.yml .github/workflows/ci.yml"
+    stop_if:
+      - "Remote main no longer equals the execution commit; return for PM reorientation."
+      - "A production source change or new seam is required for deterministic contract testing."
+      - "The concurrency or timestamp-collision disproof demonstrates unsafe current behavior; preserve the failing test, do not encode the defect as expected success, and return the smallest production-fix proposal."
+      - "The real GitHub response contract is ambiguous, including classification of concurrent branch-creation 422 responses."
+      - "Ephemeral RSA generation, PKCS#1 conversion, or public-key signature verification cannot be deterministic on Node 22."
+      - "Any test attempts a real network request."
+      - "Verification fails twice for the same unexplained reason."
+      - "Either allowed file contains overlapping user changes."
+    receipt:
+      result: blocked
+      changed_files:
+        - test/github.test.ts
+      commands:
+        - cmd: "test \"$(git ls-remote origin refs/heads/main | cut -f1)\" = \"$(git rev-parse HEAD)\""
+          status: passed
+        - cmd: "npx vitest run test/github.test.ts -t 'does not silently accept concurrent first-upload or same-millisecond collisions'"
+          status: "failed: concurrent first uploads do not both fulfill when GitHub returns 422 for the racing branch creation"
+      summary: "Preserved an adversarial, network-free failing test. Two concurrent first uploads both observe the screenshot branch as missing; one creates it while the other receives 422 and fails. This triggers the mandated stop condition before the broader package. Smallest proposed source fix: recover from the specific already-existing-ref response by rechecking the branch, and add collision-resistant asset naming or bounded conflict retry for same-millisecond uploads."
+      deviations:
+        - "Stopped before JWT and remaining GitHub contract tests because the required concurrency disproof exposed unsafe production behavior."
+      remaining_blockers:
+        - "Concurrent first-upload branch creation is unsafe."
+        - "The exact GitHub 422 classification/recovery contract requires PM/Judge clarification."
+        - "Same-millisecond asset names remain timestamp-only and collision-prone."
+      verification_attempts: 1
+      stopped_because: "The concurrency disproof demonstrated unsafe current behavior; per T002 stop_if, the failing test was preserved and no production source was changed."
+  - id: T003
+    type: judge
+    assignee: Judge
+    status: done
+    reasoning_hint: high
+    objective: "Audit the GitHub/JWT package at the security boundary and authorize or correct the next phase."
+    inputs:
+      - "T002 receipt and diff"
+      - "Targeted and full verification output"
+    constraints:
+      - "Read-only."
+      - "Reject token-shape-only tests, incomplete HTTP assertions, or tests that pass after a realistic security mutation."
+    expected_output:
+      - "Security-boundary verdict"
+      - "Missing adversarial cases"
+      - "Coverage delta and risk reduction"
+      - "Authorization or correction for T004"
+    receipt:
+      result: done
+      decision: approved
+      full_outcome_complete: false
+      rationale: "The defect is confirmed, so T004 is not authorized. Recovery must require status 422, an exactly parsed \"Reference already exists\" message, and a successful ref recheck; unrelated 422s must fail. Collision-resistant naming belongs in the same package because both defects affect concurrent asset persistence. Since T002 stopped before its JWT and HTTP-contract work, the safe slice combines the narrow GitHub production repair with completion of the original boundary tests, followed by another Judge gate."
+      worker_package:
+        objective: "Repair and fully test the GitHub/JWT security boundary without changing public APIs: make branch initialization fail closed on non-404 lookup failures; recover from concurrent creation only when a 422 JSON response has message exactly \"Reference already exists\" and a subsequent fetch confirms the screenshot ref; reject every other 422 or failed recheck; add cryptographically strong per-upload entropy to both screenshot and attachment paths while retaining timestamps and sanitized attachment names; preserve and split the failing concurrency/collision test; and complete the original network-free JWT and GitHub contract suite with exact URL, method, authorization, API-version, body, error-classification, visibility, sanitization, and mutation assertions."
+        allowed_files:
+          - src/lib/github.ts
+          - test/github.test.ts
+          - test/jwt.test.ts
+        verify:
+          - "test \"$(git ls-remote origin refs/heads/main | cut -f1)\" = \"$(git rev-parse HEAD)\""
+          - "npx vitest run test/github.test.ts -t 'recovers only from the exact already-existing-ref race after confirming the branch'"
+          - "npx vitest run test/github.test.ts -t 'rejects unrelated or malformed 422 responses and failed branch rechecks'"
+          - "npx vitest run test/github.test.ts -t 'uses distinct screenshot and attachment paths in the same millisecond'"
+          - "npx vitest run test/github.test.ts -t 'fails closed when the observed URL, method, authorization header, API version, or body is mutated'"
+          - "npx vitest run test/jwt.test.ts -t 'cryptographically verifies RS256 and rejects altered signing input'"
+          - "npx vitest run test/jwt.test.ts test/github.test.ts --coverage"
+          - "npm run typecheck"
+          - "npm run lint"
+          - "npx prettier --check src/lib/github.ts test/github.test.ts test/jwt.test.ts"
+          - "npm test -- --coverage"
+          - "node -e \"const c=require('./coverage/coverage-summary.json').total; console.log(JSON.stringify(c))\""
+          - "git diff --check"
+          - "git diff --exit-code e0c5ece8edbbe5692cb5c540555fe6f3154130a7 -- src/lib/jwt.ts vitest.config.ts playwright.config.ts codecov.yml .github/workflows/ci.yml"
+        stop_if:
+          - "Remote main no longer equals e0c5ece8edbbe5692cb5c540555fe6f3154130a7."
+          - "Recovery accepts every 422, uses substring matching, or treats a successful ref recheck alone as proof that the 422 was the already-existing-ref response."
+          - "Collision resistance requires a new dependency, public API change, or production change outside src/lib/github.ts."
+          - "JWT tests require changing src/lib/jwt.ts or introducing a test-only production seam."
+          - "Any test can reach the real network or lacks a default unexpected-request failure."
+          - "Any allowed file contains overlapping user changes."
+          - "Verification fails twice for the same unexplained reason."
+      evidence:
+        - kind: commit_pin
+          detail: "HEAD and the live origin/main ref both resolve to e0c5ece8edbbe5692cb5c540555fe6f3154130a7."
+        - kind: reproduced_failure
+          detail: "The targeted Vitest command ran one test and failed at the assertion requiring both concurrent first uploads to fulfill."
+        - kind: production_race
+          detail: "ensureScreenshotBranch performs an independent missing-ref check and rejects every failed create-ref response, including the racing caller's 422."
+        - kind: collision_source
+          detail: "Both uploadScreenshotAsAsset and uploadAttachmentAsAsset derive paths solely from Date.now(); same-millisecond calls can address the same GitHub contents path."
+        - kind: preserved_red_test
+          detail: "The new test requires both race scenarios to fulfill and unique upload paths; it does not encode either defect as successful behavior."
+        - kind: test_contract_gap
+          detail: "The race mock always returns 404 for the screenshot-ref lookup, so it cannot yet support the required post-422 confirmation. It also lacks exact branch-create method, headers, API-version, and body assertions."
+        - kind: incomplete_boundary
+          detail: "T002 created only test/github.test.ts. No JWT tests, complete GitHub HTTP assertions, full verification, or coverage delta exist."
+      blocked_tasks:
+        - T004
+      missing_evidence:
+        - "A split regression proving the branch becomes visible on the post-422 recheck."
+        - "Rejection tests for unrelated 422 JSON, malformed 422 bodies, and failed post-422 ref rechecks."
+        - "Fail-closed proof for an initial screenshot-ref lookup returning a status other than 404."
+        - "Independent same-millisecond uniqueness proof for screenshots and attachments."
+        - "Exact HTTP assertions for branch lookup, repository lookup, default-ref lookup, branch creation, and contents upload."
+        - "The complete PKCS#8, PKCS#1, claims, signature-mutation, frozen-clock, and malformed-key JWT suite."
+        - "Targeted and full green verification output plus component and aggregate coverage deltas."
+      required_board_updates:
+        - "Record T003 done with this decision while keeping full_outcome_complete false."
+        - "Keep T002 blocked and preserve its failing test and stop receipt; do not relabel the exposed behavior as success."
+        - "Do not activate T004. Insert a single Worker task using this worker_package so the production repair and unfinished security-boundary tests land together."
+        - "After that Worker receipt, require a Judge milestone review of the exact 422 classification, no-network proof, mutation resistance, full gates, and coverage delta before T004 can be considered."
+        - "Keep T004 queued until that follow-up Judge explicitly authorizes it."
+  - id: T014
+    type: worker
+    assignee: Worker
+    status: done
+    reasoning_hint: medium
+    objective: "Repair and fully test the GitHub/JWT security boundary without changing public APIs: make branch initialization fail closed on non-404 lookup failures; recover from concurrent creation only when a 422 JSON response has message exactly 'Reference already exists' and a subsequent fetch confirms the screenshot ref; reject every other 422 or failed recheck; add cryptographically strong per-upload entropy to both screenshot and attachment paths while retaining timestamps and sanitized attachment names; preserve and split the failing concurrency/collision test; and complete the original network-free JWT and GitHub contract suite with exact URL, method, authorization, API-version, body, error-classification, visibility, sanitization, and mutation assertions."
+    inputs:
+      - "T002 blocked receipt and preserved failing test"
+      - "T003 security Judge decision"
+      - "src/lib/github.ts and src/lib/jwt.ts"
+    constraints:
+      - "No public API changes or new dependencies."
+      - "Only the exact parsed already-existing-reference 422 plus a successful recheck may recover."
+      - "Every unexpected request must fail the test; no real network access."
+      - "Do not edit src/lib/jwt.ts or coverage configuration."
+    expected_output:
+      - "Narrow concurrency recovery and collision-resistant asset paths"
+      - "Complete cryptographically verified JWT suite"
+      - "Exact GitHub HTTP contract and mutation-resistant tests"
+      - "Full green verification and coverage delta"
+    allowed_files:
+      - "src/lib/github.ts"
+      - "test/github.test.ts"
+      - "test/jwt.test.ts"
+    verify:
+      - "test \"$(git ls-remote origin refs/heads/main | cut -f1)\" = \"$(git rev-parse HEAD)\""
+      - "npx vitest run test/github.test.ts -t 'recovers only from the exact already-existing-ref race after confirming the branch'"
+      - "npx vitest run test/github.test.ts -t 'rejects unrelated or malformed 422 responses and failed branch rechecks'"
+      - "npx vitest run test/github.test.ts -t 'uses distinct screenshot and attachment paths in the same millisecond'"
+      - "npx vitest run test/github.test.ts -t 'fails closed when the observed URL, method, authorization header, API version, or body is mutated'"
+      - "npx vitest run test/jwt.test.ts -t 'cryptographically verifies RS256 and rejects altered signing input'"
+      - "npx vitest run test/jwt.test.ts test/github.test.ts --coverage"
+      - "npm run typecheck"
+      - "npm run lint"
+      - "npx prettier --check src/lib/github.ts test/github.test.ts test/jwt.test.ts"
+      - "npm test -- --coverage"
+      - "node -e \"const c=require('./coverage/coverage-summary.json').total; console.log(JSON.stringify(c))\""
+      - "git diff --check"
+      - "git diff --exit-code e0c5ece8edbbe5692cb5c540555fe6f3154130a7 -- src/lib/jwt.ts vitest.config.ts playwright.config.ts codecov.yml .github/workflows/ci.yml"
+    stop_if:
+      - "Remote main no longer equals e0c5ece8edbbe5692cb5c540555fe6f3154130a7."
+      - "Recovery accepts every 422, uses substring matching, or treats a successful ref recheck alone as proof that the 422 was the already-existing-ref response."
+      - "Collision resistance requires a new dependency, public API change, or production change outside src/lib/github.ts."
+      - "JWT tests require changing src/lib/jwt.ts or introducing a test-only production seam."
+      - "Any test can reach the real network or lacks a default unexpected-request failure."
+      - "Any allowed file contains overlapping user changes."
+      - "Verification fails twice for the same unexplained reason."
+    receipt:
+      result: done
+      changed_files:
+        - src/lib/github.ts
+        - test/github.test.ts
+        - test/jwt.test.ts
+      commands:
+        - cmd: "test \"$(git ls-remote origin refs/heads/main | cut -f1)\" = \"$(git rev-parse HEAD)\""
+          status: pass
+        - cmd: "npx vitest run test/github.test.ts -t 'recovers only from the exact already-existing-ref race after confirming the branch'"
+          status: pass
+        - cmd: "npx vitest run test/github.test.ts -t 'rejects unrelated or malformed 422 responses and failed branch rechecks'"
+          status: pass
+        - cmd: "npx vitest run test/github.test.ts -t 'uses distinct screenshot and attachment paths in the same millisecond'"
+          status: pass
+        - cmd: "npx vitest run test/github.test.ts -t 'fails closed when the observed URL, method, authorization header, API version, or body is mutated'"
+          status: pass
+        - cmd: "npx vitest run test/jwt.test.ts -t 'cryptographically verifies RS256 and rejects altered signing input'"
+          status: pass
+        - cmd: "npx vitest run test/jwt.test.ts test/github.test.ts --coverage"
+          status: pass
+        - cmd: "npm run typecheck"
+          status: pass
+        - cmd: "npm run lint"
+          status: pass
+        - cmd: "npx prettier --check src/lib/github.ts test/github.test.ts test/jwt.test.ts"
+          status: pass
+        - cmd: "npm test -- --coverage"
+          status: pass
+        - cmd: "node -e \"const c=require('./coverage/coverage-summary.json').total; console.log(JSON.stringify(c))\""
+          status: pass
+        - cmd: "git diff --check"
+          status: pass
+        - cmd: "git diff --exit-code e0c5ece8edbbe5692cb5c540555fe6f3154130a7 -- src/lib/jwt.ts vitest.config.ts playwright.config.ts codecov.yml .github/workflows/ci.yml"
+          status: pass
+      summary: "Implemented fail-closed branch lookup, exact parsed 422 race recovery with required ref confirmation, and UUID-backed asset paths. Added strict network-free GitHub contracts and real PKCS#8/PKCS#1 RSA JWT verification. Two genuinely concurrent first uploads completed with narrow race recovery. Targeted tests passed 14/14; the full suite passed 909/909. Coverage rose from 64.23% to 65.92% lines and 63.52% to 64.27% branches."
+      deviations:
+        - "Lint passed with six pre-existing warnings in generated coverage files."
+      remaining_blockers: []
+      verification_attempts: 1
+  - id: T015
+    type: judge
+    assignee: Judge
+    status: done
+    reasoning_hint: high
+    objective: "Audit the repaired GitHub/JWT boundary, exact 422 classification, collision resistance, no-network proof, mutation resistance, full gates, and coverage delta before authorizing T004."
+    inputs:
+      - "T014 receipt and diff"
+      - "T002 preserved failing-test evidence"
+      - "T003 recovery contract"
+    constraints:
+      - "Read-only."
+      - "Reject broad 422 recovery, substring classification, weak entropy, token-shape-only JWT tests, or unexpected-request fallthrough."
+      - "Require targeted and full green verification."
+    expected_output:
+      - "Security repair verdict"
+      - "Exact oracle and coverage delta"
+      - "Missing evidence or explicit authorization for T004"
+    receipt:
+      result: done
+      decision: approved
+      full_outcome_complete: false
+      rationale: "T014 soundly repairs the boundary. Recovery requires status 422, an exactly parsed \"Reference already exists\" message, and a successful ref recheck; initial non-404 lookups and all other 422 cases fail closed. Both asset types use cryptographic UUID entropy. Tests reject unexpected requests, assert complete HTTP contracts, and cryptographically verify PKCS#8/PKCS#1 JWTs plus an altered signing input. Independent targeted, static, formatting, diff, and 909-test coverage gates passed. T004 is authorized."
+      worker_package:
+        objective: "Add direct, deterministic, network-free tests for submission transport and feedback-form lifecycle: assert exact request URLs, methods, headers, authentication, and payloads; prove URL and metadata privacy redaction; cover secure-identifier success, fallback, malformed response, and failure behavior; and exercise busy-state duplicate suppression, cancellation, retry, disposal, listener cleanup, and reset through public behavior. Do not change production code or weaken validation."
+        allowed_files:
+          - test/variantSubmission.test.ts
+          - test/variantForm.test.ts
+          - test/variantManager.test.ts
+        verify:
+          - "test \"$(git ls-remote origin refs/heads/main | cut -f1)\" = \"$(git rev-parse HEAD)\""
+          - "npx vitest run test/variantSubmission.test.ts test/variantForm.test.ts test/variantManager.test.ts --coverage"
+          - "npm run typecheck"
+          - "npm run lint"
+          - "npx prettier --check test/variantSubmission.test.ts test/variantForm.test.ts test/variantManager.test.ts"
+          - "npm test -- --coverage"
+          - "node -e \"const c=require('./coverage/coverage-summary.json').total; console.log(JSON.stringify(c))\""
+          - "git diff --check"
+          - "git diff --exit-code e0c5ece8edbbe5692cb5c540555fe6f3154130a7 -- src/widget/variants/submission.ts src/widget/variants/form.ts src/widget/variants/manager.ts"
+        stop_if:
+          - "Remote main no longer equals e0c5ece8edbbe5692cb5c540555fe6f3154130a7."
+          - "A production seam, source change, or API-contract change is required."
+          - "The expected URL or metadata redaction policy is ambiguous."
+          - "Any test can reach the real network or lacks an unexpected-request failure."
+          - "Tests require private implementation assertions instead of public behavior and durable state transitions."
+          - "An allowed file contains overlapping user changes."
+          - "Verification fails twice for the same unexplained reason."
+      evidence:
+        - kind: exact_422_recovery
+          detail: "src/lib/github.ts recovers only when create-ref returns 422 and parsed JSON message equals \"Reference already exists\"; it then performs and requires an okay screenshot-ref recheck."
+        - kind: adversarial_422_tests
+          detail: "Tests reject \"Validation Failed\", a message containing extra text, malformed JSON, and the exact message followed by a 404 recheck."
+        - kind: fail_closed_lookup
+          detail: "An initial screenshot-ref response other than 404 now throws immediately; the test proves a 403 causes exactly one request."
+        - kind: collision_resistance
+          detail: "Screenshot and attachment paths include crypto.randomUUID() in addition to Date.now(); four same-millisecond uploads produced four distinct paths."
+        - kind: no_network_contract
+          detail: "Both GitHub test groups install default fetch mocks that throw on unexpected requests. Ordered request helpers assert URL, method, complete headers, API version, authorization, and JSON bodies."
+        - kind: jwt_cryptography
+          detail: "Tests generate an ephemeral 2048-bit RSA pair, verify PKCS#8 and converted PKCS#1 signatures with the public key, assert frozen claims, reject malformed keys, and prove altered signing input fails verification."
+        - kind: independent_targeted_verification
+          detail: "npx vitest run test/github.test.ts test/jwt.test.ts passed 2 files and 14 tests."
+        - kind: independent_full_verification
+          detail: "npm test -- --coverage passed 58 files and 909 tests. Typecheck, lint, Prettier, commit pin, diff-check, and protected-file diff checks also passed."
+        - kind: coverage_delta
+          detail: "Coverage moved from 64.23% to 65.92% lines (+1.69 points) and 63.52% to 64.27% branches (+0.75 points). Current counts are 4660/7069 lines and 3692/5744 branches."
+        - kind: boundary_coverage
+          detail: "src/lib/github.ts is 100% for lines, branches, functions, and statements. src/lib/jwt.ts is 93.75% lines, 70% branches, 100% functions, and 94% statements."
+      blocked_tasks: []
+      missing_evidence:
+        - "T004 submission and lifecycle risk coverage has not yet been implemented."
+        - "The overall 72% line / 67% branch oracle remains unmet; current coverage is 65.92% / 64.27%."
+        - "Targeted real-browser proof remains scheduled for the later browser-interaction package; T014 changed only the backend GitHub boundary."
+      required_board_updates:
+        - "Record T015 done with decision approved and full_outcome_complete false."
+        - "Authorize T004 using this worker_package and update its authorization input from T003 to T015."
+        - "Record 65.92% lines and 64.27% branches as the trusted post-T014 baseline."
+        - "Preserve the T002 blocked receipt and T014 repair receipt as the defect-discovery and closure chain."
+        - "Keep T005 and later tasks queued behind T004."
+  - id: T004
+    type: worker
+    assignee: Worker
+    status: done
+    reasoning_hint: medium
+    objective: "Add direct, deterministic, network-free tests for submission transport and feedback-form lifecycle: assert exact request URLs, methods, headers, authentication, and payloads; prove URL and metadata privacy redaction; cover secure-identifier success, fallback, malformed response, and failure behavior; and exercise busy-state duplicate suppression, cancellation, retry, disposal, listener cleanup, and reset through public behavior. Do not change production code or weaken validation."
+    inputs:
+      - "T015 authorization"
+      - "src/widget/variants/submission.ts"
+      - "src/widget/variants/form.ts"
+      - "src/widget/variants/manager.ts"
+    constraints:
+      - "Prefer public behavior and durable state transitions over private implementation assertions."
+      - "Prove URL and metadata redaction and fail-closed handling of malformed server data."
+      - "Do not weaken validation to make tests pass."
+    expected_output:
+      - "Exact submission request and authentication tests"
+      - "Secure identifier success/fallback/failure tests"
+      - "Busy, duplicate, cancel, retry, disposal, and reset lifecycle tests"
+      - "Before/after component coverage receipt"
+    allowed_files:
+      - "test/variantSubmission.test.ts"
+      - "test/variantForm.test.ts"
+      - "test/variantManager.test.ts"
+    verify:
+      - "test \"$(git ls-remote origin refs/heads/main | cut -f1)\" = \"$(git rev-parse HEAD)\""
+      - "npx vitest run test/variantSubmission.test.ts test/variantForm.test.ts test/variantManager.test.ts --coverage"
+      - "npm run typecheck"
+      - "npm run lint"
+      - "npx prettier --check test/variantSubmission.test.ts test/variantForm.test.ts test/variantManager.test.ts"
+      - "npm test -- --coverage"
+      - "node -e \"const c=require('./coverage/coverage-summary.json').total; console.log(JSON.stringify(c))\""
+      - "git diff --check"
+      - "git diff --exit-code e0c5ece8edbbe5692cb5c540555fe6f3154130a7 -- src/widget/variants/submission.ts src/widget/variants/form.ts src/widget/variants/manager.ts"
+    stop_if:
+      - "Remote main no longer equals e0c5ece8edbbe5692cb5c540555fe6f3154130a7."
+      - "A production seam, source change, or API-contract change is required."
+      - "The expected URL or metadata redaction policy is ambiguous."
+      - "Any test can reach the real network or lacks an unexpected-request failure."
+      - "Tests require private implementation assertions instead of public behavior and durable state transitions."
+      - "An allowed file contains overlapping user changes."
+      - "Verification fails twice for the same unexplained reason."
+    receipt:
+      result: done
+      changed_files:
+        - test/variantSubmission.test.ts
+        - test/variantForm.test.ts
+        - test/variantManager.test.ts
+      commands:
+        - cmd: "test \"$(git ls-remote origin refs/heads/main | cut -f1)\" = \"$(git rev-parse HEAD)\""
+          status: pass
+        - cmd: "npx vitest run test/variantSubmission.test.ts test/variantForm.test.ts test/variantManager.test.ts --coverage"
+          status: pass
+        - cmd: "npm run typecheck"
+          status: pass
+        - cmd: "npm run lint"
+          status: pass
+        - cmd: "npx prettier --check test/variantSubmission.test.ts test/variantForm.test.ts test/variantManager.test.ts"
+          status: pass
+        - cmd: "npm test -- --coverage"
+          status: pass
+        - cmd: "node -e \"const c=require('./coverage/coverage-summary.json').total; console.log(JSON.stringify(c))\""
+          status: pass
+        - cmd: "git diff --check"
+          status: pass
+        - cmd: "git diff --exit-code e0c5ece8edbbe5692cb5c540555fe6f3154130a7 -- src/widget/variants/submission.ts src/widget/variants/form.ts src/widget/variants/manager.ts"
+          status: pass
+        - cmd: "npx vitest run test/variantSubmission.test.ts -t 'sends the exact URL, method, headers, authentication, payload, and redacted metadata|rejects malformed successful Issue responses'"
+          status: pass
+      summary: "Added 14 deterministic tests covering exact authenticated transport/payload, query/hash redaction, secure-ID UUID/fallback/failure paths, malformed responses, busy suppression, retry, cancellation, disposal, listener cleanup, and reset. Default fetch mocks reject unexpected requests. Full verification passed: 60 files, 923 tests; coverage is 4717/7069 lines (66.72%) and 3743/5744 branches (65.16%), improving the trusted baseline by 57 lines and 51 branches. Adversarial privacy/malformed-response isolation passed 5 tests."
+      deviations:
+        - "Initial lint found two unsafe optional-chain assertions and initial Prettier check found formatting differences; both were corrected using apply_patch, then the complete verification sequence passed. Lint retains six generated coverage-file warnings and zero errors."
+      remaining_blockers: []
+      verification_attempts: 2
+  - id: T005
+    type: worker
+    assignee: Worker
+    status: blocked
+    reasoning_hint: medium
+    objective: "Add deterministic privacy, console, viewport-capture, screenshot-option, and annotation-flow tests with cleanup proof on every error path."
+    inputs:
+      - "T004 receipt"
+      - "src/widget/console-logs.ts"
+      - "src/widget/viewport-capture.ts"
+      - "src/widget/screenshot-options.ts"
+      - "src/widget/annotation-flow.ts"
+    constraints:
+      - "Exercise serialization failures, rejection paths, delayed events, and cleanup—not only success paths."
+      - "Assert media tracks and listeners are cleaned exactly once."
+      - "Do not treat canvas mocks as proof of visual correctness."
+    expected_output:
+      - "Idempotent console wrapping, redaction, bounded immutable snapshots, and hostile-value serialization tests"
+      - "Capture unavailable/rejected/wrong-surface/no-frame/no-context/timeout tests"
+      - "Screenshot option and annotation lifecycle tests"
+      - "Before/after component coverage receipt"
+    allowed_files:
+      - "test/consoleLogs.test.ts"
+      - "test/viewportCapture.test.ts"
+      - "test/screenshotOptions.test.ts"
+      - "test/annotationFlow.test.ts"
+    verify:
+      - "npx vitest run test/consoleLogs.test.ts test/viewportCapture.test.ts test/screenshotOptions.test.ts test/annotationFlow.test.ts --coverage"
+      - "npm run typecheck"
+      - "npm test -- --coverage"
+    stop_if:
+      - "A browser-specific fact cannot be represented faithfully in the unit environment."
+      - "Production changes are required."
+      - "Verification fails twice for the same unexplained reason."
+    receipt:
+      result: blocked
+      changed_files:
+        - test/consoleLogs.test.ts
+        - test/viewportCapture.test.ts
+        - test/screenshotOptions.test.ts
+        - test/annotationFlow.test.ts
+      commands:
+        - cmd: "npx vitest run test/consoleLogs.test.ts test/viewportCapture.test.ts test/screenshotOptions.test.ts test/annotationFlow.test.ts --coverage"
+          status: fail
+      summary: "Added the four assigned deterministic test files. The first targeted run passed 21/23 tests but proved a production cleanup defect: when video.play() never settles, the outer capture timeout rejects while captureVideoFrame remains suspended before finally, leaving the media track unstopped. Stopped immediately because repairing this requires an unallowed source change."
+      deviations:
+        - "Remaining verification commands were not run after the production-change stop condition triggered."
+        - "One console truncation assertion also needs test-data correction because the long token-like input is redacted before truncation."
+      blockers:
+        - "Viewport timeout does not stop the media track or clear video.srcObject when video.play() remains pending."
+        - "The console truncation fixture requires a test-only correction if work resumes."
+      remaining_blockers:
+        - "Viewport timeout cleanup requires a production change outside allowed_files."
+        - "The console truncation fixture requires correction."
+      attempts: 1
+      verification_attempts: 1
+      stopped_because: "A required failure-cleanup test demonstrated that production changes are required, triggering T005 stop_if."
+  - id: T016
+    type: judge
+    assignee: Judge
+    status: done
+    reasoning_hint: high
+    objective: "Audit the preserved viewport-capture timeout leak and define the smallest fail-safe cleanup repair before privacy/capture coverage resumes."
+    inputs:
+      - "T005 blocked receipt and preserved failing tests"
+      - "src/widget/viewport-capture.ts"
+      - "Capture timeout orchestration and existing browser coverage"
+    constraints:
+      - "Read-only."
+      - "Do not normalize a leaked MediaStream track as expected behavior."
+      - "Distinguish cleanup ownership between the outer timeout and inner frame capture."
+      - "Keep the repair bounded and require exact-once cleanup."
+    expected_output:
+      - "Confirmed or rejected defect"
+      - "Smallest Worker package with exact allowed_files"
+      - "Race-safe verification and stop conditions"
+      - "Decision on resuming the remaining T005 tests"
+    receipt:
+      result: done
+      decision: approved
+      full_outcome_complete: false
+      rationale: "Confirmed. withCaptureTimeout rejects after 15 seconds but conveys no cancellation; captureVideoFrame owns cleanup only in a finally reached after waitForVideoFrame, whose first await can remain pending forever at video.play(). The preserved reproduction returns the timeout with stop count zero and an uncleared srcObject. A bounded repair may add timeout-only abort signaling, keep all stream/video cleanup in one idempotent inner owner, and drain late settlement or rejection. The console failure is fixture-only: x.repeat(1200) is intentionally redacted to [redacted], so spaced non-secret text can test truncation. T017 may finish the four preserved suites; T018 remains required."
+      worker_package:
+        objective: "Repair viewport timeout cleanup without changing public APIs or unrelated capture behavior. Extend the shared timeout helper with an optional timeout-only cancellation hook that runs before timeout rejection and never runs after ordinary settlement. In viewport capture, use that hook only to abort the operation; keep stream, video, frame-callback, and event-listener cleanup in one idempotent inner owner established immediately when a stream arrives. Make every wait abort-aware so stalled video.play() cannot hold finally open. Stop every acquired track exactly once, assign video.srcObject = null exactly once when it was attached, and prevent drawing after cancellation. Observe late getDisplayMedia and play fulfillment or rejection without unhandled rejections or duplicate cleanup. Preserve the timeout error. Correct the console truncation fixture with long spaced non-secret text, then complete all four preserved T005 suites."
+        allowed_files:
+          - src/widget/capture-timeout.ts
+          - src/widget/viewport-capture.ts
+          - test/viewportCapture.test.ts
+          - test/consoleLogs.test.ts
+          - test/screenshotOptions.test.ts
+          - test/annotationFlow.test.ts
+        cleanup_contract:
+          outer_owner: "withCaptureTimeout owns only the 15-second deadline and invokes an optional cancellation hook exactly once before rejecting with the existing localized timeout error. It must not directly stop streams or detach videos."
+          inner_owner: "viewport capture owns every acquired MediaStream, video attachment, frame callback, and loadeddata/canplay/error listener. One guarded cleanup function handles success, validation failure, timeout abort, and all later inner outcomes."
+          exact_once: "Each acquired track.stop() is called once. video.srcObject is set to null once if and only if the stream was attached. Validation must throw without separately stopping tracks; the shared cleanup owner performs that stop."
+          late_outcomes: "If getDisplayMedia resolves after timeout, immediately create the cleanup owner, detect the already-aborted signal, stop the stream, and do not call play or draw. If play settles or rejects after timeout, keep both handlers attached, perform no capture work, emit no unhandled rejection, and leave cleanup counts unchanged."
+        verify:
+          - "npx vitest run test/viewportCapture.test.ts -t 'cleans tracks and srcObject exactly once when stalled playback times out|observes late playback resolution and rejection without double cleanup|stops a stream that arrives after timeout'"
+          - "npx vitest run test/viewportCapture.test.ts --coverage"
+          - "npx vitest run test/consoleLogs.test.ts test/viewportCapture.test.ts test/screenshotOptions.test.ts test/annotationFlow.test.ts --coverage"
+          - "npm run typecheck"
+          - "npm run lint"
+          - "npx prettier --check src/widget/capture-timeout.ts src/widget/viewport-capture.ts test/consoleLogs.test.ts test/viewportCapture.test.ts test/screenshotOptions.test.ts test/annotationFlow.test.ts"
+          - "npm run build:widget"
+          - "npx playwright test e2e/widget.spec.ts --project=chromium --grep 'offers native viewport capture on very complex secure-context pages|returns to screenshot options after native viewport capture fails|rejects non-browser native capture surfaces before annotation'"
+          - "npm test -- --coverage"
+          - "node -e \"const c=require('./coverage/coverage-summary.json').total; console.log(JSON.stringify(c))\""
+          - "git diff --check"
+          - "git diff --exit-code -- e2e/widget.spec.ts src/widget/screenshot.ts src/widget/capture-flow.ts src/widget/capture-loading.ts src/widget/screenshot-options.ts"
+        stop_if:
+          - "Any production or test change is required outside allowed_files."
+          - "The repair changes the public API, timeout duration, localized timeout result, or non-viewport behavior of existing withCaptureTimeout callers."
+          - "The timeout hook cannot be limited to the actual timeout branch or can suppress the timeout rejection when cancellation fails."
+          - "Any success, wrong-surface, stalled-play, late-stream, late-play-resolution, or late-play-rejection case double-stops a track or clears srcObject more than once."
+          - "A late inner fulfillment draws a frame, changes the already-returned timeout result, or a late rejection is reported as unhandled."
+          - "Prompt cleanup still depends on the never-settling play promise reaching its own finally."
+          - "The browser gates disagree with unit cleanup behavior or require a test-only production seam, shortened production timeout, or edit to e2e/widget.spec.ts."
+          - "The 21 currently green preserved tests require unrelated production changes or semantic weakening."
+          - "An allowed file differs from the T005-preserved snapshot because of overlapping user work."
+          - "Verification fails twice for the same unexplained reason."
+      evidence:
+        - kind: executed_reproduction
+          detail: "The targeted viewport test failed after timeout with track.stop at zero calls; the timeout was returned but cleanup did not run."
+        - kind: preserved_suite
+          detail: "The four T005 files executed 23 tests: 21 passed and two failed, exactly the viewport cleanup defect and console truncation fixture."
+        - kind: source_trace
+          detail: "viewport-capture races the acquisition/frame promise against the timeout, but awaits video.play() before reaching its only finally cleanup."
+        - kind: timeout_ownership
+          detail: "capture-timeout only rejects and clears its timer; it provides no cancellation signal or hook."
+        - kind: late_stream_risk
+          detail: "A getDisplayMedia continuation remains live after Promise.race settles and can acquire a stream after the result is abandoned."
+        - kind: fixture_diagnosis
+          detail: "The long x-only fixture is intentionally redacted; spaced non-secret prose isolates truncation."
+        - kind: browser_coverage
+          detail: "Existing Chromium tests cover real viewport success, immediate acquisition failure/retry, and wrong-surface cleanup, but not never-settling play."
+        - kind: read_only_proof
+          detail: "Final git status matched the initial status; Judge made no changes."
+      parallel_safety:
+        safe: false
+        rationale: "T017 is one coherent resource-ownership repair; no concurrent writer may touch these files before T018."
+      blocked_tasks:
+        - T005
+        - T006
+      missing_evidence:
+        - "No repair exists yet; the viewport regression remains red."
+        - "Browser cases were inspected but not rerun under the read-only role."
+        - "Post-repair coverage delta and full verification remain for T017."
+        - "Late resolution/rejection proof must be explicit in unit tests."
+      required_board_updates:
+        - "Record T016 done."
+        - "Copy the complete worker package into T017 and activate it."
+        - "Keep T005 as historical blocked discovery evidence."
+        - "Keep T018 as mandatory post-repair Judge gate."
+        - "Do not activate T006 before T018 approval."
+  - id: T017
+    type: worker
+    assignee: Worker
+    status: done
+    reasoning_hint: medium
+    objective: "Repair viewport timeout cleanup without changing public APIs or unrelated capture behavior. Extend the shared timeout helper with an optional timeout-only cancellation hook that runs before timeout rejection and never after ordinary settlement. In viewport capture, use that hook only to abort the operation; keep stream, video, frame-callback, and listener cleanup in one idempotent inner owner established immediately when a stream arrives. Make every wait abort-aware so stalled video.play() cannot hold finally open. Stop every acquired track exactly once, clear video.srcObject exactly once when attached, prevent drawing after cancellation, and observe late stream/play fulfillment or rejection without unhandled rejections or duplicate cleanup. Correct the console truncation fixture and complete all four T005 suites."
+    inputs:
+      - "T016 Worker package"
+      - "T005 preserved tests"
+    constraints:
+      - "Preserve the failing timeout regression and assert exact-once cleanup."
+      - "Do not broaden into visual behavior or unrelated capture refactoring."
+      - "The outer timeout owns only deadline/cancellation signaling; viewport capture owns all resource cleanup."
+      - "Late stream or play outcomes must be observed without capture work or unhandled rejection."
+    expected_output:
+      - "Green timeout leak regression"
+      - "Completed console, screenshot-option, and annotation-flow tests"
+      - "Targeted and full coverage delta"
+    allowed_files:
+      - "src/widget/capture-timeout.ts"
+      - "src/widget/viewport-capture.ts"
+      - "test/viewportCapture.test.ts"
+      - "test/consoleLogs.test.ts"
+      - "test/screenshotOptions.test.ts"
+      - "test/annotationFlow.test.ts"
+    verify:
+      - "npx vitest run test/viewportCapture.test.ts -t 'cleans tracks and srcObject exactly once when stalled playback times out|observes late playback resolution and rejection without double cleanup|stops a stream that arrives after timeout'"
+      - "npx vitest run test/viewportCapture.test.ts --coverage"
+      - "npx vitest run test/consoleLogs.test.ts test/viewportCapture.test.ts test/screenshotOptions.test.ts test/annotationFlow.test.ts --coverage"
+      - "npm run typecheck"
+      - "npm run lint"
+      - "npx prettier --check src/widget/capture-timeout.ts src/widget/viewport-capture.ts test/consoleLogs.test.ts test/viewportCapture.test.ts test/screenshotOptions.test.ts test/annotationFlow.test.ts"
+      - "npm run build:widget"
+      - "npx playwright test e2e/widget.spec.ts --project=chromium --grep 'offers native viewport capture on very complex secure-context pages|returns to screenshot options after native viewport capture fails|rejects non-browser native capture surfaces before annotation'"
+      - "npm test -- --coverage"
+      - "node -e \"const c=require('./coverage/coverage-summary.json').total; console.log(JSON.stringify(c))\""
+      - "git diff --check"
+      - "git diff --exit-code -- e2e/widget.spec.ts src/widget/screenshot.ts src/widget/capture-flow.ts src/widget/capture-loading.ts src/widget/screenshot-options.ts"
+    stop_if:
+      - "Any production or test change is required outside allowed_files."
+      - "The repair changes the public API, timeout duration, localized timeout result, or non-viewport behavior of existing withCaptureTimeout callers."
+      - "The timeout hook cannot be limited to the actual timeout branch or can suppress the timeout rejection when cancellation fails."
+      - "Any path double-stops a track or clears srcObject more than once."
+      - "A late outcome draws, changes the returned timeout result, or produces an unhandled rejection."
+      - "Prompt cleanup still depends on the never-settling play promise reaching its own finally."
+      - "Browser gates disagree or require an e2e edit or test-only production seam."
+      - "The 21 green preserved tests require unrelated semantic changes."
+      - "An allowed file has overlapping user work."
+      - "Verification fails twice for the same unexplained reason."
+    receipt:
+      result: done
+      changed_files:
+        - src/widget/capture-timeout.ts
+        - src/widget/viewport-capture.ts
+        - test/consoleLogs.test.ts
+        - test/viewportCapture.test.ts
+        - test/screenshotOptions.test.ts
+        - test/annotationFlow.test.ts
+      commands:
+        - cmd: "npx vitest run test/viewportCapture.test.ts -t 'cleans tracks and srcObject exactly once when stalled playback times out|observes late playback resolution and rejection without double cleanup|stops a stream that arrives after timeout'"
+          status: pass
+        - cmd: "npx vitest run test/viewportCapture.test.ts --coverage"
+          status: pass
+        - cmd: "npx vitest run test/consoleLogs.test.ts test/viewportCapture.test.ts test/screenshotOptions.test.ts test/annotationFlow.test.ts --coverage"
+          status: pass
+        - cmd: "npm run typecheck"
+          status: pass
+        - cmd: "npm run lint"
+          status: pass
+        - cmd: "npx prettier --check src/widget/capture-timeout.ts src/widget/viewport-capture.ts test/consoleLogs.test.ts test/viewportCapture.test.ts test/screenshotOptions.test.ts test/annotationFlow.test.ts"
+          status: pass
+        - cmd: "npm run build:widget"
+          status: pass
+        - cmd: "npx playwright test e2e/widget.spec.ts --project=chromium --grep 'offers native viewport capture on very complex secure-context pages|returns to screenshot options after native viewport capture fails|rejects non-browser native capture surfaces before annotation'"
+          status: pass
+        - cmd: "npm test -- --coverage"
+          status: pass
+        - cmd: "node -e \"const c=require('./coverage/coverage-summary.json').total; console.log(JSON.stringify(c))\""
+          status: pass
+        - cmd: "git diff --check"
+          status: pass
+        - cmd: "git diff --exit-code -- e2e/widget.spec.ts src/widget/screenshot.ts src/widget/capture-flow.ts src/widget/capture-loading.ts src/widget/screenshot-options.ts"
+          status: pass
+      summary: "Implemented timeout-only cancellation and one idempotent viewport resource owner. Stalled playback, late stream arrival, and late play fulfillment/rejection now stop tracks and clear attachments exactly once without drawing or changing the timeout error. Completed 26 focused privacy/capture tests. Full verification passed: 64 files, 949 tests, three Chromium cases, 69.17% lines and 66.36% branches."
+      deviations:
+        - "Initial typecheck, lint, and Prettier checks exposed small test/type issues that were corrected before the complete final verification sequence."
+        - "A strengthened delayed-event assertion initially revealed premature test synchronization; it now waits for real listener registration and proves each readiness listener is removed exactly once."
+        - "Lint passed with six pre-existing warnings from generated coverage files."
+      blockers: []
+      remaining_blockers: []
+      attempts: 2
+      verification_attempts: 2
+  - id: T018
+    type: judge
+    assignee: Judge
+    status: done
+    reasoning_hint: high
+    objective: "Audit viewport timeout cleanup, exact-once resource release, completed privacy/capture tests, and coverage delta before authorizing T006."
+    inputs:
+      - "T017 receipt and diff"
+      - "T005 defect discovery receipt"
+      - "T016 cleanup contract"
+    constraints:
+      - "Read-only."
+      - "Require the preserved timeout regression and full verification."
+      - "Reject cleanup that leaves an unobserved inner rejection or double-stops tracks."
+    expected_output:
+      - "Cleanup verdict"
+      - "Missing evidence or explicit authorization for T006"
+      - "Trusted post-repair baseline"
+    receipt:
+      result: done
+      decision: approved
+      full_outcome_complete: false
+      rationale: "Approved. The timeout helper invokes cancellation only from its timer and preserves the localized timeout if the hook throws. Viewport capture creates one guarded resource owner immediately after stream acquisition; abort cleans synchronously, inner finally becomes a no-op, and validation no longer double-stops. Abort-aware play, frame, and event waits retain late handlers, cancel callbacks and timers, remove listeners, and recheck cancellation before drawing. Independent focused reruns passed five adversarial and 26 package tests; the full rerun passed 64 files and 949 tests at 69.17% lines and 66.36% branches. Playwright artifacts report the three unchanged Chromium cases passed. T006 is authorized; the 72%/67% oracle remains unmet."
+      evidence:
+        - kind: ownership_audit
+          detail: "capture-timeout.ts adds only an optional callback invoked inside the 15-second timer. Successful capture clears the timer without invoking it, and callback exceptions are caught before the unchanged localized timeout rejection."
+        - kind: single_cleanup_owner
+          detail: "viewport-capture.ts creates one CaptureResourceOwner immediately after stream acquisition. Its cleaned guard makes abort cleanup and inner finally mutually idempotent; wrong-surface validation now throws without independently stopping tracks."
+        - kind: exact_once_resources
+          detail: "The stalled-play regression asserts one track stop, exactly two srcObject writes—stream then null—and no draw. Late play fulfillment and rejection retain the same cleanup counts and never draw."
+        - kind: late_stream_handling
+          detail: "A stream arriving after timeout creates its owner against an already-aborted signal, is stopped immediately, never attaches to video, never calls play, and never draws."
+        - kind: late_rejection_handling
+          detail: "play rejection is converted through an attached rejection handler before racing with abort. The independent Vitest run completed without unhandled-error output after exercising both late resolution and late rejection."
+        - kind: listener_cleanup
+          detail: "Readiness settlement clears its timer and removes loadeddata, canplay, error, and abort listeners. The delayed-loadeddata test waits for actual registration and asserts each video listener is removed exactly once. Frame waits cancel their registered callback and timer on settlement or abort."
+        - kind: focused_verification
+          detail: "Independent adversarial rerun passed five selected timeout, late-outcome, and listener cases. The four preserved T005 suites independently passed 26/26 tests with coverage enabled."
+        - kind: full_verification
+          detail: "Independent npm test -- --coverage passed 64 files and 949 tests. Independent typecheck, lint, Prettier, diff-check, and prohibited-file checks passed; lint emitted only six generated-coverage warnings."
+        - kind: trusted_baseline
+          detail: "coverage-summary.json records 4927/7123 lines, 69.17%; 3824/5762 branches, 66.36%; 963/1348 functions, 71.43%; and 5343/7837 statements, 68.17%."
+        - kind: browser_verification
+          detail: "T017 ran the exact three unchanged Chromium cases for native viewport success, acquisition failure/retry, and wrong-surface cleanup. The retained Playwright artifact reports status passed with no failed tests."
+        - kind: scope_and_complexity
+          detail: "Production changes are limited to capture-timeout.ts and viewport-capture.ts. The latter remains 228 lines, under the repository's 300-line limit; prohibited capture, screenshot, E2E, and configuration files have no T017 diff."
+        - kind: next_risk_slice
+          detail: "Current coverage shows picker.ts at 1/151 lines, area-picker.ts at 1/103, annotator.ts at 7/149, and picker-target.ts at 3/26, with zero covered functions in all four. T006 remains the risk-prioritized next vertical slice."
+      parallel_safety:
+        safe: false
+        rationale: "T006 combines four interacting unit surfaces with one shared browser oracle. Run it as one Worker package; do not concurrently edit e2e/widget.spec.ts."
+      blocked_tasks: []
+      missing_evidence:
+        - "The original 72% line and 67% branch oracle is not yet met."
+        - "Picker, area-picker, annotator, and picker-target still lack direct unit suites; T006 supplies that evidence."
+        - "The full widget Chromium suite and post-T006 coverage delta remain pending."
+      required_board_updates:
+        - "Record T018 done with decision approved."
+        - "Record 69.17% lines (4927/7123) and 66.36% branches (3824/5762) as the trusted post-T017 baseline."
+        - "Populate T006 with this exact worker_package and activate it."
+        - "Keep T005 as historical defect-discovery evidence and T017 as the verified repair receipt."
+        - "Keep T007 as the mandatory cumulative risk, browser-proof, and coverage Judge gate after T006."
+        - "Do not claim the full outcome complete until the 72%/67% oracle and remaining final gates are satisfied."
+      worker_package: null
+      subgoal_contract: null
+  - id: T006
+    type: worker
+    assignee: Worker
+    status: blocked
+    reasoning_hint: medium
+    objective: "Add direct deterministic tests for picker, area-picker, annotator, and picker-target state transitions without changing production code. Cover desktop, touch, and coarse-pointer selection; nested and SVG target normalization; owned-node exclusion; click suppression; cancellation and teardown; area clamping, minimum size, coordinate translation, and pointer cleanup; annotator coordinate scaling, tool output, undo ordering, unfinished-draft cancellation, and idempotent destruction. Use jsdom only for state and cleanup contracts. Preserve and run real bundled-widget Chromium cases for SVG/nested targets, mobile touch selection, click suppression, area geometry, annotation output, undo, and cropped screenshot behavior. Reuse existing output/pixel assertions when they already prove the browser contract; edit e2e/widget.spec.ts only for a demonstrated gap. Report per-file and aggregate coverage deltas."
+    inputs:
+      - "T005 receipt"
+      - "src/widget/picker.ts"
+      - "src/widget/area-picker.ts"
+      - "src/widget/annotator.ts"
+      - "src/widget/picker-target.ts"
+      - "Existing Playwright widget tests"
+    constraints:
+      - "Unit mocks cover state transitions and cleanup only."
+      - "Preserve real bundled-widget Playwright tests for pointer, canvas, Shadow DOM, mobile, and screenshot behavior."
+      - "Include at least one output- or pixel-level browser assertion for annotation/capture behavior."
+      - "Avoid duplicating every E2E case in jsdom."
+    expected_output:
+      - "Desktop/touch/coarse-pointer selection and nested/SVG target tests"
+      - "Cancellation, click suppression, clamping, minimum-size, coordinate-scaling, undo, and teardown tests"
+      - "Targeted Playwright proof against the real bundle"
+      - "Before/after component coverage receipt"
+    allowed_files:
+      - "test/picker.test.ts"
+      - "test/areaPicker.test.ts"
+      - "test/annotator.test.ts"
+      - "test/pickerTarget.test.ts"
+      - "e2e/widget.spec.ts"
+    verify:
+      - "npx vitest run test/picker.test.ts test/areaPicker.test.ts test/annotator.test.ts test/pickerTarget.test.ts --coverage"
+      - "npx vitest run test/picker.test.ts test/areaPicker.test.ts -t 'suppresses the selecting click|cancels and removes every listener|clamps selection and rejects undersized areas|normalizes touch and coarse-pointer input'"
+      - "npx vitest run test/annotator.test.ts test/pickerTarget.test.ts -t 'scales pointer coordinates to canvas pixels|undoes mixed completed annotations in order|cancels unfinished drafts|resolves nested SVG and clickable ancestors'"
+      - "npm run typecheck"
+      - "npm run lint"
+      - "npx prettier --check test/picker.test.ts test/areaPicker.test.ts test/annotator.test.ts test/pickerTarget.test.ts e2e/widget.spec.ts"
+      - "npm run build:widget"
+      - "npx playwright test e2e/widget.spec.ts --project=chromium --grep 'element picker handles nested SVG child elements without errors|area picker accepts touch drag selection on mobile|element picker prevents selected mobile tap from reaching the page|element picker selects nearest clickable ancestor from nested content|undo preserves mixed annotation history in the submitted screenshot|area-cropped capture preserves masks inside the selected region'"
+      - "npx playwright test e2e/widget.spec.ts --project=chromium"
+      - "npm test -- --coverage"
+      - "node -e \"const c=require('./coverage/coverage-summary.json').total; console.log(JSON.stringify(c))\""
+      - "git diff --check"
+      - "git diff --exit-code -- src/widget/picker.ts src/widget/area-picker.ts src/widget/annotator.ts src/widget/picker-target.ts playwright.config.ts vitest.config.ts"
+    stop_if:
+      - "Any production source, configuration, or file outside allowed_files must change."
+      - "A jsdom mock becomes the only oracle for pointer geometry, canvas pixels, Shadow DOM, SVG hit-testing, touch activation, or bundled-widget behavior."
+      - "Tests assert private implementation structure instead of public state transitions, emitted canvas output, listener cleanup, or durable DOM behavior."
+      - "The unit model requires fabricated PointerEvent, layout, or canvas behavior that disagrees with Chromium."
+      - "Existing output-level Chromium assertions cannot prove annotation or capture behavior and the missing proof cannot be added narrowly within e2e/widget.spec.ts."
+      - "A targeted Playwright regression requires broad widget bootstrap refactoring."
+      - "Coverage gains come primarily from import execution or trivial getters rather than picker, area, annotator, and target-resolution branches."
+      - "An allowed file contains overlapping user changes."
+      - "Verification fails twice for the same unexplained reason."
+    receipt:
+      result: blocked
+      changed_files:
+        - test/picker.test.ts
+        - test/areaPicker.test.ts
+        - test/annotator.test.ts
+        - test/pickerTarget.test.ts
+      commands:
+        - cmd: "npx vitest run test/picker.test.ts test/areaPicker.test.ts test/annotator.test.ts test/pickerTarget.test.ts --coverage"
+          status: fail
+        - cmd: "npx vitest run test/picker.test.ts test/areaPicker.test.ts test/annotator.test.ts test/pickerTarget.test.ts --coverage"
+          status: fail
+        - cmd: "npx vitest run test/picker.test.ts test/areaPicker.test.ts test/annotator.test.ts test/pickerTarget.test.ts --coverage"
+          status: fail
+      summary: "Added bounded public-contract suites in four allowed files; e2e/widget.spec.ts remained unchanged because existing named Chromium tests provide touch and pixel proof. After two fix attempts, focused verification still had one assertion mismatch: the redaction-aware prompt says private fields may be masked, not ‘redact.’ Per-file/aggregate coverage, browser proof, and remaining gates are unavailable because the mandated stop condition fired. No production/config/out-of-scope file was edited by this worker."
+      remaining_blockers:
+        - "Focused Vitest verification has one failing prompt-text assertion in test/areaPicker.test.ts."
+        - "Verification remained red after two fix attempts, so all later required commands were not run."
+        - "Coverage deltas and Chromium verification were not produced."
+      verification_attempts: 3
+      stopped_because: "Verification remained failing after the maximum two fix attempts."
+  - id: T007
+    type: judge
+    assignee: Judge
+    status: done
+    reasoning_hint: high
+    objective: "Review cumulative risk reduction, assertion quality, browser proof, and coverage deltas before measurement or structural work."
+    inputs:
+      - "T002 through T006 receipts and diffs"
+      - "Current coverage reports"
+      - "Targeted Playwright results"
+    constraints:
+      - "Read-only."
+      - "Reject percentage gains caused primarily by low-value execution or brittle mocks."
+      - "Decide whether the 72%/67% oracle remains meaningful after denominator changes."
+    expected_output:
+      - "Phase verdict"
+      - "Risk-weighted gap list"
+      - "Trusted baseline for reporting work"
+      - "Decision whether structural extraction is justified later"
+    receipt:
+      result: done
+      decision: approved
+      full_outcome_complete: false
+      rationale: "The focused failure independently reproduces: 13/14 tests pass; only toContain('redact') fails against the public prompt ‘Marked private fields may be masked if included.’ Source and browser evidence show the wording is intentional, so no product contract is broken. Other tests exercise returned targets, coordinates, teardown, canvas calls/history, and disabled-role handling, while existing Chromium tests provide touch, nested SVG, pixel-mask, and submitted-image undo proof. With the bad case skipped, line coverage reaches 86.09% picker, 92.23% area-picker, 94.63% annotator, and 96.15% picker-target, demonstrating behavior-driven gains. Authorize one fixture/title correction plus deferred gates; the phase remains incomplete and the trusted aggregate baseline stays 69.17%/66.36%."
+      phase_verdict: not_complete_pending_bounded_t006_repair
+      trusted_baseline:
+        source: "T018 independently verified post-T017 full run"
+        test_files: 64
+        tests: 949
+        lines:
+          covered: 4927
+          total: 7123
+          pct: 69.17
+        branches:
+          covered: 3824
+          total: 5762
+          pct: 66.36
+      structural_extraction_decision: deferred_until_t006_is_green_and_the_cumulative_phase_gate_is_repeated
+      risk_weighted_gaps:
+        - priority: 1
+          gap: "T006 remains unverified as a complete package because its focused suite is red and all static, browser, full-unit, and aggregate-coverage gates were skipped."
+        - priority: 2
+          gap: "The aggregate oracle remains below 72% lines and 67% branches at the trusted 69.17%/66.36% baseline."
+        - priority: 3
+          gap: "No trusted post-T006 aggregate denominator or delta exists yet; the current focused coverage artifact is not an aggregate baseline."
+      evidence:
+        - kind: independent_reproduction
+          detail: "The exact four-file focused command failed 1/14. The sole failure was test/areaPicker.test.ts expecting substring redact; actual text was the intended masked-fields guidance."
+        - kind: fixture_only_diagnosis
+          detail: "area-picker.ts selects t().areaPickerRedactionInstruction when redactionsAvailable is true. The test passes that option and renders the intended branch; only its vocabulary assertion is wrong."
+        - kind: no_metric_gaming
+          detail: "An independent 13-test run excluding only the bad fixture passed and covered picker at 130/151 lines, area-picker at 95/103, annotator at 141/149, and picker-target at 25/26. Assertions drive state transitions and outputs rather than merely importing modules."
+        - kind: browser_output_oracle
+          detail: "Existing unchanged Chromium tests exercise real touch drag selection, mobile tap suppression, nested SVG and clickable-ancestor targeting, pixel counts, submitted data URLs, annotation undo persistence, and masked area-crop output."
+        - kind: cumulative_scope
+          detail: "T006 added only its four authorized test files and did not edit E2E, production, coverage, or Playwright configuration."
+        - kind: read_only_proof
+          detail: "Final tracked and untracked status matched the initial T007 status; Judge made no source, test, board, or external-state changes."
+      subgoal_contract: null
+      parallel_safety:
+        safe: false
+        rationale: "The correction is one file, but its completion proof includes the shared full widget browser suite. Do not run another writer or browser-suite mutation in parallel."
+      blocked_tasks:
+        - T006
+        - T008
+      missing_evidence:
+        - "A green 14-test focused T006 run after correcting the fixture."
+        - "T006 typecheck, lint, formatting, and full unit results."
+        - "Current targeted and full widget Chromium results for the cumulative T006 state."
+        - "Trusted post-T006 aggregate and per-file coverage counts."
+        - "The final milestone Judge phase verdict after T006 completion."
+      required_board_updates:
+        - "Record T007 done as an approved bounded correction gate, not as phase completion."
+        - "Keep T006 blocked."
+        - "Create and activate T019 as a Worker using the exact worker_package."
+        - "After T019, create a read-only milestone Judge gate before T008."
+      worker_package: null
+  - id: T019
+    type: worker
+    assignee: Worker
+    status: blocked
+    reasoning_hint: medium
+    objective: "Correct only the inaccurate area-picker fixture and overbroad test names. In test/areaPicker.test.ts, replace the unrelated redact substring assertion with the actual English public guidance Marked private fields may be masked if included. Rename that test to shows coarse-pointer cancellation with redaction-aware guidance, because it proves coarse-pointer UI and cancellation rather than touch-event normalization. Rename the reverse-drag test to rejects undersized reverse drags before translating page coordinates, because it does not prove viewport clamping. Do not change production copy, event fixtures, geometry assertions, other tests, or E2E code. Then execute every deferred T006 unit, static, coverage, targeted Chromium, and full widget Chromium gate and report exact aggregate and per-file coverage."
+    inputs:
+      - "T006 blocked receipt and four new test files"
+      - "T007 independent fixture-only diagnosis"
+      - "Existing unchanged Chromium widget tests"
+    constraints:
+      - "Only test/areaPicker.test.ts may change."
+      - "Do not weaken geometry, teardown, output, target-resolution, disabled-state, or history assertions."
+      - "Run every verification gate exactly."
+    expected_output:
+      - "Green 14-test interaction package"
+      - "Static, full unit, and browser-suite proof"
+      - "Trusted aggregate and per-file coverage"
+    allowed_files:
+      - "test/areaPicker.test.ts"
+    verify:
+      - "npx vitest run test/areaPicker.test.ts -t 'shows coarse-pointer cancellation with redaction-aware guidance'"
+      - "npx vitest run test/picker.test.ts test/areaPicker.test.ts test/annotator.test.ts test/pickerTarget.test.ts --coverage"
+      - "npx vitest run test/picker.test.ts test/areaPicker.test.ts -t 'suppresses the selecting click|cancels and removes every listener|rejects undersized reverse drags before translating page coordinates|shows coarse-pointer cancellation with redaction-aware guidance'"
+      - "npx vitest run test/annotator.test.ts test/pickerTarget.test.ts -t 'scales pointer coordinates to canvas pixels|undoes mixed completed annotations in order|cancels unfinished drafts|resolves nested SVG and clickable ancestors'"
+      - "npm run typecheck"
+      - "npm run lint"
+      - "npx prettier --check test/picker.test.ts test/areaPicker.test.ts test/annotator.test.ts test/pickerTarget.test.ts e2e/widget.spec.ts"
+      - "npm run build:widget"
+      - "npx playwright test e2e/widget.spec.ts --project=chromium --grep 'element picker handles nested SVG child elements without errors|area picker accepts touch drag selection on mobile|element picker prevents selected mobile tap from reaching the page|element picker selects nearest clickable ancestor from nested content|undo preserves mixed annotation history in the submitted screenshot|area-cropped capture preserves masks inside the selected region'"
+      - "npx playwright test e2e/widget.spec.ts --project=chromium"
+      - "npm test -- --coverage"
+      - "node -e \"const c=require('./coverage/coverage-summary.json').total; console.log(JSON.stringify(c))\""
+      - "node -e \"const fs=require('fs');const s=JSON.parse(fs.readFileSync('coverage/coverage-summary.json','utf8'));for(const f of ['picker.ts','area-picker.ts','annotator.ts','picker-target.ts']){const k=Object.keys(s).find(x=>x.endsWith('/src/widget/'+f));if(!k)throw new Error('missing coverage for '+f);console.log(f,JSON.stringify(s[k]));}\""
+      - "git diff --check"
+      - "git diff --exit-code -- e2e/widget.spec.ts src/widget/picker.ts src/widget/area-picker.ts src/widget/annotator.ts src/widget/picker-target.ts playwright.config.ts vitest.config.ts"
+    stop_if:
+      - "The normal English prompt no longer contains Marked private fields may be masked if included, making the product-copy contract genuinely ambiguous."
+      - "Any production, configuration, browser-test, or test file other than test/areaPicker.test.ts must change."
+      - "Any focused test still fails after the exact fixture and title corrections."
+      - "A test must weaken geometry, teardown, output, target-resolution, disabled-state, or history assertions to pass."
+      - "The targeted Chromium cases do not provide current touch, nested-target, click-suppression, pixel-mask, and submitted-image undo proof."
+      - "The full widget Chromium suite exposes a product regression."
+      - "Per-file gains collapse to import-only execution or aggregate gains come primarily from unrelated modules."
+      - "An allowed file contains overlapping user changes."
+      - "Verification fails twice for the same unexplained reason."
+    receipt:
+      result: blocked
+      changed_files:
+        - test/areaPicker.test.ts
+      commands:
+        - cmd: "npx vitest run test/areaPicker.test.ts -t 'shows coarse-pointer cancellation with redaction-aware guidance'"
+          status: pass
+        - cmd: "npx vitest run test/picker.test.ts test/areaPicker.test.ts test/annotator.test.ts test/pickerTarget.test.ts --coverage"
+          status: pass
+        - cmd: "npx vitest run test/picker.test.ts test/areaPicker.test.ts -t 'suppresses the selecting click|cancels and removes every listener|rejects undersized reverse drags before translating page coordinates|shows coarse-pointer cancellation with redaction-aware guidance'"
+          status: pass
+        - cmd: "npx vitest run test/annotator.test.ts test/pickerTarget.test.ts -t 'scales pointer coordinates to canvas pixels|undoes mixed completed annotations in order|cancels unfinished drafts|resolves nested SVG and clickable ancestors'"
+          status: pass
+        - cmd: "npm run typecheck"
+          status: pass
+        - cmd: "npm run lint"
+          status: pass
+        - cmd: "npx prettier --check test/picker.test.ts test/areaPicker.test.ts test/annotator.test.ts test/pickerTarget.test.ts e2e/widget.spec.ts"
+          status: pass
+        - cmd: "npm run build:widget"
+          status: pass
+        - cmd: "npx playwright test e2e/widget.spec.ts --project=chromium --grep 'element picker handles nested SVG child elements without errors|area picker accepts touch drag selection on mobile|element picker prevents selected mobile tap from reaching the page|element picker selects nearest clickable ancestor from nested content|undo preserves mixed annotation history in the submitted screenshot|area-cropped capture preserves masks inside the selected region'"
+          status: pass
+        - cmd: "npx playwright test e2e/widget.spec.ts --project=chromium"
+          status: fail
+      summary: "Applied exactly the authorized fixture wording and two title corrections in the sole allowed file. Unit interaction proof passed 14/14; targeted Chromium passed 6/6, including touch, click suppression, nested targeting, mask pixels, and submitted-image undo. The 204-test full Chromium gate repeatedly lost localhost:8787 with ERR_CONNECTION_RESET/REFUSED, causing cascading navigation failures. T019 stopped before full coverage and diff audits; no production, config, E2E, or other test file was changed by this task."
+      remaining_blockers:
+        - "Full Chromium widget verification repeatedly failed because its local web server became unavailable; runner output was truncated before an exact final pass/fail count."
+        - "Full coverage, aggregate/per-file summaries, delta from 69.17% lines/66.36% branches, and final diff audits were not reached due to the stop condition."
+        - "Focused coverage only: picker.ts 86.09% lines/74.60% branches; area-picker.ts 100%/78.57%; annotator.ts 94.63%/81.25%; picker-target.ts 96.15%/100%. These are not trusted aggregate deltas."
+      verification_attempts: 2
+      stopped_because: "The full Chromium verification failed repeatedly for the same unresolved local-server connection-reset/refusal condition."
+  - id: T020
+    type: judge
+    assignee: Judge
+    status: done
+    reasoning_hint: high
+    objective: "Audit the completed T006/T019 interaction package, independently verify assertion quality, browser proof, coverage delta, and cumulative risk reduction, then issue the final phase verdict before T008."
+    inputs:
+      - "T006, T007, and T019 receipts and diffs"
+      - "Current full coverage report"
+      - "Targeted and full Chromium widget results"
+    constraints:
+      - "Read-only."
+      - "Reject metric gaming, brittle private-structure assertions, or missing real-browser proof."
+      - "Do not authorize T008 unless the interaction package and trusted baseline are sound."
+    expected_output:
+      - "Final interaction-phase verdict"
+      - "Trusted post-T019 baseline and delta"
+      - "Risk-weighted remaining gaps"
+      - "Structural-extraction decision and explicit T008 authorization"
+    receipt:
+      result: done
+      decision: approved
+      full_outcome_complete: false
+      phase_verdict: not_complete_pending_isolated_full_chromium_gate
+      rationale: "The latest full report contains 204 tests: 62 passed, then 142 failed exclusively with connection refusal; no assertion failed. Its start postdates workerd's start, showing the full run reused the targeted command's server; that process exited as refusals began. A manually owned server then passed the targeted six plus three formerly refused cases 9/9 with four workers and stayed healthy. This is local webServer reuse/teardown orchestration, not a product regression or resource exhaustion. Focused 14/14, typecheck, scope, and full 68-file/963-test coverage independently pass at 74.60% lines and 68.72% branches. Authorize a no-edit isolated full-browser Worker; T008 stays blocked."
+      failure_classification:
+        class: local_test_orchestration
+        product_regression: false
+        resource_exhaustion_proven: false
+        diagnosis: "The local Playwright configuration permits reuseExistingServer. The full command attached to the preceding targeted command's still-listening workerd during teardown, then lost that process. A separately owned server remained healthy under four-worker execution."
+      trusted_baseline:
+        status: independently_proven_unit_baseline_phase_pending_browser
+        test_files: 68
+        tests: 963
+        statements:
+          covered: 5748
+          total: 7837
+          pct: 73.34
+        branches:
+          covered: 3960
+          total: 5762
+          pct: 68.72
+        functions:
+          covered: 1034
+          total: 1348
+          pct: 76.7
+        lines:
+          covered: 5314
+          total: 7123
+          pct: 74.6
+        delta_from_t018:
+          covered_lines: 387
+          line_percentage_points: 5.43
+          covered_branches: 136
+          branch_percentage_points: 2.36
+        oracle_status: "Unit coverage exceeds 72% line and 67% branch targets, pending isolated full Chromium gate."
+      structural_extraction_decision: "not_justified_for_coverage; direct behavior tests already exceed the unit oracle without production extraction."
+      evidence:
+        - kind: retained_full_report
+          detail: "Decoded Playwright report shows 204 total, 62 passes, 142 failures, zero flaky/skipped."
+        - kind: uniform_failure_shape
+          detail: "All 142 failures were connection refused; zero assertion, pixel, output, or product errors."
+        - kind: server_lifecycle
+          detail: "The reused workerd started during the preceding targeted command and stopped as refusals began."
+        - kind: independent_server_probe
+          detail: "An explicitly owned server passed the six target cases plus three original-boundary cases 9/9 under four workers and zero retries, then remained healthy."
+        - kind: independent_unit_oracle
+          detail: "Full coverage independently passed 68 files and 963 tests at 5314/7123 lines and 3960/5762 branches."
+        - kind: no_metric_gaming
+          detail: "Interaction files reached 86.09%, 100%, 94.63%, and 96.15% lines through state/output assertions."
+        - kind: scope
+          detail: "T019 changed only test/areaPicker.test.ts; prohibited files have no T019 diff."
+      subgoal_contract: null
+      parallel_safety:
+        safe: false
+        rationale: "T021 must exclusively own port 8787 and the complete Chromium report."
+      blocked_tasks:
+        - T008
+      missing_evidence:
+        - "Clean 204/204 Chromium run under one fresh exclusively owned server."
+        - "Final remaining gate receipt."
+        - "Final milestone Judge verdict."
+      required_board_updates:
+        - "Record T020 done."
+        - "Record 74.60% lines and 68.72% branches pending browser acceptance."
+        - "Create and activate T021 with exact package."
+        - "After T021 create read-only milestone Judge before T008."
+      worker_package: null
+  - id: T021
+    type: worker
+    assignee: Worker
+    status: done
+    reasoning_hint: medium
+    objective: "Perform a no-edit verification recovery. Require port 8787 to be unused, then run all 204 Chromium widget tests under Playwright's CI-mode webServer ownership so reuseExistingServer is false. Use four workers to match repository CI concurrency and zero retries so failures cannot be hidden. Do not split, grep, shard, skip, or weaken the full browser oracle. After the full browser pass, run the remaining full unit coverage, exact coverage summaries, static, formatting, and prohibited-diff gates. Report server lifecycle, complete browser counts, aggregate/per-file coverage, and final scope."
+    inputs:
+      - "T020 orchestration diagnosis and exact recovery package"
+      - "Current 68-file/963-test coverage baseline"
+    constraints:
+      - "No files may change."
+      - "Exclusively own port 8787."
+      - "Four workers, zero retries, all 204 tests."
+    expected_output:
+      - "204/204 Chromium proof"
+      - "Final static, coverage, and scope receipt"
+    # GoalBuddy's Worker schema requires at least one allowed path; this is a
+    # verification-only task and the no-edit constraint/stop gate still applies.
+    allowed_files:
+      - "test/areaPicker.test.ts"
+    verify:
+      - "! lsof -nP -iTCP:8787 -sTCP:LISTEN"
+      - "CI=1 npx playwright test e2e/widget.spec.ts --project=chromium --workers=4 --retries=0"
+      - "! lsof -nP -iTCP:8787 -sTCP:LISTEN"
+      - "npm test -- --coverage"
+      - "node -e \"const c=require('./coverage/coverage-summary.json').total; console.log(JSON.stringify(c))\""
+      - "node -e \"const fs=require('fs');const s=JSON.parse(fs.readFileSync('coverage/coverage-summary.json','utf8'));for(const f of ['picker.ts','area-picker.ts','annotator.ts','picker-target.ts']){const k=Object.keys(s).find(x=>x.endsWith('/src/widget/'+f));if(!k)throw new Error('missing coverage for '+f);console.log(f,JSON.stringify(s[k]));}\""
+      - "npm run typecheck"
+      - "npm run lint"
+      - "npx prettier --check test/picker.test.ts test/areaPicker.test.ts test/annotator.test.ts test/pickerTarget.test.ts e2e/widget.spec.ts"
+      - "git diff --check"
+      - "git diff --exit-code -- e2e/widget.spec.ts src/widget/picker.ts src/widget/area-picker.ts src/widget/annotator.ts src/widget/picker-target.ts playwright.config.ts vitest.config.ts"
+    stop_if:
+      - "Port 8787 is already occupied before execution; do not kill or reuse an unknown process."
+      - "Playwright cannot start and exclusively own its CI-mode webServer."
+      - "Any of the 204 Chromium tests fails any product-behavior contract."
+      - "The isolated server exits or becomes unreachable during the full run; preserve output and return as a genuine infrastructure blocker."
+      - "Any retry, grep, shard, skip, max-failure shortcut, or worker count below four is proposed."
+      - "Any source, test, E2E, configuration, or tracked file must change."
+      - "The full unit result differs from 68 files and 963 tests for an unexplained reason."
+      - "Aggregate coverage differs from 5314/7123 lines or 3960/5762 branches without a source/test-scope explanation."
+      - "Coverage gains cease to be concentrated in the four interaction modules or indicate import-only execution."
+      - "Verification fails twice for the same unexplained reason."
+    receipt:
+      result: done
+      changed_files:
+        - test/areaPicker.test.ts
+      commands:
+        - cmd: "! lsof -nP -iTCP:8787 -sTCP:LISTEN"
+          status: pass
+        - cmd: "CI=1 npx playwright test e2e/widget.spec.ts --project=chromium --workers=4 --retries=0"
+          status: pass
+        - cmd: "! lsof -nP -iTCP:8787 -sTCP:LISTEN"
+          status: pass
+        - cmd: "npm test -- --coverage"
+          status: pass
+        - cmd: "node -e \"const c=require('./coverage/coverage-summary.json').total; console.log(JSON.stringify(c))\""
+          status: pass
+        - cmd: "node -e \"const fs=require('fs');const s=JSON.parse(fs.readFileSync('coverage/coverage-summary.json','utf8'));for(const f of ['picker.ts','area-picker.ts','annotator.ts','picker-target.ts']){const k=Object.keys(s).find(x=>x.endsWith('/src/widget/'+f));if(!k)throw new Error('missing coverage for '+f);console.log(f,JSON.stringify(s[k]));}\""
+          status: pass
+        - cmd: "npm run typecheck"
+          status: pass
+        - cmd: "npm run lint"
+          status: pass
+        - cmd: "npx prettier --check test/picker.test.ts test/areaPicker.test.ts test/annotator.test.ts test/pickerTarget.test.ts e2e/widget.spec.ts"
+          status: pass
+        - cmd: "git diff --check"
+          status: pass
+        - cmd: "git diff --exit-code -- e2e/widget.spec.ts src/widget/picker.ts src/widget/area-picker.ts src/widget/annotator.ts src/widget/picker-target.ts playwright.config.ts vitest.config.ts"
+          status: pass
+      summary: "Verification-only task made no edits; changed_files names the schema-required allowed path but initial/final git status matched exactly. Port 8787 was unused before and after Playwright's exclusively owned server. Chromium passed 204/204 in 1.9m with 4 workers, 0 retries. Unit coverage passed 68 files/963 tests: lines 5314/7123=74.60% (+5.43pp), branches 3960/5762=68.72% (+2.36pp). Per-file lines/branches: picker 86.09/74.60; area-picker 100/78.57; annotator 94.63/81.25; picker-target 96.15/100. All remaining gates passed."
+      remaining_blockers: []
+      verification_attempts: 1
+      stopped_because: null
+  - id: T022
+    type: judge
+    assignee: Judge
+    status: done
+    reasoning_hint: high
+    objective: "Audit T021's isolated 204-test Chromium run and final gates, then issue the final interaction-phase verdict and explicit T008 authorization."
+    inputs:
+      - "T020 diagnosis"
+      - "T021 no-edit verification receipt"
+      - "Current coverage and browser reports"
+    constraints:
+      - "Read-only."
+      - "Require complete 204/204 proof and stable server lifecycle."
+      - "Reject skipped/retried/sharded browser proof."
+    expected_output:
+      - "Final interaction-phase verdict"
+      - "Trusted baseline and delta"
+      - "Explicit T008 authorization or blocker"
+    receipt:
+      result: done
+      decision: approved
+      full_outcome_complete: false
+      rationale: "Approved: the interaction phase is complete and T008 is authorized. The retained report independently decodes to 204 unique Chromium tests, one passed result each, retry 0, no annotations, skips, flaky, or unexpected results, with four actual workers; current discovery also lists exactly 204. Independent Vitest rerun passes 68/963. Coverage records 5314/7123 lines (74.60%) and 3960/5762 branches (68.72%); the four interaction modules account for all 387 newly covered lines. Tests assert behavior, cleanup, canvas output, pixels, and submissions. T021 made no edit; its changed_files path is only the documented schema placeholder."
+      evidence:
+        - kind: browser_artifact
+          detail: "Playwright report records 204 total/expected, 204 passed, zero unexpected/flaky/skipped, Chromium only, actualWorkers 4, and 114863.496 ms."
+        - kind: retry_and_skip_disproof
+          detail: "204 unique IDs, one result per test, retry 0 for all, no annotations or non-passed outcomes."
+        - kind: suite_cardinality
+          detail: "Independent CI-mode discovery lists exactly 204 tests; retained artifact contains all 204."
+        - kind: server_lifecycle
+          detail: "Unused-port checks passed before/after and independent lsof confirms port 8787 unused."
+        - kind: independent_unit_verification
+          detail: "Fresh npm test passed 68 files and 963 tests."
+        - kind: coverage_oracle
+          detail: "5314/7123 lines 74.60%, 3960/5762 branches 68.72%, 5748/7837 statements 73.34%, 1034/1348 functions 76.70%."
+        - kind: coverage_concentration
+          detail: "Picker 130/151, area-picker 103/103, annotator 141/149, picker-target 25/26; their 387-line increase exactly equals aggregate increase."
+        - kind: assertion_quality
+          detail: "Tests assert target selection, click suppression, teardown, geometry, canvas output, undo, disabled targets, touch, SVG, submitted pixels, and masked crop pixels."
+        - kind: scope
+          detail: "Prohibited-file diff passes and T021 made no edit."
+      subgoal_contract: null
+      parallel_safety: null
+      blocked_tasks: []
+      missing_evidence:
+        - "Reporting/design tranche beginning T008 remains."
+      required_board_updates:
+        - "Record T022 done."
+        - "Authorize T008."
+        - "Retain structural extraction not justified for coverage."
+  - id: T008
+    type: scout
+    assignee: Scout
+    status: done
+    reasoning_hint: low
+    objective: "Map the safest component and optional browser-coverage reporting design without changing CI or Codecov policy."
+    inputs:
+      - "T007 trusted baseline"
+      - "vitest.config.ts"
+      - "codecov.yml"
+      - ".github/workflows"
+      - "Playwright configuration and bundle source maps"
+    constraints:
+      - "Read-only."
+      - "Account for pull_request, merge_group, docs-only, and public-fork behavior."
+      - "Preserve pinned-action and least-privilege policy."
+      - "Do not install apps, create secrets, or mutate external state."
+    expected_output:
+      - "Component map for widget, backend, and scripts"
+      - "Source-map proof or blockers for a separate e2e flag"
+      - "Event/fork/merge-queue safety matrix"
+      - "Exact proposed files and verification"
+    receipt:
+      result: done
+      summary: "Existing unit LCOV supports trustworthy, non-overlapping widget, backend, and scripts components. Component-only reporting can remain informational and use the current isolated OIDC uploader. Browser LCOV is not trustworthy yet: production/E2E bundles emit no source map, and a read-only sourcemap probe exposed worktree-dependent dependency paths. Canonical src/widget paths are achievable without duplicates, but require filtering, normalization, and Chromium conversion proof. Docs-only runs skip coverage; merge_group runs full coverage; public-fork OIDC upload availability remains unproven and safely fail-open. Judge should authorize components independently and defer e2e upload until canonical-LCOV and representative event evidence exists."
+      evidence:
+        - kind: component_partition
+          detail: "Current lcov.info has 82 unique SF records, zero duplicates: widget 46 files, backend 10, scripts 26; partitions exhaust report."
+        - kind: component_counts
+          detail: "Widget 1921/2853 lines 67.33%, 1178/1943 branches 60.63%; backend 877/938 lines 93.50%, 590/708 branches 83.33%; scripts 2516/3332 lines 75.51%, 2192/3111 branches 70.46%."
+        - kind: trustworthy_paths
+          detail: "Widget src/widget/**; scripts scripts/**; backend explicit src/index.ts, src/defaults.ts, src/types.ts, src/lib/**, src/middleware/**, src/routes/** to avoid overlap."
+        - kind: existing_upload_isolation
+          detail: "PR code runs without OIDC; only coverage/lcov.info crosses via pinned artifact. Reporting job alone gets id-token:write, persist-credentials:false, disable_search:true, plugins:noop, unit flag, fail-open."
+        - kind: docs_only_behavior
+          detail: "ci-scope skips unit/upload for safe docs-only pull requests; merge_group is always full CI."
+        - kind: event_matrix
+          detail: "Product PR and merge_group run/report; docs-only safely skips; public-fork tests need no secrets while OIDC processing remains unproven and fail-open; no push coverage event."
+        - kind: actual_bundle_blocker
+          detail: "build-widget uses write:false, minify:true, no sourcemap, and emits one widget.js; current E2E has no source map for source-level LCOV."
+        - kind: sourcemap_probe
+          detail: "External-map probe produced canonical widget paths but dependency paths through sibling worktree node_modules, requiring filtering and checkout-independent normalization."
+        - kind: duplicate_risk
+          detail: "Valid e2e must reuse canonical src/widget paths and omit public/widget.js/node_modules, or duplication occurs."
+        - kind: browser_scope
+          detail: "No browser coverage collector/converter exists; initial coverage must be Chromium-only while other engines remain behavior proof."
+        - kind: policy_verification
+          detail: "CI workflow contract and Node24 action checks passed; 70 external references SHA-pinned and compatible."
+        - kind: read_only_proof
+          detail: "No Scout writes; inspected files remained clean."
+      facts:
+        - component_map: "[object Object]"
+        - candidate_component_only_files: "codecov.yml,test/ci-workflow-contract.test.sh"
+        - judge_handoff: "Authorize informational components now. Defer browser upload until generated LCOV proves only canonical src/widget SF records, no bundle/dependency records, no duplicates, stable checkout paths, and representative event behavior."
+      contradictions:
+        - claim: "Bundle source maps are existing input."
+          observed: "Actual builder emits none; only synthetic probe assessed feasibility."
+        - claim: "Separate e2e flag prevents duplicates."
+          observed: "Flags distinguish uploads but path correctness still requires canonical filtered records."
+      ambiguity_requiring_judge:
+        - "Authorize component-only config before external processing evidence?"
+        - "Whether future e2e contributes aggregate or stays separate."
+        - "Public-fork OIDC success vs safe failure cannot be locally proven."
+        - "Normal artifact source map vs separate coverage build."
+      commands:
+        - "bash test/ci-workflow-contract.test.sh"
+        - "npm run check:actions-node24"
+        - "LCOV partition/duplicate audit"
+        - "read-only esbuild sourcemap probe"
+        - "git diff audits"
+      note_needed: false
+  - id: T009
+    type: judge
+    assignee: Judge
+    status: done
+    reasoning_hint: high
+    objective: "Choose a trustworthy reporting-only measurement package or explicitly defer it if source mapping or fork safety is not proven."
+    inputs:
+      - "T008 receipt"
+      - "Current Codecov hit/partial/miss behavior"
+    constraints:
+      - "Read-only."
+      - "Keep partials-as-misses."
+      - "Keep statuses informational during this tranche."
+      - "Do not blend browser and unit flags silently."
+    expected_output:
+      - "implement | defer decision"
+      - "Exact allowed_files and verify commands if implementing"
+      - "Proof requirements for source paths and public forks"
+      - "Future threshold recommendation criteria"
+    receipt:
+      result: done
+      decision: approved
+      full_outcome_complete: false
+      rationale: "Approve component-only implementation; defer e2e upload. Current LCOV has 82 unique records partitioning exactly into widget 46, backend 10, and scripts 26 without overlap. Explicit JavaScript partial detection plus LCOV partials_as_hits:false preserves strict semantics. The uploader already uses the official Codecov action at a full SHA, isolated OIDC, least privilege, and fail-open behavior; docs-only skips while merge_group runs fully. Public-fork processing remains unproven, so every status stays informational. T010 must allow test/ci-workflow-contract.test.sh for durable structural invariants. Browser reporting remains deferred because canonical source mapping is unproven."
+      evidence:
+        - kind: component_partition
+          detail: "82 unique SF paths: widget 46, backend 10, scripts 26, other 0, duplicates 0."
+        - kind: validated_component_design
+          detail: "Official validator accepted parser settings, unit-only default component rule, informational status, and exact paths."
+        - kind: partial_semantics
+          detail: "Explicit javascript partials enabled and lcov partials_as_hits false preserve strict denominator semantics."
+        - kind: event_behavior
+          detail: "merge_group full CI; safe docs-only skip; all uncertain events fail safe to full CI."
+        - kind: fork_and_permission_safety
+          detail: "PR code has no OIDC; only reporting job gets contents:read/id-token:write, no persisted credentials, upload fail-open."
+        - kind: action_supply_chain
+          detail: "Official Codecov v7 action is full-SHA pinned and Node24 policy passes."
+        - kind: scope_correction
+          detail: "Workflow contract test must be allowed to enforce new component/parser contracts; workflow/dependency/config files otherwise removed."
+        - kind: browser_coverage_defer
+          detail: "No normal source map or converter and probe exposed checkout-dependent paths; distinct flag alone is insufficient."
+      subgoal_contract: null
+      parallel_safety:
+        safe: false
+        rationale: "One coherent two-file policy/config slice."
+      blocked_tasks: []
+      missing_evidence:
+        - "Representative external Codecov component processing across events."
+        - "Canonical e2e LCOV and non-blending decision."
+        - "Blocking threshold evidence; statuses remain informational."
+      required_board_updates:
+        - "Record component-only implement and e2e defer."
+        - "Replace T010 with exact worker package."
+        - "Keep statuses informational."
+      worker_package: null
+  - id: T010
+    type: worker
+    assignee: Worker
+    status: done
+    reasoning_hint: medium
+    objective: "Implement trustworthy unit-only Codecov components without changing CI execution or dependencies. In codecov.yml, explicitly preserve parsers.javascript.enable_partials: true and parsers.lcov.partials_as_hits: false. Add component_management with default flag_regexes containing only ^unit$, one project status using target:auto, threshold:1%, and informational:true, and stable components widget, backend, and scripts. Use exact paths: widget src/widget/**; backend src/index.ts, src/defaults.ts, src/types.ts, src/lib/**, src/middleware/**, src/routes/**; scripts scripts/**. Preserve existing project/patch statuses, comment:false, and annotations:false. Extend test/ci-workflow-contract.test.sh to structurally enforce these parser, flag, status, ID, and exact path contracts plus existing OIDC, fail-open, event, and action-pin invariants. Do not add browser coverage or change the workflow/action."
+    inputs:
+      - "T009 decision and exact scope"
+    constraints:
+      - "No external account, app, secret, branch-protection, or required-check changes."
+      - "Do not make coverage blocking."
+      - "Use the official Node 24-compatible Codecov action pinned to a full commit if an action change is necessary."
+      - "Unit and e2e reports must remain distinguishable."
+    expected_output:
+      - "Component-level reporting for widget, backend, and scripts when authorized"
+      - "Separate e2e flag only when source maps resolve to src/widget without duplicates"
+      - "Static and local verification receipt"
+    allowed_files:
+      - "codecov.yml"
+      - "test/ci-workflow-contract.test.sh"
+    verify:
+      - "curl --fail --silent --show-error --request POST --header 'Content-Type: text/yaml' --data-binary @codecov.yml https://api.codecov.io/validate"
+      - "bash test/ci-workflow-contract.test.sh"
+      - "bash test/ci-scope.test.sh"
+      - "npm run check:actions-node24"
+      - "npm test -- --coverage"
+      - "node -e \"const fs=require('fs');const rs=fs.readFileSync('coverage/lcov.info','utf8').split('end_of_record').map(x=>x.trim()).filter(Boolean);const sf=rs.map(r=>r.match(/^SF:(.+)$/m)?.[1]).filter(Boolean);const classify=p=>p.startsWith('src/widget/')?'widget':p.startsWith('scripts/')?'scripts':/^(src\\/(index|defaults|types)\\.ts|src\\/(lib|middleware|routes)\\/)/.test(p)?'backend':'other';const counts=sf.reduce((a,p)=>(a[classify(p)]++,a),{widget:0,backend:0,scripts:0,other:0});if(sf.length!==82||new Set(sf).size!==82||counts.widget!==46||counts.backend!==10||counts.scripts!==26||counts.other!==0)throw new Error(JSON.stringify({records:sf.length,unique:new Set(sf).size,counts}));console.log(JSON.stringify({records:sf.length,unique:new Set(sf).size,counts}));\""
+      - "node -e \"const c=require('./coverage/coverage-summary.json').total;if(c.lines.covered!==5314||c.lines.total!==7123||c.branches.covered!==3960||c.branches.total!==5762)throw new Error(JSON.stringify(c));console.log(JSON.stringify(c));\""
+      - "make check"
+      - "npx prettier --check codecov.yml"
+      - "git diff --check"
+      - "git diff --exit-code -- vitest.config.ts playwright.config.ts .github/workflows/ci.yml package.json package-lock.json scripts/check-github-actions.mjs"
+    stop_if:
+      - "Any file outside codecov.yml and test/ci-workflow-contract.test.sh must change."
+      - "Either allowed file contains overlapping user changes not already represented by T008/T009."
+      - "The official Codecov validator rejects or normalizes differently from three exact components and unit-only rule."
+      - "Partials are disabled, counted as hits, or any ignore, exclusion, fix, denominator, project-status, patch-status, comment, or annotation behavior changes."
+      - "Any component is not restricted to exact unit flag, paths overlap or fail to exhaust 82 records, or IDs/path sets differ."
+      - "Any e2e instrumentation, source map, collector, converter, e2e flag, dependency, package, Playwright, Vitest, workflow, or action change is proposed."
+      - "Public-fork support would require a token, secret, app, broader permission, pull_request_target, persisted credentials, or removal of fail-open behavior."
+      - "Docs-only skipping, merge_group full execution, OIDC isolation, official pin, or Node24 verification changes or fails."
+      - "Full unit result differs from 68 files/963 tests or 5314/7123 lines and 3960/5762 branches without explanation."
+      - "Verification fails twice for the same unexplained reason."
+    receipt:
+      result: done
+      changed_files:
+        - codecov.yml
+        - test/ci-workflow-contract.test.sh
+      commands:
+        - cmd: "curl --fail --silent --show-error --request POST --header 'Content-Type: text/yaml' --data-binary @codecov.yml https://api.codecov.io/validate"
+          status: pass
+        - cmd: "bash test/ci-workflow-contract.test.sh"
+          status: pass
+        - cmd: "bash test/ci-scope.test.sh"
+          status: pass
+        - cmd: "npm run check:actions-node24"
+          status: pass
+        - cmd: "npm test -- --coverage"
+          status: pass
+        - cmd: "LCOV exact partition audit"
+          status: pass
+        - cmd: "coverage exact denominator audit"
+          status: pass
+        - cmd: "make check"
+          status: pass
+        - cmd: "npx prettier --check codecov.yml"
+          status: pass
+        - cmd: "git diff --check"
+          status: pass
+        - cmd: "prohibited-file diff audit"
+          status: pass
+      summary: "Added strict JavaScript/LCOV partial semantics and three informational, unit-only components: widget, backend, scripts. Official Codecov validator returned Valid and normalized exact IDs, paths, ^unit$ rule, and statuses. CI contracts, scope behavior, all 70 Node24 action pins, 68 files/963 tests, exact 5314/7123 lines and 3960/5762 branches, 82-record 46/10/26 LCOV partition, 394 release checks, and static/security gates pass. Only two allowed files changed."
+      remaining_blockers: []
+      verification_attempts: 2
+      stopped_because: null
+  - id: T011
+    type: judge
+    assignee: Judge
+    status: done
+    reasoning_hint: high
+    objective: "Decide whether a bounded widget-bootstrap seam extraction or targeted branch-hardening package is necessary and safer than stopping at the achieved risk coverage."
+    inputs:
+      - "T007 phase verdict"
+      - "T010 receipt or defer decision"
+      - "Current oracle delta"
+    constraints:
+      - "Read-only."
+      - "Do not authorize refactoring solely to inflate coverage."
+      - "Prefer pure configuration, redaction, persistence, validation, position, or payload seams with existing browser oracles."
+    expected_output:
+      - "extract | branch-harden | no-additional-structural-work decision"
+      - "Largest safe useful Worker scope"
+      - "Exact allowed_files, verification, and rollback boundary"
+      - "Updated oracle projection"
+    receipt:
+      result: done
+      decision: approved
+      full_outcome_complete: false
+      rationale: "Select no-additional-structural-work. Independent rerun remains 68/963 at 74.60% lines and 68.72% branches, above the 72/67 oracle, while T010's strict component contract passes. Strongest native gaps are widget/index.ts and crop-screenshot.ts, but index is browser orchestration exercised by 204 Chromium tests and crop has translated/masked pixel proof. Extraction or canvas mocking would now be coverage-driven. Preserve denominators and advance through no-edit T012 to final proof."
+      evidence:
+        - kind: decision
+          detail: no-additional-structural-work
+        - kind: independent_oracle
+          detail: "68 files/963 tests, 5314/7123 lines 74.60%, 3960/5762 branches 68.72%."
+        - kind: reporting_audit
+          detail: "T010 exact two-file strict component contract independently passes."
+        - kind: strongest_gap_widget_bootstrap
+          detail: "index.ts native zero but 204 browser cases cover orchestration; extraction files do not exist and would expose private seams solely for coverage."
+        - kind: strongest_gap_crop
+          detail: "crop correctness depends on real Image/canvas geometry and has real pixel assertions; jsdom mocks weaker."
+        - kind: remaining_branch_risk
+          detail: "Remaining modal/capture/form/JWT/feedback branches already have direct or cross-browser proof and no defect evidence."
+        - kind: scope_proof
+          detail: "No source/E2E/config diff and git diff check passes."
+        - kind: oracle_projection
+          detail: "No-edit transition leaves exact 74.60/68.72 and component denominators unchanged."
+      subgoal_contract: null
+      parallel_safety:
+        safe: false
+        rationale: "No writer beyond schema-compatible verification transition."
+      blocked_tasks: []
+      missing_evidence:
+        - "T013 final oracle/component/strict interpretation/adversarial audit."
+        - "T999 final owner outcome mapping."
+        - "External Codecov processing is future threshold evidence."
+      required_board_updates:
+        - "Record no-additional work."
+        - "Replace T012 with no-edit package."
+        - "Activate T013 after no-op receipt."
+      worker_package: null
+  - id: T012
+    type: worker
+    assignee: Worker
+    status: blocked
+    reasoning_hint: medium
+    objective: "Record the T011 no-additional-structural-work decision without editing any file. Confirm trusted coverage and retained browser artifacts remain present, confirm the T010 reporting contract remains green, and return a no-op receipt. src/widget/index.ts is listed only because GoalBuddy Worker schema requires one allowed path; it must not be edited, and any changed_files entry must be labeled schema-only."
+    inputs:
+      - "T011 decision and exact scope"
+    constraints:
+      - "No monolithic jsdom import harness."
+      - "No broad production rewrite."
+      - "Separate pure extraction from behavior changes."
+      - "If T011 selects no additional work, record a no-op receipt and do not edit files."
+    expected_output:
+      - "One coherent tested seam or one meaningful adversarial branch package"
+      - "Before/after component and total coverage"
+      - "Targeted real-browser proof for widget source changes"
+      - "Rollback-friendly diff"
+    allowed_files:
+      - "src/widget/index.ts"
+    verify:
+      - "git status --short"
+      - "node -e \"const c=require('./coverage/coverage-summary.json').total;if(c.lines.covered!==5314||c.lines.total!==7123||c.lines.pct!==74.6||c.branches.covered!==3960||c.branches.total!==5762||c.branches.pct!==68.72)throw new Error(JSON.stringify(c));console.log(JSON.stringify(c));\""
+      - "node -e \"const fs=require('fs');const h=fs.readFileSync('playwright-report/index.html','utf8');const m=h.match(/data:application\\/zip;base64,([A-Za-z0-9+/=]+)/);if(!m)throw new Error('embedded report missing');process.stdout.write(Buffer.from(m[1],'base64'))\" | bsdtar -xOf - report.json | node -e \"let s='';process.stdin.on('data',d=>s+=d).on('end',()=>{const r=JSON.parse(s);if(r.stats.total!==204||r.stats.expected!==204||r.stats.unexpected!==0||r.stats.flaky!==0||r.stats.skipped!==0||r.metadata.actualWorkers!==4)throw new Error(JSON.stringify({stats:r.stats,metadata:r.metadata}));console.log(JSON.stringify({stats:r.stats,metadata:r.metadata}));})\""
+      - "bash test/ci-workflow-contract.test.sh"
+      - "git diff --check"
+      - "git diff --exit-code -- src/widget/index.ts src/widget/crop-screenshot.ts e2e/widget.spec.ts vitest.config.ts playwright.config.ts"
+      - "git status --short"
+    stop_if:
+      - "Any repository state must change."
+      - "src/widget/index.ts would be edited; it is schema placeholder only."
+      - "Initial and final git status differ."
+      - "Coverage artifact differs from exact trusted denominator without explanation."
+      - "Browser artifact no longer proves 204 expected passes, zero unexpected/flaky/skipped, four workers."
+      - "T010 Codecov workflow contract fails."
+      - "Any extraction or branch-hardening is proposed despite T011."
+    receipt:
+      result: blocked
+      changed_files: []
+      commands:
+        - cmd: "git status --short"
+          status: pass
+        - cmd: "exact coverage artifact audit"
+          status: pass
+        - cmd: "decode retained Playwright report and require 204 expected passes/four workers"
+          status: fail
+        - cmd: "git status --short"
+          status: pass
+      summary: "No files edited; src/widget/index.ts remained schema-only. Initial/final status matched. Coverage remains 5314/7123 lines and 3960/5762 branches. Retained Playwright report was overwritten and now shows 204 skipped/listed rather than the successful 204-pass artifact. Stopped immediately; later gates not run."
+      remaining_blockers:
+        - "Regenerate and retain trustworthy 204/204 four-worker Chromium report."
+      verification_attempts: 1
+      stopped_because: "Retained browser artifact no longer proves the required pass result."
+  - id: T023
+    type: judge
+    assignee: Judge
+    status: done
+    reasoning_hint: high
+    objective: "Audit T012's overwritten Playwright artifact, classify evidence loss versus regression, and decide whether T013 may regenerate the full browser artifact as part of final oracle proof."
+    inputs:
+      - "T011 no-additional-work decision"
+      - "T012 blocked no-edit receipt"
+      - "T021/T022 successful browser receipts"
+      - "Current Playwright report"
+    constraints:
+      - "Read-only."
+      - "Do not treat a stale or overwritten report as proof."
+      - "Require final retained 204/204 artifact before completion."
+    expected_output:
+      - "Evidence-loss classification"
+      - "Exact T013 browser-proof requirements"
+      - "Authorization or blocker for T013"
+    receipt:
+      result: done
+      decision: approved
+      full_outcome_complete: false
+      rationale: "Authorize T013 to regenerate final browser artifact. This is evidence loss, not product regression: T021 204/204 report was independently decoded before T022's --list check replaced it. Current report is 46 ms, zero results/workers, 204 discovered/skipped. Product/E2E/Playwright files unchanged. T013 must run fresh CI-owned four-worker zero-retry 204-case command as final Playwright invocation, verify port lifecycle, decode every result, hash retained HTML, and run no later Playwright command."
+      evidence:
+        - kind: classification
+          detail: "evidence_loss_from_playwright_list_report; product_regression:false"
+        - kind: successful_prior_artifact
+          detail: "Prior 204 total/expected passes, zero unexpected/flaky/skipped, four workers, unique retry-0 result each."
+        - kind: exact_overwrite_source
+          detail: "T022 --list with HTML reporter overwrote report after independent decode."
+        - kind: current_artifact_shape
+          detail: "46ms metadata-empty report with 204 skipped and zero result objects exactly matches listing."
+        - kind: no_regression_scope
+          detail: "Playwright/E2E/widget files unchanged; T012 no edits; later changes only Codecov contract."
+        - kind: canonical_t013_command
+          detail: "env -u LIVE_TARGET -u PLAYWRIGHT_BASE_URL CI=1 npx playwright test e2e/widget.spec.ts --project=chromium --workers=4 --retries=0"
+        - kind: server_lifecycle_requirements
+          detail: "Port 8787 unused immediately before/after; no kill/reuse."
+        - kind: artifact_decode_requirements
+          detail: "Chromium only; total=expected=204; other counts zero; ok; errors empty; four workers; 204 unique IDs; one passed retry-0 result each; no skip annotations."
+        - kind: retention_requirements
+          detail: "Record start, duration, mtime, bytes, SHA256 and recheck after all non-Playwright gates."
+      subgoal_contract: null
+      parallel_safety:
+        safe: false
+        rationale: "T013 exclusively owns port/report."
+      blocked_tasks: []
+      missing_evidence:
+        - "Fresh retained artifact"
+        - "T013 final proof"
+        - "T999 completion mapping"
+      required_board_updates:
+        - "Record evidence-loss classification."
+        - "Authorize T013 and exact artifact procedure."
+        - "No T999 completion without decoded retained report."
+  - id: T013
+    type: pm
+    assignee: PM
+    status: done
+    reasoning_hint: high
+    objective: "Run the full oracle suite, produce a commit-pinned coverage/component delta, and actively try to disprove the completed tranche."
+    inputs:
+      - "All Worker and Judge receipts"
+      - "Current diff and coverage artifacts"
+    constraints:
+      - "Do not push, open a PR, change branch protection, or mutate external state without approval."
+      - "Treat green tests and upload steps as claims, not proof."
+      - "Inspect for new exclusions, weak assertions, duplicate coverage paths, and denominator gaming."
+      - "Run every other Playwright invocation before the canonical final browser command."
+      - "Require port 8787 unused before and after: env -u LIVE_TARGET -u PLAYWRIGHT_BASE_URL CI=1 npx playwright test e2e/widget.spec.ts --project=chromium --workers=4 --retries=0"
+      - "After the canonical run, execute no later Playwright command; decode all 204 results, record report metadata/SHA-256, and recheck the hash after remaining gates."
+    expected_output:
+      - "Full gate results"
+      - "Vitest line/branch/function/statement baseline and delta by component"
+      - "Codecov-compatible hit/partial/miss interpretation"
+      - "Adversarial disproof evidence"
+      - "Recommendation for future informational and blocking thresholds"
+    receipt:
+      result: done
+      decision: not_complete
+      full_outcome_complete: false
+      rationale: "Final disproof proved the coverage, static, build, release, component, pinning, and fresh-main oracles, but browser acceptance is not currently clean. npm run test:e2e produced 296 passes, 2 skips, and 7 reproducible live/deployed-preview failures. The canonical local Chromium run then produced 203/204 passes with zero retries and one unexpected hover/resize persistence failure (saved top 697 changed to 693). This strongest realistic failure blocks completion and requires Judge scoping; no retry may be treated as proof."
+      commands:
+        - cmd: "git fetch origin main and commit/merge-base audit"
+          status: pass
+        - cmd: "npm test -- --coverage"
+          status: pass
+        - cmd: "npm run lint"
+          status: pass
+        - cmd: "npm run format:check"
+          status: pass
+        - cmd: "npm run typecheck"
+          status: pass
+        - cmd: "npm run build:widget"
+          status: pass
+        - cmd: "npm run test:e2e"
+          status: fail
+        - cmd: "npx playwright test --last-failed --workers=1 --retries=0 (diagnostic)"
+          status: fail
+        - cmd: "make check"
+          status: pass
+        - cmd: "port preflight; canonical CI-owned 204-case Chromium, four workers, zero retries; port postflight"
+          status: fail
+        - cmd: "coverage component/strict-state/diff/gaming audits"
+          status: pass
+        - cmd: "retained Playwright report decode/hash/port/fresh-main/board-health recheck"
+          status: pass
+      trusted_baseline:
+        commit: e0c5ece8edbbe5692cb5c540555fe6f3154130a7
+        origin_main: e0c5ece8edbbe5692cb5c540555fe6f3154130a7
+        test_files: 68
+        tests: 963
+        statements:
+          covered: 5748
+          total: 7837
+          pct: 73.34
+        branches:
+          covered: 3960
+          total: 5762
+          pct: 68.72
+        functions:
+          covered: 1034
+          total: 1348
+          pct: 76.7
+        lines:
+          covered: 5314
+          total: 7123
+          pct: 74.6
+      baseline_delta:
+        lines:
+          baseline: "4535/7060 64.23%"
+          current: "5314/7123 74.60%"
+          covered_delta: 779
+          denominator_delta: 63
+          percentage_points: 10.37
+        branches:
+          baseline: "3644/5736 63.52%"
+          current: "3960/5762 68.72%"
+          covered_delta: 316
+          denominator_delta: 26
+          percentage_points: 5.2
+        tests:
+          baseline: 895
+          current: 963
+          delta: 68
+        files:
+          baseline: 56
+          current: 68
+          delta: 12
+      component_delta:
+        widget:
+          baseline_lines: "1267/2799 45.27%"
+          current_lines: "1921/2853 67.33%"
+          covered_delta: 654
+          percentage_points: 22.06
+          baseline_branches: "910/1925 47.27%"
+          current_branches: "1178/1943 60.63%"
+          branch_covered_delta: 268
+          branch_percentage_points: 13.36
+        backend:
+          baseline_lines: "752/929 80.95%"
+          current_lines: "877/938 93.50%"
+          covered_delta: 125
+          percentage_points: 12.55
+          baseline_branches: "542/700 77.43%"
+          current_branches: "590/708 83.33%"
+          branch_covered_delta: 48
+          branch_percentage_points: 5.9
+        scripts:
+          baseline_lines: "2516/3332 75.51%"
+          current_lines: "2516/3332 75.51%"
+          covered_delta: 0
+          baseline_branches: "2192/3111 70.46%"
+          current_branches: "2192/3111 70.46%"
+          branch_covered_delta: 0
+      codecov_compatible_projection:
+        method: "LCOV DA plus branch-only source lines; DA-covered lines with any uncovered branch remain partial; partials are not hits. This is a local projection, not external Codecov processing proof."
+        total:
+          hit: 4920
+          partial: 802
+          miss: 1883
+          denominator: 7605
+          strict_pct: 64.69
+        widget:
+          hit: 1788
+          partial: 215
+          miss: 975
+          denominator: 2978
+          strict_pct: 60.04
+        backend:
+          hit: 805
+          partial: 107
+          miss: 61
+          denominator: 973
+          strict_pct: 82.73
+        scripts:
+          hit: 2327
+          partial: 480
+          miss: 847
+          denominator: 3654
+          strict_pct: 63.68
+        baseline_external: "4161 hit / 762 partial / 2608 miss / 7531 = 55.25%"
+      browser_disproof:
+        full_suite:
+          passed: 296
+          skipped: 2
+          failed: 7
+          diagnostic_serial_reproduction: "same 7 failed with one worker and zero retries"
+          classification: "deployed-preview/live project failures remain unresolved"
+        canonical_local:
+          total: 204
+          expected: 203
+          unexpected: 1
+          flaky: 0
+          skipped: 0
+          actual_workers: 4
+          retries: 0
+          failure: "hovered feedback button does not drift saved position during resize; expected saved top 697, received 693"
+          report_sha256: d46cd87c1f2e0f0f48245f849a90664b853a4c03beca079366b6734af76a0abf
+          report_bytes: 696359
+          mtime_epoch: 1786041254
+          port_8787_unused_after: true
+      adversarial_evidence:
+        - kind: fresh_main
+          detail: "HEAD, origin/main, and merge-base remain exact pinned commit; ahead/behind 0/0."
+        - kind: no_denominator_gaming
+          detail: "vitest.config.ts, playwright.config.ts, workflow, package manifests, and existing exclusions have no diff; no ignore annotations added."
+        - kind: risk_weighted_delta
+          detail: "All 779 newly covered native lines are product code: widget +654 and backend +125; scripts unchanged. Interaction tranche alone added 387 lines concentrated in four targeted modules."
+        - kind: assertion_density
+          detail: "Thirteen added/expanded direct suites contain 56 named tests and 276 expect calls, covering cryptographic, HTTP, lifecycle, cleanup, geometry, canvas, output, and disabled-state contracts."
+        - kind: strict_partials
+          detail: "codecov.yml explicitly enables JavaScript partials and sets LCOV partials_as_hits:false; official validator and executable structural contract pass."
+        - kind: component_partition
+          detail: "82 unique LCOV records exhaustively partition widget 46, backend 10, scripts 26, other/duplicates zero."
+        - kind: production_defects_closed
+          detail: "Concurrent first-upload 422 recovery/name collision and stalled-play timeout resource leak were first preserved as failing regressions, repaired narrowly, and independently verified."
+        - kind: supply_chain_and_events
+          detail: "All 70 actions remain full-SHA/Node24 compliant; OIDC remains isolated/fail-open; docs-only and merge_group contracts pass; no secret/app/permission/workflow changes."
+        - kind: browser_failure
+          detail: "Canonical local failure and seven reproducible live failures disprove current full browser acceptance despite earlier successful artifacts."
+      threshold_recommendation:
+        current: "Keep project auto/1%, patch 80%/0%, and all component/project/patch statuses informational."
+        future_blocking: "Consider promotion only after multiple representative product-PR and merge_group reports show stable denominators and public-fork attempts are safely observed. Promote project auto with 1% tolerance first; keep patch 80% separately evaluated. Do not use the 74.60% Vitest number as a Codecov strict threshold."
+        badge: "Defer until at least one product PR and merge_group produce stable component reports and public-fork behavior is observed; do not badge this unprocessed local configuration."
+      remaining_blockers:
+        - "Canonical local 204-case Chromium artifact is 203/204, not 204/204."
+        - "Full npm run test:e2e has seven reproducible live/deployed-preview failures."
+        - "Representative external Codecov processing remains unavailable, so statuses and threshold changes must remain informational/future work."
+      required_board_updates:
+        - "Record T013 done as a successful disproof with decision not_complete."
+        - "Activate T999 to classify browser failures and scope the smallest safe response."
+        - "Do not mark goal complete or remove the failed retained report."
+  - id: T999
+    type: judge
+    assignee: Judge
+    status: done
+    reasoning_hint: high
+    objective: "Audit whether the completed work satisfies the risk-weighted coverage oracle and the original owner outcome."
+    inputs:
+      - "All done task receipts"
+      - "T013 full verification and disproof evidence"
+      - "Current dirty diff"
+    constraints:
+      - "Read-only."
+      - "Reject completion if required Worker work is still queued or active."
+      - "Reject completion if percentage gains came from exclusions, partials-as-hits, assertion-light execution, script masking, or browser-test duplication."
+      - "Reject completion without direct cryptographic proof and targeted real-browser proof."
+    expected_output:
+      - "complete | not_complete"
+      - "full_outcome_complete: true | false"
+      - "Oracle mapping"
+      - "Missing evidence and exact next task if not complete"
+    receipt:
+      result: done
+      decision: not_complete
+      full_outcome_complete: false
+      rationale: "Completion rejected: canonical evidence is 203/204. Hover/resize is an intermittent pre-existing product defect. Five other failures are invalid local execution of deployment-only projects at a meta-refreshing root; two observe an unpinned external asset and are external-state drift. First make project selection fail closed without complete live inputs, preserving explicit CI live execution. Then repair trigger persistence and rerun zero-retry local/canonical gates. Retries, skips, or weakened assertions cannot establish completion."
+      evidence:
+        - kind: pinned_diff
+          detail: "HEAD/origin/main/merge-base exact pin; tranche does not modify widget index, E2E, Playwright, package, Makefile, or live workflows."
+        - kind: oracle_progress
+          detail: "74.60% lines/68.72% branches and all non-browser/static/security/reporting gates pass."
+        - kind: canonical_browser_failure
+          classification: "existing product defect"
+          detail: "Retained report 203/204; hover/resize persisted 693 instead of desired 697; timing-dependent resize reclamp/persist behavior."
+        - kind: live_failures
+          classification: "five existing harness defects plus two external-state drift cases"
+          detail: "Unset live inputs discovered deployment projects against local meta-refresh root and unpinned preview asset; not an admissible local oracle."
+        - kind: gate_interpretation
+          detail: "CI separates local projects from identity-pinned deployed live workflows; local npm test:e2e must fail closed to local projects when live inputs absent."
+      subgoal_contract: null
+      parallel_safety:
+        safe: false
+        rationale: "Harness then product packages serially share port/report state."
+      blocked_tasks:
+        - "Product repair waits for harness selection approval."
+        - "Final oracle waits for both repairs."
+      missing_evidence:
+        - "Behavior repair and repeated zero-retry proof."
+        - "Local-only zero-retry npm test:e2e."
+        - "Fresh canonical 204/204 retained artifact."
+        - "Post-repair final oracle/Judge."
+      required_board_updates:
+        - "Record not_complete."
+        - "Create serial T024-T029 continuation."
+        - "Do not retry invalid live run or mark complete."
+  - id: T024
+    type: worker
+    assignee: Worker
+    status: done
+    reasoning_hint: medium
+    objective: "Make Playwright project selection fail closed: when LIVE_TARGET and PLAYWRIGHT_BASE_URL are absent, npm run test:e2e must discover the complete local Chromium/Radix suite but no deployed/live projects; explicit live selection must require complete live inputs and remain unchanged when present."
+    inputs:
+      - "T999 failure classification"
+      - "playwright.config.ts and CI/live workflows"
+    constraints:
+      - "No skips, retries, pass-with-no-tests behavior, renamed projects, workflow changes, or weakened assertions."
+      - "Preserve issue-canary isolation and every identity-pinned live path."
+    expected_output:
+      - "Fail-closed local/live discovery"
+      - "Executable policy proof"
+    allowed_files:
+      - "playwright.config.ts"
+      - "test/ci-workflow-contract.test.sh"
+    verify:
+      - "bash test/ci-workflow-contract.test.sh"
+      - "env -u LIVE_TARGET -u PLAYWRIGHT_BASE_URL npx playwright test --list --reporter=line"
+      - "env -u LIVE_TARGET -u PLAYWRIGHT_BASE_URL npx playwright test --project=chromium-live --list --reporter=line"
+      - "LIVE_TARGET=preview PLAYWRIGHT_BASE_URL=https://example.invalid npx playwright test --project=chromium-live --list --reporter=line"
+      - "LIVE_TARGET=preview PLAYWRIGHT_BASE_URL=https://example.invalid npx playwright test --project=chromium-live-radix --list --reporter=line"
+      - "npm run lint"
+      - "npm run format:check"
+      - "npm run typecheck"
+    stop_if:
+      - "Implementation adds skips, retries, pass-with-no-tests behavior, or weakens live assertions."
+      - "Any explicit CI live project is undiscoverable with complete live inputs."
+      - "Change alters project names, browser coverage, workflow commands, issue-canary isolation, or external services."
+      - "More files are required."
+    receipt:
+      result: done
+      changed_files:
+        - playwright.config.ts
+        - test/ci-workflow-contract.test.sh
+      commands:
+        - cmd: "bash test/ci-workflow-contract.test.sh"
+          status: pass
+        - cmd: "local no-input discovery"
+          status: pass
+        - cmd: "explicit live without inputs fails closed"
+          status: pass
+        - cmd: "complete-input chromium-live discovery"
+          status: pass
+        - cmd: "complete-input chromium-live-radix discovery"
+          status: pass
+        - cmd: "npm run lint"
+          status: pass
+        - cmd: "npm run format:check"
+          status: pass
+        - cmd: "npm run typecheck"
+          status: pass
+        - cmd: "git diff --check"
+          status: pass
+        - cmd: "prohibited workflow/package/E2E diff audit"
+          status: pass
+      summary: "Local no-input discovery lists 274 tests: 250 Chromium plus 8 each for Chromium/Firefox/WebKit Radix; no live or issue-canary project. Explicit chromium-live without inputs exits 1 with required input error, counted as contract proof. Complete representative inputs preserve chromium-live 20 tests/2 files and live-radix 2/1. All live projects fail closed; issue canary unchanged. All gates pass; project names, retries, assertions, workflows, and external behavior unchanged."
+      remaining_blockers: []
+      verification_attempts: 1
+      stopped_because: null
+  - id: T025
+    type: judge
+    assignee: Judge
+    status: done
+    reasoning_hint: high
+    objective: "Audit T024 as a test-oracle phase gate and approve only if local discovery excludes invalid live execution while every identity-pinned CI live path remains intact."
+    inputs:
+      - "T024 receipt/diff/output"
+      - "package/Makefile/CI/live workflow commands"
+    constraints:
+      - "Read-only."
+      - "Require fail-closed explicit live selection without inputs."
+    expected_output:
+      - "Harness selection verdict"
+      - "Exact T026 authorization or blocker"
+    receipt:
+      result: done
+      decision: rejected
+      full_outcome_complete: false
+      rationale: "Reject. Exact selectors and unqualified discovery work, but valid wildcard selectors can silently suppress matching live tests. Without inputs, chromium-* exits 0 running only chromium-radix while omitting 25 matching live tests; *-live and chromium-live* yield No tests found rather than required-input error. This is a false-green oracle. T026 blocked pending wildcard-aware repair."
+      evidence:
+        - kind: local_discovery
+          detail: "274 local tests across Chromium and three Radix projects; no live/issue-canary."
+        - kind: complete_input_discovery
+          detail: "305 tests across all nine ordinary projects with inputs."
+        - kind: strongest_failure
+          detail: "No-input chromium-* exits 0 with only 8 local Radix tests; complete inputs expose 33 including 25 live."
+        - kind: additional_wildcard_failure
+          detail: "*-live and chromium-live* fall through to No tests found."
+        - kind: issue_canary_isolation
+          detail: "Unqualified omits canary; exact canary finds one without live inputs."
+        - kind: unchanged_contracts
+          detail: "Names/retries/workers/package/workflows/E2E unchanged."
+      subgoal_contract: null
+      parallel_safety:
+        safe: false
+        rationale: "Repair guard before product work."
+      blocked_tasks:
+        - T026
+        - T027
+        - T028
+        - T029
+      missing_evidence:
+        - "Fail-loud every selector matching live project."
+        - "Wildcard regression contract."
+        - "Independent approval."
+      required_board_updates:
+        - "Record rejected."
+        - "Create T030/T031."
+        - "Keep T026 queued until T031."
+  - id: T030
+    type: worker
+    assignee: Worker
+    status: done
+    reasoning_hint: medium
+    objective: "Repair live-project selection so every Playwright --project selector that matches any live project—including wildcard selectors and selectors also matching local projects—fails with required-input error unless both LIVE_TARGET and PLAYWRIGHT_BASE_URL are present. Preserve unqualified local discovery, exact live discovery with inputs, and exact-only issue-canary isolation."
+    inputs:
+      - "T025 wildcard false-green receipt"
+      - "Current T024 selection guard"
+    constraints:
+      - "No skips, retries, pass-zero, renamed projects, workflows, dependencies, or assertion changes."
+    expected_output:
+      - "Wildcard-aware fail-loud selector guard"
+      - "Executable exact/wildcard/partial-input regressions"
+    allowed_files:
+      - "playwright.config.ts"
+      - "test/ci-workflow-contract.test.sh"
+    verify:
+      - "bash test/ci-workflow-contract.test.sh"
+      - "env -u LIVE_TARGET -u PLAYWRIGHT_BASE_URL npm run test:e2e -- --list --reporter=line"
+      - "env -u LIVE_TARGET -u PLAYWRIGHT_BASE_URL npx playwright test --project=chromium-live --list --reporter=line"
+      - "env -u LIVE_TARGET -u PLAYWRIGHT_BASE_URL npx playwright test --project='chromium-*' --list --reporter=line"
+      - "env -u LIVE_TARGET -u PLAYWRIGHT_BASE_URL npx playwright test --project='*-live' --list --reporter=line"
+      - "env -u LIVE_TARGET -u PLAYWRIGHT_BASE_URL npx playwright test --project='*cross-browser-live' --list --reporter=line"
+      - "env -u LIVE_TARGET PLAYWRIGHT_BASE_URL=https://example.invalid npx playwright test --project=chromium-live --list --reporter=line"
+      - "env -u PLAYWRIGHT_BASE_URL LIVE_TARGET=preview npx playwright test --project=chromium-live --list --reporter=line"
+      - "LIVE_TARGET=preview PLAYWRIGHT_BASE_URL=https://example.invalid npx playwright test --list --reporter=line"
+      - "LIVE_TARGET=preview PLAYWRIGHT_BASE_URL=https://example.invalid npx playwright test --project='chromium-*' --list --reporter=line"
+      - "env -u LIVE_TARGET -u PLAYWRIGHT_BASE_URL npx playwright test e2e/widget.issue-canary.spec.ts --project=chromium-issue-canary --list --reporter=line"
+      - "npm run lint"
+      - "npm run format:check"
+      - "npm run typecheck"
+      - "git diff --check"
+    stop_if:
+      - "Wildcard semantics cannot be established without guessing or dependency."
+      - "Any valid local-only selector is rejected."
+      - "Any complete-input live project/test disappears."
+      - "Implementation uses skips, retries, pass-zero, renamed projects, workflow changes, or outside files."
+    receipt:
+      result: done
+      changed_files:
+        - playwright.config.ts
+        - test/ci-workflow-contract.test.sh
+      commands:
+        - cmd: "bash test/ci-workflow-contract.test.sh"
+          status: pass
+        - cmd: "no-input unqualified discovery"
+          status: pass
+        - cmd: "no-input exact live fails required-input"
+          status: pass
+        - cmd: "no-input chromium-* fails required-input"
+          status: pass
+        - cmd: "no-input *-live fails required-input"
+          status: pass
+        - cmd: "no-input *cross-browser-live fails required-input"
+          status: pass
+        - cmd: "partial inputs fail required-input"
+          status: pass
+        - cmd: "complete-input unqualified discovery"
+          status: pass
+        - cmd: "complete-input chromium-* discovery"
+          status: pass
+        - cmd: "exact issue-canary discovery"
+          status: pass
+        - cmd: "npm run lint"
+          status: pass
+        - cmd: "npm run format:check"
+          status: pass
+        - cmd: "npm run typecheck"
+          status: pass
+        - cmd: "git diff --check"
+          status: pass
+        - cmd: "protected-scope diff audit"
+          status: pass
+      summary: "Implemented Playwright-compatible case-insensitive wildcard matching for explicit selectors. Any selector matching live requires both inputs, including mixed wildcards/partial inputs. No-input unqualified remains 274 local; complete inputs 305; chromium-* 33 across four projects; issue canary one. All contract/static/diff gates pass; no workflow/package/Makefile/E2E changes."
+      remaining_blockers: []
+      verification_attempts: 1
+      stopped_because: null
+  - id: T031
+    type: judge
+    assignee: Judge
+    status: done
+    reasoning_hint: high
+    objective: "Re-audit repaired project selection across exact, mixed wildcard, live-only wildcard, partial-input, complete-input, unqualified, and issue-canary paths before authorizing T026."
+    inputs:
+      - "T030 receipt/diff/output"
+      - "T025 rejection evidence"
+    constraints:
+      - "Read-only; line reporter only."
+      - "Reject any selector matching a live project that can silently omit it."
+    expected_output:
+      - "Wildcard guard verdict"
+      - "Explicit T026 authorization or blocker"
+    receipt:
+      result: done
+      decision: approved
+      full_outcome_complete: false
+      rationale: "Approve T030 and authorize T026. Independent discovery closes false-green paths: all exact/mixed/live-only/case-insensitive/partial-input selectors matching live fail required-input; local selectors pass; no-input unqualified 274 local; complete inputs 305; chromium-* 33; issue-canary exact-only. Names/retries/workers/package/Make/E2E/workflows match base; no skip/retry/pass-zero/external change."
+      evidence:
+        - kind: owned_diff
+          detail: "Only config and workflow contract; diff check passes."
+        - kind: wildcard_negative_matrix
+          detail: "chromium-*, *-live, *cross-browser-live, CHROMIUM-LIVE, firefox-* all fail required-input without inputs."
+        - kind: local_selector_safety
+          detail: "Exact/local wildcards preserve 250/8/8/8."
+        - kind: complete_input_matrix
+          detail: "305 across all ordinary projects; chromium-* 33."
+        - kind: issue_canary_isolation
+          detail: "Exact one; unqualified omitted."
+        - kind: pinned_contract
+          detail: "Names/retries/workers/fullyParallel/forbidOnly/trace unchanged; no passWithNoTests."
+        - kind: workflow_identity
+          detail: "All pinned live inputs and explicit workflows remain."
+      subgoal_contract: null
+      parallel_safety:
+        safe: false
+        rationale: "T026 exclusively owns browser report/port."
+      blocked_tasks:
+        - T027
+        - T028
+        - T029
+      missing_evidence:
+        - "Trigger invariant repair and repeated/full proof."
+        - T027/T028/T029.
+      required_board_updates:
+        - "Record approved."
+        - "Activate T026 with narrow package."
+  - id: T026
+    type: worker
+    assignee: Worker
+    status: done
+    reasoning_hint: medium
+    objective: "Repair the pre-existing trigger-position defect so viewport clamping never replaces the user's persisted desired top with transient hover/resize geometry, while the rendered trigger remains in bounds and restores its desired position when space returns."
+    inputs:
+      - "T999 canonical failure"
+      - "T031 harness approval"
+      - "Current trigger persistence implementation and E2E contracts"
+    constraints:
+      - "No weakened test, arbitrary sleep, skip, retry dependence, or unrelated bootstrap refactor."
+      - "Preserve drag and keyboard persistence and visible viewport clamping."
+    expected_output:
+      - "Narrow desired-position/rendered-position invariant repair"
+      - "Repeated focused and complete local zero-retry proof"
+    allowed_files:
+      - "src/widget/index.ts"
+      - "e2e/widget.spec.ts"
+    verify:
+      - "bash test/ci-workflow-contract.test.sh"
+      - "npm run build:widget"
+      - "! lsof -nP -iTCP:8787 -sTCP:LISTEN"
+      - "env -u LIVE_TARGET -u PLAYWRIGHT_BASE_URL CI=1 npx playwright test e2e/widget.spec.ts --project=chromium --grep 'dragging the feedback button persists|feedback button position reclamps|hidden feedback button keeps saved position|hovered feedback button does not drift' --repeat-each=20 --workers=4 --retries=0 --reporter=line"
+      - "env -u LIVE_TARGET -u PLAYWRIGHT_BASE_URL CI=1 npm run test:e2e -- --workers=4 --retries=0"
+      - "! lsof -nP -iTCP:8787 -sTCP:LISTEN"
+      - "npm run lint"
+      - "npm run format:check"
+      - "npm run typecheck"
+    stop_if:
+      - "Test is weakened, delayed with arbitrary sleeps, skipped, or retry-dependent."
+      - "Drag/keyboard persistence changes, trigger can render out of viewport, or expanding viewport cannot restore desired position."
+      - "Repair requires unrelated bootstrap refactoring or files outside allowance."
+      - "Any local project fails with zero retries."
+      - "Approved local/live selection contract regresses."
+    receipt:
+      result: done
+      changed_files:
+        - src/widget/index.ts
+        - e2e/widget.spec.ts
+      commands:
+        - cmd: "bash test/ci-workflow-contract.test.sh"
+          status: pass
+        - cmd: "npm run build:widget"
+          status: pass
+        - cmd: "port preflight"
+          status: pass
+        - cmd: "focused four-case family repeat-each 20, 4 workers, zero retries"
+          status: pass
+        - cmd: "complete local npm test:e2e, 4 workers, zero retries"
+          status: pass
+        - cmd: "port postflight"
+          status: pass
+        - cmd: "npm run lint"
+          status: pass
+        - cmd: "npm run format:check"
+          status: pass
+        - cmd: "npm run typecheck"
+          status: pass
+        - cmd: "git diff --check"
+          status: pass
+        - cmd: "decode retained report"
+          status: pass
+        - cmd: "hash stability and scope audit"
+          status: pass
+      summary: "Before fix, preserved regression changed stored desired top 697 to transient clamped 307. Reclamping now renders from persisted desired top without overwriting it. Regression proves storage survives hovered shrink/restore, trigger stays within 360px viewport, restored rendering returns to saved top. Focused family 80/80; complete four-project local suite 274/274, zero retries. Retained report 274 expected, zero unexpected/flaky/skipped, four workers, correct projects, SHA256 d70630e17a82dbfab271483c5d1127451df34724bce9aa4d3d18002582bd76e5. Port clean; only allowed files changed; no sleeps/skips/retries weakening."
+      evidence:
+        - kind: before_fix_disproof
+          detail: "Focused regression failed with persisted desired top 697 changed to transient 307."
+        - kind: three_part_invariant
+          detail: "Stored desired top unchanged; rendered clamped in smaller viewport; restored rendering returns to desired top after hover removed."
+      remaining_blockers: []
+      verification_attempts: 1
+      stopped_because: null
+  - id: T027
+    type: judge
+    assignee: Judge
+    status: done
+    reasoning_hint: high
+    objective: "Review T026 browser behavior and authorize final oracle only if the invariant, regression assertions, repeated proof, and complete local report are sound."
+    inputs:
+      - "T026 receipt/diff/report"
+      - "T999 defect classification"
+    constraints:
+      - "Read-only."
+      - "Reject retry, skip, flaky classification, timing padding, or assertion weakening."
+    expected_output:
+      - "Browser repair verdict"
+      - "Final-oracle authorization or blocker"
+    receipt:
+      result: done
+      decision: approved
+      full_outcome_complete: false
+      rationale: "Approve T026 and authorize T028. Two-file repair coherently separates desired persisted position from rendered clamping; drag/keyboard remain persistence writers, resize/show/reload render from stored desire. Regression strengthens storage, bounds, and restoration assertions. Retained report independently decodes 274 unique retry-0 local passes, correct projects, no skip/flaky/duplicate/live/canary, stable hash/port. Final T028 fresh oracle and canonical artifact remain."
+      evidence:
+        - kind: scope
+          detail: "Only index.ts and widget.spec.ts; diff check passes."
+        - kind: before_fix_disproof
+          detail: "Earlier 203/204 and removed save-on-reclamp source prove drift."
+        - kind: production_semantics
+          detail: "Reclamp reads stored desired top and renders without save."
+        - kind: drag_keyboard_semantics
+          detail: "Drag/keyboard persistence paths unchanged."
+        - kind: three_part_regression
+          detail: "Small viewport bounds, unchanged storage, restored render all asserted."
+        - kind: no_weakening
+          detail: "Viewport strengthened; no assertion removed/sleep/skip/retry."
+        - kind: retained_report
+          detail: "274 expected/274 passed, four workers, retry 0, correct 250/8/8/8 projects, hash d70630e17a82dbfab271483c5d1127451df34724bce9aa4d3d18002582bd76e5."
+        - kind: port
+          detail: "8787 unused."
+      subgoal_contract: null
+      parallel_safety:
+        safe: false
+        rationale: "T028 owns final port/report sequence."
+      blocked_tasks:
+        - T029
+      missing_evidence:
+        - "Fresh full oracle and canonical 204/204."
+        - "T029 mapping."
+      required_board_updates:
+        - "Record approved."
+        - "Activate T028; no Playwright after canonical command."
+  - id: T028
+    type: pm
+    assignee: PM
+    status: done
+    reasoning_hint: high
+    objective: "Rerun the complete commit-pinned oracle, actively disprove the combined tranche, and finish with a fresh canonical retained Chromium report."
+    inputs:
+      - "All receipts through T027"
+      - "Current coverage/diff/browser artifacts"
+    constraints:
+      - "No external deployment or state mutation."
+      - "Any live project without complete identity inputs is a blocker."
+      - "Canonical Chromium must be final Playwright invocation and retained/hash-checked."
+    expected_output:
+      - "Complete final oracle and disproof receipt"
+      - "Fresh component/strict coverage and browser artifact"
+    receipt:
+      result: done
+      decision: approved_for_final_judge
+      full_outcome_complete: false
+      rationale: "Complete post-repair oracle passes. Fresh-main pin remains exact. Unit, lint, format, type, build, release, security, pinning, CI scope/workflow, component, strict-partial, and diff/gaming audits pass. Local browser gate independently decoded to 274 unique retry-0 passes across exactly four approved projects. Canonical final Playwright invocation independently decoded to 204 unique retry-0 Chromium passes including the repaired hover/resize case, retained/hash-stable with clean port lifecycle. T029 may judge completion."
+      commands:
+        - cmd: "fresh-main fetch/pin/ahead-behind/diff audit"
+          status: pass
+        - cmd: "npm test -- --coverage"
+          status: pass
+        - cmd: "npm run lint"
+          status: pass
+        - cmd: "npm run format:check"
+          status: pass
+        - cmd: "npm run typecheck"
+          status: pass
+        - cmd: "npm run build:widget"
+          status: pass
+        - cmd: "make check"
+          status: pass
+        - cmd: "bash test/ci-workflow-contract.test.sh"
+          status: pass
+        - cmd: "coverage/component/strict-state/no-gaming audit"
+          status: pass
+        - cmd: "port preflight; local npm test:e2e 4 workers 0 retries; port postflight"
+          status: pass
+        - cmd: "decode intermediate 274-test report"
+          status: pass
+        - cmd: "port preflight; canonical 204 Chromium 4 workers 0 retries; port postflight"
+          status: pass
+        - cmd: "decode/hash retained canonical report and final read-only audit"
+          status: pass
+      verified_working_tree:
+        base_commit: fb7d2d974b2a66b3c799d2a3ee67ad6d7adc3438
+        origin_main: fb7d2d974b2a66b3c799d2a3ee67ad6d7adc3438
+        implementation_revision: enclosing_commit
+        provenance: "Metrics describe this working-tree delta over base_commit; once committed, the enclosing commit is the reproducible implementation revision. They are not attributed to the baseline commit."
+        post_rebase_verification: "Reproduced after rebasing onto base_commit: 68 files/965 unit tests, 275 local browser tests, and 205 canonical Chromium tests, all passing with browser retries disabled."
+        test_files: 68
+        tests: 965
+        statements: "5767/7837 73.58%"
+        branches: "3964/5766 68.74%"
+        functions: "1040/1348 77.15%"
+        lines: "5329/7123 74.81%"
+      baseline_delta:
+        lines: "4535/7060 64.23% -> 5329/7123 74.81%, +794 covered, +10.58pp"
+        branches: "3644/5736 63.52% -> 3964/5766 68.74%, +320 covered, +5.22pp"
+        tests: "895 -> 965, +70"
+        test_files: "56 -> 68, +12"
+      components:
+        widget:
+          lines: "1936/2853 67.86%"
+          branches: "1182/1947 60.70%"
+          baseline_lines: "1267/2799 45.27%"
+          baseline_branches: "910/1925 47.27%"
+        backend:
+          lines: "877/938 93.50%"
+          branches: "590/708 83.33%"
+          baseline_lines: "752/929 80.95%"
+          baseline_branches: "542/700 77.43%"
+        scripts:
+          lines: "2516/3332 75.51% unchanged"
+          branches: "2192/3111 70.46% unchanged"
+      strict_projection:
+        total: "4933 hit / 804 partial / 1869 miss / 7606 = 64.86% strict"
+        widget: "1801/217/961/2979 = 60.46%"
+        backend: "805/107/61/973 = 82.73%"
+        scripts: "2327/480/847/3654 = 63.68%"
+        note: "Local LCOV projection; not external Codecov processing. partials_as_hits remains false."
+      browser:
+        local:
+          total: 275
+          expected: 275
+          unexpected: 0
+          flaky: 0
+          skipped: 0
+          workers: 4
+          unique: 275
+          results: 275
+          retries:
+            - 0
+          projects:
+            chromium: 251
+            chromium-radix: 8
+            firefox-radix: 8
+            webkit-radix: 8
+        canonical:
+          total: 205
+          expected: 205
+          unexpected: 0
+          flaky: 0
+          skipped: 0
+          workers: 4
+          unique: 205
+          results: 205
+          retries:
+            - 0
+          project: chromium
+          file: widget.spec.ts
+          hover_regression: "present and passed"
+          active_drag_resize_regression: "present and passed"
+          sha256: 08761ae19cf38767cd17b0fd2d2d72181f67eaf9257cc211d663ceb20bd0696b
+          bytes: 696519
+          mtime_epoch: 1786135045
+          port_unused: true
+      adversarial_evidence:
+        - kind: no_gaming
+          detail: "No Vitest/package/workflow diff, no new exclusions/ignore directives/skips/retries/pass-zero/partials-as-hits, 82 unique exhaustive component paths."
+        - kind: risk_weighted
+          detail: "All native covered-line gain is product: widget +669 and backend +125; scripts unchanged."
+        - kind: defects_disproved_then_fixed
+          detail: "GitHub concurrent creation/collision, stalled capture cleanup, selector false-green, and trigger persistence drift each had preserved failing evidence before narrow repair."
+        - kind: assertion_quality
+          detail: "Direct cryptographic/HTTP/lifecycle/privacy/cleanup/geometry/canvas/output tests plus real browser pixel/pointer/Shadow DOM/mobile contracts."
+        - kind: scope
+          detail: "Every production/config change has paired tests and Judge receipts; protected workflow/dependency files unchanged."
+        - kind: artifact_retention
+          detail: "Canonical was final Playwright invocation; report decoded in memory and SHA256 unchanged after all read-only audits."
+      limitations:
+        - "External Codecov component processing across product PR/merge_group/public fork remains future informational evidence; no badge/blocking threshold now."
+        - "Deployment-only live projects were not run without complete identity inputs; pinned live workflows remain unchanged and explicitly guarded."
+      remaining_blockers: []
+      required_board_updates:
+        - "Record T028 done."
+        - "Activate T029 final Judge."
+        - "Do not run Playwright or overwrite retained artifact."
+  - id: T029
+    type: judge
+    assignee: Judge
+    status: done
+    reasoning_hint: high
+    objective: "Map the full original oracle to current receipts and verification, including repaired browser invariant and local/live separation, and decide completion."
+    inputs:
+      - "All receipts"
+      - "T028 final proof"
+      - "Current diff and artifacts"
+    constraints:
+      - "Read-only."
+      - "Reject any stale, skipped, retried, duplicated, partials-as-hits, assertion-weakened, or denominator-gamed evidence."
+      - "Reject completion while any required task remains active or queued."
+    expected_output:
+      - "complete | not_complete"
+      - "full_outcome_complete: true | false"
+      - "Final oracle mapping"
+    receipt:
+      result: done
+      decision: complete
+      full_outcome_complete: true
+      rationale: "Complete. Current artifacts validate the working-tree delta over pinned HEAD/origin, 68 files/965 tests, 74.81% lines and 68.74% branches, +794 covered lines/+320 branches. Components exhaust 82 unique LCOV records; strict projection keeps 804 partials out of hits. Direct risk contracts include pending video-frame callback timeout and abort cancellation. Post-review verification retained 205 retry-0 Chromium passes including hover/resize and active-drag/resize regressions, with the complete local matrix at 275/275. T028 records every gate passing. All non-final tasks terminal and prior blockers closed; no queued work."
+      evidence:
+        - kind: fresh_main
+          detail: "origin/main and merge-base exact fb7d2d974b2a66b3c799d2a3ee67ad6d7adc3438; the enclosing implementation revision is one commit ahead and zero behind."
+        - kind: terminal_board
+          detail: "All tasks terminal; prior blockers closed by later approved repairs."
+        - kind: full_gate_receipt
+          detail: "All unit/static/build/release/security/reporting/local/canonical gates pass."
+        - kind: native_coverage
+          detail: "5329/7123 lines 74.81%; 3964/5766 branches 68.74%; 5767/7837 statements; 1040/1348 functions."
+        - kind: baseline_delta
+          detail: "+794 covered lines, +320 branches; denominators grew 63/30."
+        - kind: component_partition
+          detail: "82 unique files: widget 46, backend 10, scripts 26; exhaustive."
+        - kind: no_script_masking
+          detail: "Scripts unchanged; all gain from widget/backend product."
+        - kind: strict_projection
+          detail: "4933 hit, 804 partial, 1869 miss, 7606 denominator, 64.86%; partials not hits."
+        - kind: strict_configuration
+          detail: "enable_partials true, partials_as_hits false, unit-only informational components."
+        - kind: no_gaming
+          detail: "No exclusion/package/workflow changes, ignores/skips/retries/pass-zero/duplicate coverage."
+        - kind: assertion_quality
+          detail: "Direct cryptographic/HTTP/lifecycle/privacy/cleanup/geometry/canvas/output contracts plus real browser proof."
+        - kind: browser_project_gate
+          detail: "275 local tests passed; variadic spaced and equals-form live selectors fail closed without inputs."
+        - kind: canonical_report
+          detail: "SHA256 08761ae19cf38767cd17b0fd2d2d72181f67eaf9257cc211d663ceb20bd0696b; 205 passes after rebase, four workers, retry 0, with hover/resize and active-drag/resize regressions passed."
+        - kind: limitations_not_blockers
+          detail: "External Codecov event processing remains informational; live deployment tests remain separate identity-pinned CI gates."
+      subgoal_contract: null
+      parallel_safety: null
+      blocked_tasks: []
+      missing_evidence: []
+      required_board_updates:
+        - "Record T029 complete/full_outcome true."
+        - "Mark goal complete/clear active."
+        - "No authorization to push/PR/deploy/promote thresholds/badge."
+checks:
+  dirty_fingerprint: unknown
+  last_verification:
+    result: unknown
+    task: null
+    commands: []

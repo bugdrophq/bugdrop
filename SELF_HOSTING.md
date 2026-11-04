@@ -148,8 +148,7 @@ environment, Cloudflare target, static-asset origin, and external capability gat
 until separately authorized production setup is complete. Self-hosters should use the manual
 `make deploy` path above or deliberately adapt and validate the guarded workflow for their own
 environment. Do not copy its production settings or assume that creating a tag or Release activates
-it. Maintainers of the canonical service should use the guarded
-[release workflow](.github/workflows/deploy.yml).
+it. Maintainers of the canonical service should follow [the release runbook](docs/releasing.md).
 
 ### Optional Production Heartbeat
 
@@ -159,10 +158,10 @@ inert until explicitly enabled, and canonical service defaults are accepted only
 test venue, separate synthetic-Issue repository, GitHub App author, and narrowly scoped verification
 credential.
 
-After the deployment is stable, configure and manually exercise the
-[production heartbeat workflow](.github/workflows/production-heartbeat.yml). Verify production
-build identity, private-repository Actions settings, required variables and secret, a controlled
-incident exercise, and scheduled soak before four-hour activation. Do not enable the
+After the deployment is stable, follow the
+[self-hosted and private repository heartbeat runbook](docs/production-heartbeat.md#self-hosted-and-private-repositories).
+It covers production build identity, private-repository Actions settings, required variables and
+secret, a controlled incident exercise, scheduled soak, and four-hour activation. Do not enable the
 schedule before the manual success and recovery runs pass and the controlled-failure exercise
 produces its expected failed conclusion and incident.
 
