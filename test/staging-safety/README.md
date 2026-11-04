@@ -93,7 +93,7 @@ objects; it must never shorten the configured 30-day production receipt lifetime
 Approved resources and a real provider are still required to run this drill; it is
 not a 30-day wall-clock observation. The merged local SQLite expiry
 test covers local behavior only. Repeat the supported-public 48-case comparison
-and 145-file fingerprint using `docs/protocol/cross-plane-safety.md` before and
+and public-source fingerprint using `test/cross-plane/current-public.test.ts` before and
 after any actual staging integration.
 
 ## Uninstall completion is currently blocked

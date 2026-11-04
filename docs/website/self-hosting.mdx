@@ -113,10 +113,9 @@ is stable, you can configure it to exercise your own Worker and create, verify, 
 Issue in a separate repository. Canonical BugDrop service defaults are never used by a self-hosted
 repository, and scheduled runs remain inert until you explicitly activate them.
 
-See the
-**[production heartbeat runbook](https://github.com/bugdrophq/bugdrop/blob/main/docs/production-heartbeat.md#self-hosted-and-private-repositories)**
-for the private-repository setup, least-privilege credential, manual incident drill, and staged
-schedule activation.
+Review the required variables, credentials, and activation guards in the
+**[production heartbeat workflow](https://github.com/bugdrophq/bugdrop/blob/main/.github/workflows/production-heartbeat.yml)**
+before enabling scheduled runs. Verify manual success and recovery runs first.
 
 ## Keeping Up to Date
 
