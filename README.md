@@ -278,7 +278,6 @@ the live page after testing to restore its original widget and `fetch` implement
 - [JavaScript API](https://bugdrop.dev/docs/javascript-api)
 - [Version Pinning](https://bugdrop.dev/docs/version-pinning)
 - [CI Testing](https://bugdrop.dev/docs/ci-testing)
-- [Merge-queue Issue canary operations](docs/merge-queue-issue-canary.md)
 - [Security & Rate Limiting](https://bugdrop.dev/docs/security)
 - [Self-Hosting](https://bugdrop.dev/docs/self-hosting)
 - [FAQ](https://bugdrop.dev/docs/faq)
@@ -319,9 +318,7 @@ We will keep turning new failure modes and operational lessons into repeatable c
 workflow history as evidence. View the current component health and incident history on the
 [public service status page](https://bugdrop.dev/status). Inspect the
 [merge-queue checks](https://github.com/bugdrophq/bugdrop/actions/workflows/ci.yml) and
-[production heartbeat](https://github.com/bugdrophq/bugdrop/actions/workflows/production-heartbeat.yml),
-or read the detailed [preview canary](docs/merge-queue-issue-canary.md) and
-[production heartbeat](docs/production-heartbeat.md) designs.
+[production heartbeat](https://github.com/bugdrophq/bugdrop/actions/workflows/production-heartbeat.yml).
 
 ## Live Demo
 

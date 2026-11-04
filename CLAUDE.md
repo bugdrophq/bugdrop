@@ -101,7 +101,12 @@ version; the operator chooses the SemVer bump in the manual release dispatch.
 - `chore:` — maintenance (no release)
 - `docs:` — documentation (no release)
 
-See `docs/releasing.md` for the on-demand dry-run, live-release, and recovery procedure.
+Use the explicit dispatch inputs in `.github/workflows/deploy.yml` for releases.
+
+## Documentation
+
+Only `docs/website/` belongs in version control. Other `docs/` files are ignored;
+do not force-add planning notes, goal boards, review captures, or other documents.
 
 ---
 
