@@ -5,8 +5,7 @@ This recipe composes the general
 preview, and editable context defaults. The rating threshold, publication scope,
 and attribution copy are application decisions, not built-in flow policies.
 
-PR #463 supports the [original desktop/mobile design](images/publication-permission/README.md):
-a quote and editable credit on one final screen, with two buttons that choose
+The recipe shows a quote and editable credit on one final screen, with two buttons that choose
 permission and submit the feedback. There is no separate permission selection or
 extra Submit click. See the [executable example](../test/fixtures/publication-flow.ts).
 
@@ -120,5 +119,3 @@ cancellation, one-to-four-star bypass, and hidden-answer cleanup. Desktop and
 393 × 852 responsive Chromium cases exercise the quote boundary, same-screen
 preview/credit/buttons, edited and anonymous credit on both choices, and visible
 control bounds. Rating-only pointer/keyboard changes update routing labels.
-The screenshot gallery records the original Bleep preview as the design reference;
-see the PR description for current SDK verification.
