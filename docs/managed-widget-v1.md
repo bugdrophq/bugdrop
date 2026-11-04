@@ -59,8 +59,13 @@ Application or destination has a separate lock. A fresh browser/profile, explici
 storage deletion, or browser eviction cannot retain this client-side protection;
 this is not cross-device duplicate detection or full report recovery.
 
-Only a confirmed delivered outcome or an initial definitive editable rejection
-clears an owned marker. A denial following uncertainty cannot clear it. Missing
+A confirmed delivered outcome or an initial definitive editable rejection clears
+an owned marker. Authorization failures also clear it only when every attempt of
+that prepared submission has failed before dispatch. A manual retry retains the
+same prepared submission and reacquires its guard before authorization; there is
+no automatic retry. Any earlier delivery outcome or thrown attempt prevents a
+later authorization failure from releasing the marker, including a retryable
+service rejection. A denial following uncertainty cannot clear it. Missing
 Web Locks, unreadable/unwritable storage, corrupt or foreign markers fail closed
 with a visible locked state and no new capability/delivery request. A failed clear
 also prevents another report. There is no automatic expiry or reporter-facing
@@ -68,7 +73,12 @@ force-reset button. For an unresolved reload, the site owner must first reconcil
 authoritative delivery/receipt evidence, then assist the reporter in removing only
 this Application/destination's localStorage marker; never advise blanket storage
 clearing or retyping the report as a retry. This manual beta procedure does not
-claim an automated reconciliation API.
+claim an automated reconciliation API. The authorization-only release rule
+prevents settled authorization-only failures from stranding markers; it cannot classify or
+unlock a pre-existing opaque marker. No automatic migration, expiry or reset of
+those unknown markers is provided. Reloading while authorization is still pending
+also retains the unresolved marker and remains locked; only a settled safe result
+can release the current owner’s marker.
 
 Only the versioned delivered response with the expected HTTP status and a valid
 receipt ID produces a delivered confirmation. A verifier-only response, malformed
@@ -95,7 +105,10 @@ failure case drops the first response, then verifies that retry preserves the
 exact body, submission ID, and digest while obtaining a fresh token. It also
 rejects verifier-only success and checks keyboard dialog access. Reload regressions
 prove that a lost response followed by a real page reload cannot start a replacement
-report, including after a subsequent denial. Concurrent tabs, corrupt storage,
+report, including after a subsequent denial or authorization failure. Authorization-only
+failures permit a draft after reload without a submission request; retrying in the
+same document preserves its binding. A retryable service rejection followed by
+failed authorization retains the reload lock. Concurrent tabs, corrupt storage,
 unavailable locks/storage and failed durable writes also fail closed. These checks
 intercept network responses and do not constitute live GitHub acceptance.
 
