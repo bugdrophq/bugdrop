@@ -145,9 +145,11 @@ class FlowModalController {
       return;
     }
     let surface: HTMLElement;
+    let hasContextDefaults = false;
     if (screen.type === 'message') surface = createMessageScreen(screen);
     else if (screen.type === 'form') {
       const form = this.definition.config.forms.find(candidate => candidate.id === screen.form)!;
+      hasContextDefaults = form.fields.some(field => 'prefillFromContext' in field);
       this.currentForm = createFlowFormScreen(
         form,
         this.instanceId,
@@ -179,6 +181,8 @@ class FlowModalController {
       surface.addEventListener('change', preview);
     }
     this.show(surface, direction);
+    if (screen.type === 'form' && hasContextDefaults)
+      void this.previewFormRoute(screen.form, surface);
   }
 
   private async previewFormRoute(formId: string, surface: HTMLElement): Promise<void> {
