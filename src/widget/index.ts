@@ -1,3 +1,4 @@
+import { resolveWidgetApiUrl } from './api-url';
 import { getDomNodeCount, getRedactionCount, isFullPageDisabled } from './screenshot';
 import { runScreenshotCaptureFlow } from './capture-flow';
 import { createFlowCaptureView } from './flows/capture-view';
@@ -441,7 +442,7 @@ if (rawAppVersion !== undefined && appVersion === undefined) {
 }
 const config: WidgetConfig = {
   repo: script?.dataset.repo || '',
-  apiUrl: script?.src.replace(/\/widget(?:\.v[\d.]+)?\.js$/, '/api') || '',
+  apiUrl: resolveWidgetApiUrl(script),
   authTokenProvider: resolveAuthTokenProvider(script?.dataset.authTokenProvider),
   prefillProviderName: script?.dataset.prefillProvider,
   appVersion,

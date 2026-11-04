@@ -8,7 +8,7 @@ import {
   createCheckboxController,
   type ExtraFieldController,
 } from './extra-fields';
-import type { FlowField, FlowForm } from './public-types';
+import type { FlowField, FlowForm, FlowScalar } from './public-types';
 
 export interface FlowFormController {
   readonly element: HTMLElement;
@@ -21,7 +21,8 @@ export function createFlowFormScreen(
   formConfig: Readonly<FlowForm>,
   instanceId: string,
   answers: Readonly<Record<string, unknown>>,
-  submitterPaths?: Readonly<{ name?: string; email?: string }>
+  submitterPaths?: Readonly<{ name?: string; email?: string }>,
+  context: Readonly<Record<string, FlowScalar>> = {}
 ): FlowFormController {
   const formFields = formConfig.fields.map(field => {
     if (field.type !== 'shortText' && field.type !== 'longText') return field;
@@ -41,7 +42,7 @@ export function createFlowFormScreen(
   fields.className = 'bdv-fields';
   section.appendChild(fields);
   const controllers = formFields.map(field =>
-    createController(field, formConfig.id, instanceId, answers)
+    createController(field, formConfig.id, instanceId, answers, context)
   );
   for (const controller of controllers) fields.appendChild(controller.element);
 
@@ -97,7 +98,8 @@ function createController(
   field: Readonly<FlowField>,
   formId: string,
   instanceId: string,
-  answers: Readonly<Record<string, unknown>>
+  answers: Readonly<Record<string, unknown>>,
+  context: Readonly<Record<string, FlowScalar>>
 ): Controller {
   if (field.type === 'checkbox') {
     return createCheckboxController(field, formId, instanceId, answers);
@@ -106,7 +108,14 @@ function createController(
     return createAttachmentsController(field, formId, instanceId, answers);
   }
   const controller = createFieldController(field, instanceId);
-  controller.setValue(answers[`${formId}.${field.id}`] ?? '');
+  let defaultValue = '';
+  if ((field.type === 'shortText' || field.type === 'longText') && field.prefillFromContext) {
+    const prefill = context[field.prefillFromContext];
+    const maximum = field.maxLength ?? (field.type === 'shortText' ? 500 : 5_000);
+    if (typeof prefill === 'string') defaultValue = prefill.slice(0, maximum).trim();
+  }
+  // A saved empty string is an intentional clear, not a request to reapply the default.
+  controller.setValue(answers[`${formId}.${field.id}`] ?? defaultValue);
   return controller;
 }
 

@@ -1,26 +1,7 @@
-import { countConditionNodes } from './conditions';
-import {
-  validateFlowConditionValue,
-  validateFlowFieldConfig,
-  validateFlowShell,
-} from './field-validation';
-import type {
-  FlowCondition,
-  FlowConfig,
-  FlowField,
-  FlowIssueSection,
-  FlowScreen,
-} from './public-types';
-import {
-  deepFreeze,
-  fail,
-  object,
-  only,
-  optionalText,
-  scalar,
-  text,
-  validId,
-} from './validation-utils';
+import { validateScreen } from './screen-validation';
+import { validateFlowFieldConfig, validateFlowShell } from './field-validation';
+import type { FlowConfig, FlowField, FlowIssueSection } from './public-types';
+import { deepFreeze, fail, object, only, optionalText, text, validId } from './validation-utils';
 const PATH = /^([a-z][a-z0-9_-]{0,63})\.([a-z][a-z0-9_-]{0,63})$/;
 const TOP_KEYS = new Set([
   'configVersion',
@@ -35,8 +16,21 @@ const TOP_KEYS = new Set([
 ]);
 const BASE_FIELD_KEYS = ['id', 'type', 'label', 'helpText', 'required', 'layout'];
 const FIELD_KEYS: Record<FlowField['type'], Set<string>> = {
-  shortText: new Set([...BASE_FIELD_KEYS, 'placeholder', 'minLength', 'maxLength']),
-  longText: new Set([...BASE_FIELD_KEYS, 'placeholder', 'rows', 'minLength', 'maxLength']),
+  shortText: new Set([
+    ...BASE_FIELD_KEYS,
+    'placeholder',
+    'minLength',
+    'maxLength',
+    'prefillFromContext',
+  ]),
+  longText: new Set([
+    ...BASE_FIELD_KEYS,
+    'placeholder',
+    'rows',
+    'minLength',
+    'maxLength',
+    'prefillFromContext',
+  ]),
   rating: new Set([...BASE_FIELD_KEYS, 'scale', 'icon', 'lowLabel', 'highLabel']),
   singleChoice: new Set([...BASE_FIELD_KEYS, 'options', 'display']),
   checkbox: new Set([...BASE_FIELD_KEYS, 'initialValue']),
@@ -65,6 +59,8 @@ export function validateAndFreezeFlowConfig(input: FlowConfig): Readonly<FlowCon
   const screenIds = new Set<string>();
   for (const screen of input.screens) {
     validateScreen(screen, screenIds, forms, earlierAnswers);
+    if (screen.type === 'form' && screen.submitActions && screen !== input.screens.at(-1))
+      fail('submitActions must belong to the last configured screen');
     if (screen.type === 'form') {
       if (referencedForms.has(screen.form)) fail(`form ${screen.form} may be referenced only once`);
       referencedForms.add(screen.form);
@@ -112,83 +108,11 @@ function validateForm(
     if (field.required !== undefined && typeof field.required !== 'boolean')
       fail('field required must be boolean');
     validateFlowFieldConfig(field as FlowField);
+    if ('prefillFromContext' in field)
+      validId(field.prefillFromContext, 'field prefillFromContext');
     answerFields.set(`${form.id}.${field.id}`, field as FlowField);
   }
   forms.set(form.id, form);
-}
-
-function validateScreen(
-  screen: FlowScreen,
-  ids: Set<string>,
-  forms: Map<string, FlowConfig['forms'][number]>,
-  earlier: Map<string, FlowField>
-) {
-  if (!object(screen)) fail('screen must be an object');
-  validId(screen.id, 'screen id');
-  if (ids.has(screen.id)) fail(`duplicate screen id ${screen.id}`);
-  ids.add(screen.id);
-  if (!['message', 'form', 'screenshot'].includes(screen.type)) fail('screen type is unsupported');
-  const keys =
-    screen.type === 'message'
-      ? new Set(['id', 'type', 'when', 'title', 'description', 'continueLabel'])
-      : screen.type === 'form'
-        ? new Set(['id', 'type', 'when', 'form', 'continueLabel', 'backLabel'])
-        : new Set([
-            'id',
-            'type',
-            'when',
-            'title',
-            'description',
-            'mode',
-            'continueLabel',
-            'backLabel',
-          ]);
-  only(screen, keys, 'screen');
-  if (Object.prototype.hasOwnProperty.call(screen, 'when'))
-    validateCondition(screen.when as FlowCondition, earlier);
-  if (screen.type === 'message') {
-    text(screen.title, 'message title', 500);
-    optionalText(screen.description, 'message description', 2_000);
-  }
-  if (screen.type === 'form' && !forms.has(screen.form))
-    fail(`screen references unknown form ${screen.form}`);
-  if (screen.type === 'screenshot' && !['optional', 'auto', 'required'].includes(screen.mode))
-    fail('screenshot mode is invalid');
-  if (screen.type === 'screenshot') {
-    optionalText(screen.title, 'screenshot title', 500);
-    optionalText(screen.description, 'screenshot description', 2_000);
-  }
-  optionalText(screen.continueLabel, 'screen continueLabel', 120);
-  if (screen.type !== 'message') optionalText(screen.backLabel, 'screen backLabel', 120);
-}
-
-function validateCondition(condition: FlowCondition, earlier: Map<string, FlowField>) {
-  if (!object(condition)) fail('condition must be an object');
-  countConditionNodes(condition);
-  if ('answer' in condition) {
-    only(condition, new Set(['answer', 'equals']), 'answer condition');
-    const field = earlier.get(condition.answer);
-    if (!field) fail(`condition answer must reference an earlier field: ${condition.answer}`);
-    scalar(condition.equals, 'condition equals');
-    validateFlowConditionValue(field, condition.equals);
-    return;
-  }
-  if ('context' in condition) {
-    only(condition, new Set(['context', 'equals']), 'context condition');
-    validId(condition.context, 'condition context');
-    scalar(condition.equals, 'condition equals');
-    return;
-  }
-  const key = 'all' in condition ? 'all' : 'any' in condition ? 'any' : null;
-  if (!key) fail('condition must contain answer, context, all, or any');
-  only(condition, new Set([key]), 'condition group');
-  const children =
-    key === 'all'
-      ? (condition as Extract<FlowCondition, { all: FlowCondition[] }>).all
-      : (condition as Extract<FlowCondition, { any: FlowCondition[] }>).any;
-  if (!Array.isArray(children) || children.length < 1 || children.length > 8)
-    fail(`condition ${key} must contain 1-8 entries`);
-  for (const child of children) validateCondition(child, earlier);
 }
 
 function validateIssue(

@@ -1,6 +1,7 @@
 import { expect, test, type Page } from '@playwright/test';
 import type { FlowConfig, FlowOpenOptions } from '../src/widget/flows/public-types';
 import { flowRecipes, type FlowRecipeId } from '../test/fixtures/flow-recipes';
+import { publicationFlow } from '../test/fixtures/publication-flow';
 
 type Payload = Record<string, unknown> & {
   title: string;
@@ -958,3 +959,140 @@ test.describe('public modal FlowConfig V1 representative recipes', () => {
     await expect(host.getByRole('dialog').getByRole('button').first()).toBeFocused();
   });
 });
+
+for (const viewport of [
+  { width: 1440, height: 900 },
+  { width: 393, height: 852 },
+]) {
+  test.describe(`publication permission at ${viewport.width}px`, () => {
+    test.use({ viewport });
+
+    test('final actions follow visual order with Tab and Shift+Tab', async ({ page }) => {
+      const payloads = await mockFeedback(page, 73);
+      await ready(page);
+      const host = await openConfig(page, publicationFlow, {
+        context: { 'account-name': 'Fixture Reviewer' },
+      });
+      await host.getByRole('radio', { name: '5 stars', exact: true }).click();
+      await host.getByLabel('Anything to add? (optional)', { exact: true }).fill('Great product.');
+      await host.getByRole('button', { name: 'Continue', exact: true }).click();
+      const credit = host.getByLabel('Show my quote as', { exact: true });
+      const yes = host.getByRole('button', { name: 'Yes, you can share this', exact: true });
+      const no = host.getByRole('button', { name: 'Keep my feedback private', exact: true });
+      const back = host.getByRole('button', { name: 'Back', exact: true });
+      await credit.press('Tab');
+      await expect(yes).toBeFocused();
+      await yes.press('Tab');
+      await expect(no).toBeFocused();
+      await no.press('Tab');
+      await expect(back).toBeFocused();
+      await back.press('Shift+Tab');
+      await expect(no).toBeFocused();
+      await no.press('Shift+Tab');
+      await expect(yes).toBeFocused();
+      await yes.press('Shift+Tab');
+      await expect(credit).toBeFocused();
+      await back.press('Enter');
+      await expect(host.getByLabel('Anything to add? (optional)', { exact: true })).toHaveValue(
+        'Great product.'
+      );
+      expect(payloads).toHaveLength(0);
+    });
+
+    test('rating-only routing, quote boundary and lower-rating cleanup', async ({ page }) => {
+      const payloads = await mockFeedback(page, 71);
+      await ready(page);
+      expect(await page.evaluate(() => ({ width: innerWidth, height: innerHeight }))).toEqual(
+        viewport
+      );
+      const host = await openConfig(page, publicationFlow, {
+        context: {
+          'account-name': 'Fixture Reviewer',
+          'publication-permission': false,
+          'publication-channels': 'website',
+        },
+      });
+      await host.getByRole('radio', { name: '5 stars', exact: true }).click();
+      await expect(host.getByRole('button', { name: 'Continue', exact: true })).toBeVisible();
+      await expect(host.getByText('Step 1 of 3', { exact: true })).toBeVisible();
+      await host.getByRole('radio', { name: '5 stars', exact: true }).press('ArrowLeft');
+      await expect(host.getByRole('radio', { name: '4 stars', exact: true })).toHaveAttribute(
+        'aria-checked',
+        'true'
+      );
+      await expect(host.getByRole('button', { name: 'Submit', exact: true })).toBeVisible();
+      await host.getByRole('radio', { name: '4 stars', exact: true }).press('End');
+      await host.getByRole('button', { name: 'Continue', exact: true }).click();
+      const quote = host.getByLabel('Your quote (optional)', { exact: true });
+      await quote.fill('Nice');
+      await host.getByRole('button', { name: 'Continue', exact: true }).click();
+      await expect(quote).toHaveAttribute('aria-invalid', 'true');
+      expect(payloads).toHaveLength(0);
+      await quote.fill('Great');
+      await host.getByRole('button', { name: 'Continue', exact: true }).click();
+      await expect(host.locator('blockquote')).toHaveText('Great');
+      await host.getByLabel('Show my quote as', { exact: true }).fill('Abandoned credit');
+      await host.getByRole('button', { name: 'Back', exact: true }).click();
+      await host.getByRole('button', { name: 'Back', exact: true }).click();
+      await host.getByRole('radio', { name: '4 stars', exact: true }).click();
+      await host.getByRole('button', { name: 'Submit', exact: true }).click();
+      await expect.poll(() => payloads.length).toBe(1);
+      expect(payloads[0].description).toContain('## Publication permission\n\nfalse');
+      expect(payloads[0].description).not.toContain('## Credit');
+      expect(payloads[0].description).not.toContain('Great');
+    });
+
+    for (const permission of [true, false]) {
+      for (const credit of ['Public Reviewer', '']) {
+        test(`button submits ${permission} with credit ${JSON.stringify(credit)}`, async ({
+          page,
+        }) => {
+          const payloads = await mockFeedback(page, 72);
+          await ready(page);
+          expect(await page.evaluate(() => ({ width: innerWidth, height: innerHeight }))).toEqual(
+            viewport
+          );
+          const host = await openConfig(page, publicationFlow, {
+            context: {
+              'account-name': 'Fixture Reviewer',
+              'publication-permission': false,
+              'publication-channels': 'website',
+            },
+          });
+          await host.getByRole('radio', { name: '5 stars', exact: true }).click();
+          await host
+            .getByLabel('Anything to add? (optional)', { exact: true })
+            .fill('Bleep makes editing easier.');
+          await host.getByRole('button', { name: 'Continue', exact: true }).click();
+          await expect(host.locator('blockquote')).toHaveText('Bleep makes editing easier.');
+          await expect(host.getByRole('radiogroup')).toHaveCount(0);
+          await expect(host.getByRole('button', { name: 'Submit', exact: true })).toHaveCount(0);
+          const name = host.getByLabel('Show my quote as', { exact: true });
+          await expect(name).toHaveValue('Fixture Reviewer');
+          await name.fill(credit);
+          await host.getByRole('button', { name: 'Back', exact: true }).click();
+          await host.getByRole('button', { name: 'Continue', exact: true }).click();
+          await expect(name).toHaveValue(credit);
+          expect(payloads).toHaveLength(0);
+          const yes = host.getByRole('button', { name: 'Yes, you can share this', exact: true });
+          const no = host.getByRole('button', { name: 'Keep my feedback private', exact: true });
+          for (const control of [name, yes, no]) {
+            const bounds = await control.boundingBox();
+            expect(bounds).not.toBeNull();
+            expect(bounds!.x).toBeGreaterThanOrEqual(0);
+            expect(bounds!.x + bounds!.width).toBeLessThanOrEqual(viewport.width);
+            expect(bounds!.y + bounds!.height).toBeLessThanOrEqual(viewport.height);
+          }
+          await (permission ? yes : no).click();
+          await expect.poll(() => payloads.length).toBe(1);
+          await expect(host.getByRole('button', { name: 'Done', exact: true })).toBeVisible();
+          expect(payloads[0].description).toContain(`## Publication permission\n\n${permission}`);
+          expect(payloads[0].description).toContain('## Publication channels\n\nwebsite');
+          expect(payloads[0].description.includes('## Credit')).toBe(Boolean(credit));
+          if (credit) expect(payloads[0].description).toContain(credit);
+          expect(payloads[0].description).not.toContain('Fixture Reviewer');
+        });
+      }
+    }
+  });
+}

@@ -18,6 +18,7 @@ export interface FlowRoute {
 
 export class FlowRuntime {
   readonly answers: Record<string, unknown>;
+  submissionMetadata: Readonly<Record<string, FlowScalar>> = {};
   capture: CaptureEvidence | null = null;
   private currentId: string;
 

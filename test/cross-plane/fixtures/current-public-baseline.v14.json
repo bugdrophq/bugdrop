@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 14,
+  "description": "Opt-in final flow actions, earlier-text preview, editable context defaults and self-hosted routing. Sorted path + NUL + bytes + NUL.",
+  "fileCount": 157,
+  "sha256": "406707864b0cb853ead39ad2533711eaf8d4b54fbaa20e90e77fb8df6976a058",
+  "approvedDelta": {
+    "previousBaseline": "current-public-baseline.v13.json",
+    "previousSha256": "bc343eeb177901ff0776a853326843b3b1de47e46c57fad44fb77d2abcbf1741",
+    "baseCommit": "e1380f7f0c34131555db5c9070298f8ed3d436a3",
+    "changedPublicSources": [
+      "src/widget/api-url.ts",
+      "src/widget/flows/definition.ts",
+      "src/widget/flows/form-screen.ts",
+      "src/widget/flows/manager.ts",
+      "src/widget/flows/modal-view.ts",
+      "src/widget/flows/modal.ts",
+      "src/widget/flows/public-types.d.ts",
+      "src/widget/flows/runtime.ts",
+      "src/widget/flows/screen-validation.ts",
+      "src/widget/flows/styles.ts",
+      "src/widget/flows/submit-actions.ts",
+      "src/widget/flows/validate-config.ts",
+      "src/widget/index.ts",
+      "src/widget/public-api.d.ts",
+      "src/widget/variants/fields/rating.ts"
+    ],
+    "reason": "User-approved general custom-flow capability: exactly two validated final actions recording scalar choice data, independent plain-text preview and editable per-open text defaults, plus self-hosted backend routing and rating-change notifications. Final-action DOM order matches visual order. Displayed context defaults refresh route progress and Continue/Submit before interaction; explicit blanks and hidden-answer cleanup remain intact. Existing default flows keep ordinary navigation and submission. Historical v12 and v13 fixtures from main remain unchanged."
+  }
+}

@@ -14,6 +14,7 @@ import totals from './fixtures/current-public-baseline.v10.json';
 import thumbnails from './fixtures/current-public-baseline.v11.json';
 import pickerCancellation from './fixtures/current-public-baseline.v12.json';
 import modalColors from './fixtures/current-public-baseline.v13.json';
+import additions from './fixtures/current-public-baseline.v14.json';
 
 function isPublicPath(path: string): boolean {
   return (
@@ -171,20 +172,43 @@ describe('legacy public plane preserves its explicit compatibility boundary', ()
     );
   }, 30_000);
 
-  it('matches the modal color baseline with only ui styles changed', () => {
-    const paths = publicFiles();
+  it('pins the v13 public tree before alternative final flow actions', () => {
+    const paths = publicFilesAt(additions.approvedDelta.baseCommit);
     const base = modalColors.approvedDelta.baseCommit;
+    const prior = publicFilesAt(base);
+    const changed = paths.filter(
+      path =>
+        !prior.includes(path) ||
+        !execFileSync('git', ['show', `${additions.approvedDelta.baseCommit}:${path}`]).equals(
+          execFileSync('git', ['show', `${base}:${path}`])
+        )
+    );
+    expect(modalColors.approvedDelta.changedPublicSources).toEqual(['src/widget/ui.ts']);
+    expect(changed).toEqual(modalColors.approvedDelta.changedPublicSources);
+    expect(prior.filter(path => !paths.includes(path))).toEqual([]);
+    expect(paths.length).toBe(modalColors.fileCount);
+    expect(
+      fingerprint(paths, path =>
+        execFileSync('git', ['show', `${additions.approvedDelta.baseCommit}:${path}`])
+      )
+    ).toBe(modalColors.sha256);
+    expect(additions.approvedDelta.previousBaseline).toBe('current-public-baseline.v13.json');
+    expect(additions.approvedDelta.previousSha256).toBe(modalColors.sha256);
+  }, 30_000);
+
+  it('limits final actions, preview, defaults and API routing to their declared public source delta', () => {
+    const paths = publicFiles();
+    const base = additions.approvedDelta.baseCommit;
     const prior = publicFilesAt(base);
     const changed = paths.filter(
       path =>
         !prior.includes(path) ||
         !Buffer.from(readFileSync(path)).equals(execFileSync('git', ['show', `${base}:${path}`]))
     );
-    expect(modalColors.approvedDelta.changedPublicSources).toEqual(['src/widget/ui.ts']);
-    expect(changed).toEqual(modalColors.approvedDelta.changedPublicSources);
+    expect(changed).toEqual(additions.approvedDelta.changedPublicSources);
     expect(prior.filter(path => !paths.includes(path))).toEqual([]);
-    expect(paths.length).toBe(modalColors.fileCount);
-    expect(fingerprint(paths, readFileSync)).toBe(modalColors.sha256);
+    expect(paths.length).toBe(additions.fileCount);
+    expect(fingerprint(paths, readFileSync)).toBe(additions.sha256);
   }, 30_000);
 
   it.each([
@@ -200,6 +224,6 @@ describe('legacy public plane preserves its explicit compatibility boundary', ()
       const bytes = readFileSync(path);
       return path === target ? Buffer.concat([bytes, Buffer.from('\nMANAGED_MUTATION')]) : bytes;
     });
-    expect(hash).not.toBe(modalColors.sha256);
+    expect(hash).not.toBe(additions.sha256);
   });
 });

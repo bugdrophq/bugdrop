@@ -1,7 +1,7 @@
 import type { SubmissionResult } from '../variants/public-types';
 import type { FlowDefinition } from './definition';
 import type { FlowRoute } from './runtime';
-import type { ScreenshotScreen } from './public-types';
+import type { FlowSubmitAction, ScreenshotScreen } from './public-types';
 
 export function prepareDialog(surface: HTMLElement, instanceId: string, size: string): HTMLElement {
   const title = surface.querySelector<HTMLElement>('.bdv-title');
@@ -19,7 +19,7 @@ export function addNavigation(
   surface: HTMLElement,
   route: FlowRoute,
   onBack: () => void,
-  onAdvance: () => void,
+  onAdvance: (action?: FlowSubmitAction) => void,
   onClose: () => void
 ): void {
   const screen = route.screen!;
@@ -33,18 +33,29 @@ export function addNavigation(
   surface.querySelector('.bdv-header')?.prepend(progress);
   const actions = document.createElement('div');
   actions.className = 'bdv-actions';
+  let back: HTMLButtonElement | null = null;
   if (route.canGoBack) {
-    const back = button(
+    back = button(
       screen.type === 'message' ? 'Back' : (screen.backLabel ?? 'Back'),
       'bdv-cancel bdf-back'
     );
     back.addEventListener('click', onBack);
     actions.appendChild(back);
   }
-  const label = screen.continueLabel ?? (route.hasNext ? 'Continue' : 'Submit');
-  const next = button(label, 'bdv-submit');
-  next.addEventListener('click', onAdvance);
-  actions.appendChild(next);
+  if (screen.type === 'form' && screen.submitActions && !route.hasNext) {
+    for (const [index, action] of screen.submitActions.entries()) {
+      const submit = button(action.label, index === 0 ? 'bdv-submit' : 'bdv-cancel');
+      submit.dataset.submitAction = String(index);
+      submit.addEventListener('click', () => onAdvance(action));
+      actions.insertBefore(submit, back);
+    }
+    actions.classList.add('bdf-submit-actions');
+  } else {
+    const label = screen.continueLabel ?? (route.hasNext ? 'Continue' : 'Submit');
+    const next = button(label, 'bdv-submit');
+    next.addEventListener('click', () => onAdvance());
+    actions.appendChild(next);
+  }
   surface.appendChild(actions);
 }
 

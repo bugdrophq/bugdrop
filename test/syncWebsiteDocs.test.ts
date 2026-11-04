@@ -72,7 +72,12 @@ describe('website documentation sync', () => {
   });
 
   it('binds documented flow-wide validation boundaries to the released validator source', async () => {
-    const validationSource = await readFile('src/widget/flows/validate-config.ts', 'utf8');
+    const validationSource = (
+      await Promise.all([
+        readFile('src/widget/flows/validate-config.ts', 'utf8'),
+        readFile('src/widget/flows/screen-validation.ts', 'utf8'),
+      ])
+    ).join('\n');
     const conditionSource = await readFile('src/widget/flows/conditions.ts', 'utf8');
     const constraints = FLOW_CAPABILITIES.validation;
 
