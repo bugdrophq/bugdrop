@@ -967,6 +967,38 @@ for (const viewport of [
   test.describe(`publication permission at ${viewport.width}px`, () => {
     test.use({ viewport });
 
+    test('final actions follow visual order with Tab and Shift+Tab', async ({ page }) => {
+      const payloads = await mockFeedback(page, 73);
+      await ready(page);
+      const host = await openConfig(page, publicationFlow, {
+        context: { 'account-name': 'Fixture Reviewer' },
+      });
+      await host.getByRole('radio', { name: '5 stars', exact: true }).click();
+      await host.getByLabel('Anything to add? (optional)', { exact: true }).fill('Great product.');
+      await host.getByRole('button', { name: 'Continue', exact: true }).click();
+      const credit = host.getByLabel('Show my quote as', { exact: true });
+      const yes = host.getByRole('button', { name: 'Yes, you can share this', exact: true });
+      const no = host.getByRole('button', { name: 'Keep my feedback private', exact: true });
+      const back = host.getByRole('button', { name: 'Back', exact: true });
+      await credit.press('Tab');
+      await expect(yes).toBeFocused();
+      await yes.press('Tab');
+      await expect(no).toBeFocused();
+      await no.press('Tab');
+      await expect(back).toBeFocused();
+      await back.press('Shift+Tab');
+      await expect(no).toBeFocused();
+      await no.press('Shift+Tab');
+      await expect(yes).toBeFocused();
+      await yes.press('Shift+Tab');
+      await expect(credit).toBeFocused();
+      await back.press('Enter');
+      await expect(host.getByLabel('Anything to add? (optional)', { exact: true })).toHaveValue(
+        'Great product.'
+      );
+      expect(payloads).toHaveLength(0);
+    });
+
     test('rating-only routing, quote boundary and lower-rating cleanup', async ({ page }) => {
       const payloads = await mockFeedback(page, 71);
       await ready(page);

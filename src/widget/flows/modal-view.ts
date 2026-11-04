@@ -33,8 +33,9 @@ export function addNavigation(
   surface.querySelector('.bdv-header')?.prepend(progress);
   const actions = document.createElement('div');
   actions.className = 'bdv-actions';
+  let back: HTMLButtonElement | null = null;
   if (route.canGoBack) {
-    const back = button(
+    back = button(
       screen.type === 'message' ? 'Back' : (screen.backLabel ?? 'Back'),
       'bdv-cancel bdf-back'
     );
@@ -46,7 +47,7 @@ export function addNavigation(
       const submit = button(action.label, index === 0 ? 'bdv-submit' : 'bdv-cancel');
       submit.dataset.submitAction = String(index);
       submit.addEventListener('click', () => onAdvance(action));
-      actions.appendChild(submit);
+      actions.insertBefore(submit, back);
     }
     actions.classList.add('bdf-submit-actions');
   } else {

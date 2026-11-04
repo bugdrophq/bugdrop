@@ -2,7 +2,7 @@
   "schemaVersion": 12,
   "description": "Reviewed final form submit actions, plain-text quote preview, conditional text defaults and self-hosted API routing. Sorted path + NUL + bytes + NUL.",
   "fileCount": 157,
-  "sha256": "3d919790fd1ab19c4586f7e68e584548ed3019fa671f5a26c1953b0d277afe48",
+  "sha256": "f1dd4af25e15522c23fafe35895de67fc6deb410e4e3e457d788438802b4ed9a",
   "approvedDelta": {
     "previousBaseline": "current-public-baseline.v11.json",
     "previousSha256": "9f82abed2d63d466cf8b6cad29076422ab068cb9c0a8b09a99cbbe8d5f87902c",
@@ -24,6 +24,6 @@
       "src/widget/public-api.d.ts",
       "src/widget/variants/fields/rating.ts"
     ],
-    "reason": "PR #463 explicitly requires two buttons to choose scalar permission metadata and submit the final quote/credit form. Independent correctness review approved bounded actions, plain-text earlier-answer preview, conditional editable defaults, self-hosted backend routing, and rating-change notifications. Existing submission lock, retry and hidden-answer cleanup are retained. No conditional Issue-section, Worker or managed-plane behavior changes."
+    "reason": "PR #463 explicitly requires two buttons to choose scalar permission metadata and submit the final quote/credit form. Independent correctness review approved bounded actions, plain-text earlier-answer preview, conditional editable defaults, self-hosted backend routing, and rating-change notifications. Existing submission lock, retry and hidden-answer cleanup are retained. No conditional Issue-section, Worker or managed-plane behavior changes. The final-action DOM order now follows the existing visual order (first action, second action, Back); desktop/mobile forward and reverse keyboard navigation is covered without changing ordinary navigation."
   }
 }
