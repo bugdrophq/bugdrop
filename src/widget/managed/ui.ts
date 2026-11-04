@@ -121,6 +121,7 @@ export function createManagedUI(host: HTMLElement, options: ManagedUIOptions): M
     : 'draft';
   let submission: PreparedSubmission | undefined;
   let hadUncertainResult = false;
+  let authorizationOnly = true;
   let lastCode: string | undefined;
 
   function render(): void {
@@ -152,18 +153,22 @@ export function createManagedUI(host: HTMLElement, options: ManagedUIOptions): M
     }
     try {
       const outcome = await submission.submit();
+      // A later authorization failure cannot rule out an earlier delivery attempt.
+      authorizationOnly &&= outcome.status === 'authorization_failed';
       lastCode = outcome.status === 'rejected' ? outcome.code : undefined;
       if (outcome.status === 'indeterminate') hadUncertainResult = true;
       phase =
         hadUncertainResult && outcome.status !== 'delivered' ? 'indeterminate' : outcome.status;
       if (
         outcome.status === 'delivered' ||
+        (outcome.status === 'authorization_failed' && authorizationOnly) ||
         (outcome.status === 'rejected' && editableCodes.has(outcome.code) && !hadUncertainResult)
       )
         await options.guard?.release();
       if ('receiptId' in outcome && outcome.receiptId)
         receipt.textContent = `Receipt: ${outcome.receiptId}`;
     } catch {
+      authorizationOnly = false;
       hadUncertainResult = true;
       phase = 'indeterminate';
     }
@@ -232,6 +237,7 @@ export function createManagedUI(host: HTMLElement, options: ManagedUIOptions): M
     if (!editable) form.reset();
     submission = undefined;
     hadUncertainResult = false;
+    authorizationOnly = true;
     lastCode = undefined;
     receipt.textContent = '';
     error.textContent = '';

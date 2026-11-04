@@ -3,7 +3,13 @@ import { test, expect, type Page } from '@playwright/test';
 
 const app = 'https://reload-app.localhost';
 const widget = 'https://reload-widget.localhost';
-async function setup(page: Page, rejectRetry = false) {
+interface SetupOptions {
+  rejectRetry?: boolean;
+  failAuthorizationCalls?: number[];
+  pendingAuthorization?: boolean;
+  response?: 'delivered' | 'internal_error';
+}
+async function setup(page: Page, options: SetupOptions = {}) {
   const [sdk, script] = await Promise.all([
     readFile('dist/managed-widget/packed-sdk.js', 'utf8'),
     readFile('dist/managed-widget/widget.managed.v1.js', 'utf8'),
@@ -30,7 +36,7 @@ async function setup(page: Page, rejectRetry = false) {
         });
       else {
         attempts++;
-        if (rejectRetry && attempts > 1)
+        if (options.rejectRetry && attempts > 1)
           await route.fulfill({
             status: 403,
             headers: { 'Access-Control-Allow-Origin': app },
@@ -40,33 +46,63 @@ async function setup(page: Page, rejectRetry = false) {
               error: { code: 'forbidden', retryable: false },
             }),
           });
+        else if (options.response)
+          await route.fulfill({
+            status: options.response === 'delivered' ? 200 : 500,
+            headers: { 'Access-Control-Allow-Origin': app },
+            contentType: 'application/json',
+            body: JSON.stringify(
+              options.response === 'delivered'
+                ? {
+                    schemaVersion: 1,
+                    status: 'delivered',
+                    receiptId: '00000000-0000-4000-8000-000000000001',
+                  }
+                : { schemaVersion: 1, error: { code: 'internal_error', retryable: true } }
+            ),
+          });
         else await route.abort('failed');
       }
     } else throw new Error(`Unexpected request: ${url}`);
   });
   async function boot() {
     await page.addScriptTag({ content: sdk });
-    await page.evaluate(async widget => {
-      const fixture = window as unknown as {
-        authorizationCalls: number;
-        PackedBugDrop: { init(options: unknown): { ready: Promise<void>; open(): Promise<void> } };
-      };
-      fixture.authorizationCalls = 0;
-      const controller = fixture.PackedBugDrop.init({
-        applicationId: 'app_reload',
-        widgetUrl: `${widget}/widget.managed.v1.js`,
-        tokenProvider: () => {
-          fixture.authorizationCalls++;
-          return {
-            schemaVersion: 1,
-            token: 'synthetic-token',
-            expiresAt: new Date(Date.now() + 120000).toISOString(),
+    await page.evaluate(
+      async ({ widget, failAuthorizationCalls, pendingAuthorization }) => {
+        const fixture = window as unknown as {
+          authorizationCalls: number;
+          bindings: unknown[];
+          PackedBugDrop: {
+            init(options: unknown): { ready: Promise<void>; open(): Promise<void> };
           };
-        },
-      });
-      await controller.ready;
-      await controller.open();
-    }, widget);
+        };
+        fixture.authorizationCalls = 0;
+        fixture.bindings = [];
+        const controller = fixture.PackedBugDrop.init({
+          applicationId: 'app_reload',
+          widgetUrl: `${widget}/widget.managed.v1.js`,
+          tokenProvider: (binding: unknown) => {
+            fixture.bindings.push(binding);
+            fixture.authorizationCalls++;
+            if (failAuthorizationCalls.includes(fixture.authorizationCalls))
+              throw new Error('Synthetic authorization failure');
+            if (pendingAuthorization) return new Promise(() => {});
+            return {
+              schemaVersion: 1,
+              token: 'synthetic-token',
+              expiresAt: new Date(Date.now() + 120000).toISOString(),
+            };
+          },
+        });
+        await controller.ready;
+        await controller.open();
+      },
+      {
+        widget,
+        failAuthorizationCalls: options.failAuthorizationCalls ?? [],
+        pendingAuthorization: options.pendingAuthorization ?? false,
+      }
+    );
   }
   await page.goto(app);
   await boot();
@@ -159,7 +195,7 @@ test('two tabs cannot start competing reports in one Application', async ({ page
 });
 
 test('a denial after uncertainty cannot unlock a cold reload', async ({ page }) => {
-  const fixture = await setup(page, true);
+  const fixture = await setup(page, { rejectRetry: true });
   await fixture.host.locator('input[name="title"]').fill('Unresolved report');
   await fixture.host.locator('textarea[name="description"]').fill('Revoked during recovery');
   await fixture.host.getByRole('button', { name: 'Send feedback', exact: true }).click();
@@ -196,4 +232,112 @@ test('a failed durable write prevents authorization and delivery', async ({ page
       () => (window as unknown as { authorizationCalls: number }).authorizationCalls
     )
   ).toBe(0);
+});
+
+test('authorization-only failure permits a fresh draft after reload without submitting', async ({
+  page,
+}) => {
+  const fixture = await setup(page, { failAuthorizationCalls: [1] });
+  await fixture.host.locator('input[name="title"]').fill('Not dispatched');
+  await fixture.host.locator('textarea[name="description"]').fill('Authorization is unavailable');
+  await fixture.host.getByRole('button', { name: 'Send feedback', exact: true }).click();
+  await expect(fixture.host.locator('[data-role="status"]')).toContainText('Unable to authorize');
+  expect(fixture.attempts()).toBe(0);
+  await page.reload();
+  await fixture.boot();
+  await expect(fixture.host.locator('form')).toBeVisible();
+  expect(fixture.attempts()).toBe(0);
+});
+
+test('manual retry after authorization failure preserves the prepared report', async ({ page }) => {
+  const fixture = await setup(page, { failAuthorizationCalls: [1], response: 'delivered' });
+  await fixture.host.locator('input[name="title"]').fill('Retry authorization');
+  await fixture.host.locator('textarea[name="description"]').fill('Same frozen report');
+  await fixture.host.getByRole('button', { name: 'Send feedback', exact: true }).click();
+  await fixture.host.getByRole('button', { name: 'Try again', exact: true }).click();
+  await expect(fixture.host.locator('[data-role="status"]')).toHaveText('Feedback delivered.');
+  expect(fixture.attempts()).toBe(1);
+  const bindings = await page.evaluate(
+    () => (window as unknown as { bindings: unknown[] }).bindings
+  );
+  expect(bindings).toHaveLength(2);
+  expect(bindings[1]).toEqual(bindings[0]);
+  await page.reload();
+  await fixture.boot();
+  await expect(fixture.host.locator('form')).toBeVisible();
+});
+
+for (const response of [undefined, 'internal_error'] as const) {
+  test(`${response ?? 'lost response'} then authorization failure retains the reload lock`, async ({
+    page,
+  }) => {
+    const fixture = await setup(page, { failAuthorizationCalls: [2], response });
+    await fixture.host.locator('input[name="title"]').fill('Previously dispatched');
+    await fixture.host.locator('textarea[name="description"]').fill('Do not replace this report');
+    await fixture.host.getByRole('button', { name: 'Send feedback', exact: true }).click();
+    await fixture.host.locator('[data-action="check-result"]').click();
+    await expect
+      .poll(() =>
+        page.evaluate(
+          () => (window as unknown as { authorizationCalls: number }).authorizationCalls
+        )
+      )
+      .toBe(2);
+    await expect(fixture.host.locator('[data-role="status"]')).toContainText(
+      response ? 'Unable to authorize' : 'could not be confirmed'
+    );
+    expect(fixture.attempts()).toBe(1);
+    await page.reload();
+    await fixture.boot();
+    await expect(fixture.host.locator('[data-role="status"]')).toContainText(
+      'Contact the site owner'
+    );
+    await expect(fixture.host.locator('form')).toBeHidden();
+    expect(fixture.attempts()).toBe(1);
+  });
+}
+
+test('reload during pending authorization retains the unresolved lock', async ({ page }) => {
+  const fixture = await setup(page, { pendingAuthorization: true });
+  await fixture.host.locator('input[name="title"]').fill('Still authorizing');
+  await fixture.host.locator('textarea[name="description"]').fill('No settled result yet');
+  await fixture.host.getByRole('button', { name: 'Send feedback', exact: true }).click();
+  await expect
+    .poll(() =>
+      page.evaluate(() => (window as unknown as { authorizationCalls: number }).authorizationCalls)
+    )
+    .toBe(1);
+  await page.reload();
+  await fixture.boot();
+  await expect(fixture.host.locator('[data-role="status"]')).toContainText(
+    'Contact the site owner'
+  );
+  await expect(fixture.host.locator('form')).toBeHidden();
+  expect(fixture.attempts()).toBe(0);
+});
+
+test('a retry cannot bypass another tab that acquired the released marker', async ({
+  page,
+  context,
+}) => {
+  const first = await setup(page, { failAuthorizationCalls: [1] });
+  await first.host.locator('input[name="title"]').fill('First draft');
+  await first.host.locator('textarea[name="description"]').fill('Failed authorization');
+  await first.host.getByRole('button', { name: 'Send feedback', exact: true }).click();
+  await expect(first.host.locator('[data-role="status"]')).toContainText('Unable to authorize');
+  const otherPage = await context.newPage();
+  const second = await setup(otherPage);
+  await second.host.locator('input[name="title"]').fill('Other tab');
+  await second.host.locator('textarea[name="description"]').fill('Now owns the marker');
+  await second.host.getByRole('button', { name: 'Send feedback', exact: true }).click();
+  await expect(second.host.locator('[data-action="check-result"]')).toBeVisible();
+  await first.host.getByRole('button', { name: 'Try again', exact: true }).click();
+  await expect(first.host.locator('[data-role="status"]')).toContainText('Contact the site owner');
+  expect(first.attempts()).toBe(0);
+  expect(second.attempts()).toBe(1);
+  expect(
+    await page.evaluate(
+      () => (window as unknown as { authorizationCalls: number }).authorizationCalls
+    )
+  ).toBe(1);
 });

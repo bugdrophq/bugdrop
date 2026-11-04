@@ -2,6 +2,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { bootstrapManagedWidget } from '../src/widget/managed/index';
 import { createManagedUI } from '../src/widget/managed/ui';
+import { createRecoveryGuard, type RecoveryGuard } from '../src/widget/managed/recovery';
 import type { Binding, Feedback, Outcome, TokenProvider } from '../src/widget/managed/protocol';
 
 const transport = vi.hoisted(() => ({ createSubmission: vi.fn() }));
@@ -14,7 +15,7 @@ const tick = async () => {
   await Promise.resolve();
 };
 
-function setupUI(outcomes: Outcome[]) {
+function setupUI(outcomes: Outcome[], guard?: RecoveryGuard) {
   const host = document.createElement('div');
   document.body.append(host);
   const submit = vi.fn(async () => outcomes.shift() ?? { status: 'indeterminate' });
@@ -24,6 +25,7 @@ function setupUI(outcomes: Outcome[]) {
     position: 'bottom-right',
     buttonVisible: true,
     createSubmission,
+    guard,
   });
   const shadow = host.shadowRoot!;
   const find = <T extends Element>(selector: string) => shadow.querySelector<T>(selector)!;
@@ -182,6 +184,99 @@ describe('managed feedback UI', () => {
     expect(ui.api.isButtonVisible()).toBe(false);
     ui.api.show();
     expect(ui.api.isButtonVisible()).toBe(true);
+  });
+});
+
+describe('authorization-only recovery', () => {
+  const endpoint = 'https://managed.example/v1/submissions';
+  function guard() {
+    vi.stubGlobal('navigator', {
+      locks: { request: async (_key: string, callback: () => unknown) => callback() },
+    });
+    return createRecoveryGuard('app_recovery', endpoint);
+  }
+
+  it('releases its owned marker after authorization failure and reacquires for the same report', async () => {
+    const recovery = guard();
+    const acquire = vi.spyOn(recovery, 'acquire');
+    const ui = setupUI(
+      [{ status: 'authorization_failed' }, { status: 'delivered', receiptId }],
+      recovery
+    );
+    ui.api.open();
+    ui.fill();
+    await ui.send();
+    await vi.waitFor(() =>
+      expect(createRecoveryGuard('app_recovery', endpoint).isBlocked()).toBe(false)
+    );
+    expect(ui.find<HTMLButtonElement>('[data-action="new-report"]').hidden).toBe(true);
+    ui.find<HTMLButtonElement>('[data-action="check-result"]').click();
+    await vi.waitFor(() =>
+      expect(ui.find('[data-role="status"]').textContent).toBe('Feedback delivered.')
+    );
+    expect(acquire).toHaveBeenCalledTimes(2);
+    expect(ui.submit).toHaveBeenCalledTimes(2);
+    expect(ui.createSubmission).toHaveBeenCalledOnce();
+  });
+
+  it('does not release after a thrown attempt followed by failed authorization', async () => {
+    const recovery = guard();
+    const release = vi.spyOn(recovery, 'release');
+    const ui = setupUI([{ status: 'authorization_failed' }], recovery);
+    ui.submit.mockRejectedValueOnce(new Error('Unknown attempt failure'));
+    ui.api.open();
+    ui.fill();
+    await ui.send();
+    await vi.waitFor(() =>
+      expect(ui.find<HTMLButtonElement>('[data-action="check-result"]').hidden).toBe(false)
+    );
+    ui.find<HTMLButtonElement>('[data-action="check-result"]').click();
+    await vi.waitFor(() => expect(ui.submit).toHaveBeenCalledTimes(2));
+    await tick();
+    expect(release).not.toHaveBeenCalled();
+    expect(createRecoveryGuard('app_recovery', endpoint).isBlocked()).toBe(true);
+  });
+
+  it('blocks retry if releasing an authorization-only marker fails', async () => {
+    const recovery = guard();
+    vi.spyOn(Storage.prototype, 'removeItem').mockImplementation(() => {
+      throw new Error('Storage unavailable');
+    });
+    const ui = setupUI([{ status: 'authorization_failed' }], recovery);
+    ui.api.open();
+    ui.fill();
+    await ui.send();
+    await vi.waitFor(() =>
+      expect(ui.find<HTMLButtonElement>('[data-action="check-result"]').hidden).toBe(false)
+    );
+    ui.find<HTMLButtonElement>('[data-action="check-result"]').click();
+    await vi.waitFor(() =>
+      expect(ui.find('[data-role="status"]').textContent).toContain('Contact the site owner')
+    );
+    expect(ui.submit).toHaveBeenCalledOnce();
+    expect(createRecoveryGuard('app_recovery', endpoint).isBlocked()).toBe(true);
+  });
+
+  it.each<Outcome>([
+    { status: 'indeterminate' },
+    { status: 'rejected', code: 'internal_error' },
+    { status: 'rejected', code: 'delivery_unavailable' },
+  ])('keeps the marker after $status then authorization failure', async first => {
+    const recovery = guard();
+    const release = vi.spyOn(recovery, 'release');
+    const ui = setupUI([first, { status: 'authorization_failed' }], recovery);
+    ui.api.open();
+    ui.fill();
+    await ui.send();
+    await vi.waitFor(() =>
+      expect(ui.find<HTMLButtonElement>('[data-action="check-result"]').hidden).toBe(false)
+    );
+    ui.find<HTMLButtonElement>('[data-action="check-result"]').click();
+    await vi.waitFor(() => expect(ui.submit).toHaveBeenCalledTimes(2));
+    await tick();
+    expect(release).not.toHaveBeenCalled();
+    expect(createRecoveryGuard('app_recovery', endpoint).isBlocked()).toBe(true);
+    expect(ui.createSubmission).toHaveBeenCalledOnce();
   });
 });
 
