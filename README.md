@@ -281,6 +281,7 @@ the live page after testing to restore its original widget and `fetch` implement
 - [Security & Rate Limiting](https://bugdrop.dev/docs/security)
 - [Self-Hosting](https://bugdrop.dev/docs/self-hosting)
 - [FAQ](https://bugdrop.dev/docs/faq)
+- [Contributing](CONTRIBUTING.md)
 
 Self-hosters can optionally restrict installation checks and feedback destinations with the
 server-side [`ALLOWED_REPOSITORIES` setting](https://bugdrop.dev/docs/configuration#allowed-repositories).

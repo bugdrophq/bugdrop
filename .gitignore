@@ -26,11 +26,8 @@ private-key*.pem
 .vscode/
 .idea/
 
-# Claude Code artifacts
-# Ignore .claude/ contents, but track settings and skills
+# Local agent artifacts
 .claude/*
-!.claude/settings.json
-!.claude/skills/
 .plans/
 .superpowers/
 .playwright-mcp/
