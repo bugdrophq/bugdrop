@@ -228,7 +228,7 @@ jobs:
     name: E2E Tests (Shard ${{ matrix.shard }}/2)
     runs-on: ubuntu-latest
     container:
-      image: mcr.microsoft.com/playwright:v1.64.1-noble@sha256:47b510dd9230bf0b9bfc9b20102241e577ea7a99334ab4c3ca19f19770e9b8ea
+      image: mcr.microsoft.com/playwright:v1.65.0-noble@sha256:6e3fb709361521eb27161606e6da6d2674e5e89fa16516cb37d6fdd91372273d
       options: --user 1001
     needs: check
     permissions:
@@ -263,7 +263,7 @@ jobs:
 
       - name: Verify Playwright image version
         if: needs.check.outputs.full_ci != 'false'
-        run: test "$(npx playwright --version)" = 'Version 1.64.1'
+        run: test "$(npx playwright --version)" = 'Version 1.65.0'
 
       - name: Run E2E Tests (Shard ${{ matrix.shard }}/2)
         if: needs.check.outputs.full_ci != 'false'
@@ -284,7 +284,7 @@ jobs:
     name: Radix Cross-Browser E2E (${{ matrix.browser }})
     runs-on: ubuntu-latest
     container:
-      image: mcr.microsoft.com/playwright:v1.64.1-noble@sha256:47b510dd9230bf0b9bfc9b20102241e577ea7a99334ab4c3ca19f19770e9b8ea
+      image: mcr.microsoft.com/playwright:v1.65.0-noble@sha256:6e3fb709361521eb27161606e6da6d2674e5e89fa16516cb37d6fdd91372273d
       options: --user 1001
     needs: check
     permissions:
@@ -306,7 +306,7 @@ jobs:
         run: npm ci
 
       - name: Verify Playwright image version
-        run: test "$(npx playwright --version)" = 'Version 1.64.1'
+        run: test "$(npx playwright --version)" = 'Version 1.65.0'
 
       - name: Build widget
         run: npm run build:widget
@@ -332,7 +332,7 @@ jobs:
     name: Mobile WebKit E2E
     runs-on: ubuntu-latest
     container:
-      image: mcr.microsoft.com/playwright:v1.64.1-noble@sha256:47b510dd9230bf0b9bfc9b20102241e577ea7a99334ab4c3ca19f19770e9b8ea
+      image: mcr.microsoft.com/playwright:v1.65.0-noble@sha256:6e3fb709361521eb27161606e6da6d2674e5e89fa16516cb37d6fdd91372273d
       options: --user 1001
     needs: check
     permissions:
@@ -350,7 +350,7 @@ jobs:
         run: npm ci
 
       - name: Verify Playwright image version
-        run: test "$(npx playwright --version)" = 'Version 1.64.1'
+        run: test "$(npx playwright --version)" = 'Version 1.65.0'
 
       - name: Run mobile WebKit E2E
         run: >-
