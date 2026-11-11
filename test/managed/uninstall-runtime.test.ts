@@ -187,8 +187,12 @@ describe('actual SQLite uninstall coordinator with synthetic side transports', (
   it.each(['503', 'missing'])('expires unresolved %s work at the exact deadline', async mode => {
     service = await start({ config });
     service.modes.sql = mode;
-    await service.request('/intake');
+    expect((await service.request('/intake')).status).toBe(200);
     const original = await service.status();
+    expect(original.work).toMatchObject({
+      edgeAcknowledged: expect.any(Boolean),
+      sqlAcknowledged: false,
+    });
     await service.restart(30 * 86_400_000 - 1);
     expect((await service.status()).state).not.toBe('operator_action_required');
     await service.restart(1);
@@ -199,7 +203,8 @@ describe('actual SQLite uninstall coordinator with synthetic side transports', (
       work: {
         requestId: original.work.requestId,
         occurredAt: original.work.occurredAt,
-        edgeAcknowledged: true,
+        // A slow edge receipt may time out during intake. Expiry must preserve the recorded state.
+        edgeAcknowledged: original.work.edgeAcknowledged,
         sqlAcknowledged: false,
         failureCode: 'retention_deadline',
       },
