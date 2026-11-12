@@ -37,6 +37,12 @@ Replace `your-username/your-repo` with your actual GitHub repository path (e.g.,
 
 These installation examples use `widget.v1.56.4.js` so you can test a specific version before updating. The unversioned `widget.js` URL follows the current hosted deployment automatically. See [version pinning](/docs/version-pinning) for update options and hosting-availability limits, and use the same URL throughout your integration.
 
+### Choose a launcher style
+
+BugDrop displays a floating button by default. For a compact vertical **Feedback** tab, use a widget release that supports `data-button-style` and add `data-button-style="tab"` to your script tag. The tab sits about two-thirds down the right edge.
+
+Add `data-position="bottom-left"` to place the tab on the left edge. See [Launcher Style](/docs/configuration#launcher-style) for the complete example.
+
 ### Full HTML Example
 
 ```html

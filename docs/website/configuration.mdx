@@ -12,10 +12,11 @@ These attributes control the fundamental behavior of the widget.
 | `data-app-version` | omitted | Host application version shown in System Info (1 to 128 printable characters) |
 | `data-theme` | `"auto"` | Widget theme: `"light"`, `"dark"`, or `"auto"` |
 | `data-locale` | `<html lang>` or `"en"` | UI language: `"de"`, `"en"`, `"nl"`, `"pl"`; `"zh-CN"` in builds that include Simplified Chinese |
+| `data-button-style` | `"label"` | Launcher style: draggable horizontal `"label"` or fixed vertical `"tab"` |
 | `data-position` | `"bottom-right"` | Button position: `"bottom-right"` or `"bottom-left"` |
 | `data-color` | `"#14b8a6"` | Primary accent color (any CSS color value) |
-| `data-icon` | *(default bug icon)* | Custom icon: URL to an image, `"none"` to hide, or omit for default |
-| `data-label` | localized label | Text label displayed next to the button icon |
+| `data-icon` | Bug icon for `label`, no icon for `tab` | Custom icon: URL to an image or `"none"` to hide |
+| `data-label` | localized label | Text shown on the launcher |
 | `data-category-labels` | built-in labels | Self-hosted JSON mapping from built-in categories to GitHub labels |
 | `data-button` | `"true"` | Show the floating button: `"true"` or `"false"` |
 | `data-auth-token-provider` | none | Name of a global function that returns a self-hosted auth token |
@@ -101,9 +102,26 @@ The `data-position` attribute controls where the floating button appears:
 - **`bottom-right`** (default) -- Anchored to the right edge
 - **`bottom-left`** -- Anchored to the left edge
 
-The button is shown as an edge label with a small drag handle. Users can drag it vertically
-when it covers page content, and BugDrop remembers that position in the browser for the same
-repository and side.
+The default `label` style starts near the bottom of the chosen edge. Users can drag it
+vertically, and BugDrop remembers its position in the browser for the same repository and side.
+
+### Launcher Style
+
+Add `data-button-style="tab"` for a compact vertical **Feedback** tab about two-thirds down the chosen edge.
+The tab uses the localized label or your `data-label` override. Supply an image URL with
+`data-icon` if you want an icon alongside the text. The tab opens the standard feedback flow
+and supports the same dismiss and restore options. If you pin your widget version,
+choose a release that supports `data-button-style`.
+
+```html
+<script
+  src="https://bugdrop.neonwatty.workers.dev/widget.js"
+  data-repo="owner/repo"
+  data-button-style="tab"
+></script>
+```
+
+Use `data-position="bottom-left"` to move the tab to the left edge. Both launcher styles use the widget accent color. Add `data-color="#FF9E64"` for an orange launcher.
 
 ## Issue Link Visibility
 

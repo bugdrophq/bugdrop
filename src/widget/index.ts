@@ -75,6 +75,7 @@ interface WidgetConfig {
   prefillProviderName?: string;
   appVersion?: string;
   position: 'bottom-right' | 'bottom-left';
+  buttonStyle: 'label' | 'tab';
   theme: 'light' | 'dark' | 'auto';
   // Name/email field configuration
   showName: boolean;
@@ -405,6 +406,12 @@ if (rawPosition && rawPosition !== 'bottom-right' && rawPosition !== 'bottom-lef
     `[BugDrop] Invalid data-position "${rawPosition}". Expected "bottom-right" or "bottom-left".`
   );
 }
+const rawButtonStyle = script?.dataset.buttonStyle;
+if (rawButtonStyle && rawButtonStyle !== 'label' && rawButtonStyle !== 'tab') {
+  console.warn(
+    `[BugDrop] Invalid data-button-style "${rawButtonStyle}". Expected "label" or "tab".`
+  );
+}
 const rawDismissDuration = script?.dataset.dismissDuration;
 const dismissDuration = sanitizePositiveInteger(rawDismissDuration);
 if (rawDismissDuration && dismissDuration === undefined) {
@@ -447,6 +454,7 @@ const config: WidgetConfig = {
   prefillProviderName: script?.dataset.prefillProvider,
   appVersion,
   position: rawPosition === 'bottom-left' ? 'bottom-left' : 'bottom-right',
+  buttonStyle: rawButtonStyle === 'tab' ? 'tab' : 'label',
   theme: isValidTheme(rawTheme) ? rawTheme : 'auto', // Default to auto-detection
   // Name/email field configuration (all default to false for backwards compatibility)
   showName: script?.dataset.showName === 'true' || requireName,
@@ -522,11 +530,12 @@ function getTriggerLabel(config: WidgetConfig): string {
 }
 
 function appendTriggerContent(trigger: HTMLElement, config: WidgetConfig): void {
-  if (config.position === 'bottom-left') {
+  const draggable = config.buttonStyle === 'label';
+  if (draggable && config.position === 'bottom-left') {
     trigger.appendChild(createTriggerDragHandle());
   }
 
-  if (config.iconUrl !== 'none') {
+  if (config.iconUrl !== 'none' && (draggable || config.iconUrl)) {
     const icon = document.createElement('span');
     icon.className = 'bd-trigger-icon';
 
@@ -554,7 +563,7 @@ function appendTriggerContent(trigger: HTMLElement, config: WidgetConfig): void 
   label.textContent = getTriggerLabel(config);
   trigger.appendChild(label);
 
-  if (config.position !== 'bottom-left') {
+  if (draggable && config.position === 'bottom-right') {
     trigger.appendChild(createTriggerDragHandle());
   }
 }
@@ -584,6 +593,7 @@ function getTriggerClassName(config: WidgetConfig, isRestoring = false): string 
     'bd-trigger',
     `bd-trigger--${config.position === 'bottom-left' ? 'left' : 'right'}`,
   ];
+  if (config.buttonStyle === 'tab') classes.push('bd-trigger--tab');
   if (isRestoring) classes.push('bd-trigger--restoring');
   return classes.join(' ');
 }
@@ -765,6 +775,7 @@ function createPullTab(root: HTMLElement, config: WidgetConfig): HTMLElement {
   const tab = document.createElement('div');
   tab.className =
     config.position === 'bottom-left' ? 'bd-pull-tab bd-pull-tab--left' : 'bd-pull-tab';
+  if (config.buttonStyle === 'tab') tab.classList.add('bd-pull-tab--lower');
   tab.innerHTML = '<span class="bd-pull-tab-chevron">‹</span>';
   tab.setAttribute('role', 'button');
   tab.setAttribute('tabindex', '0');
@@ -841,62 +852,7 @@ function initWidget(config: WidgetConfig) {
     config.showButton && !(config.buttonDismissible && isButtonDismissed(config.dismissDuration));
 
   if (shouldShowButton) {
-    const trigger = document.createElement('button');
-    trigger.className = getTriggerClassName(config);
-    appendTriggerContent(trigger, config);
-    trigger.setAttribute('aria-label', t().triggerAriaLabel);
-
-    // Add close button if dismissible
-    if (config.buttonDismissible) {
-      const closeBtn = document.createElement('button');
-      closeBtn.className = 'bd-trigger-close';
-      closeBtn.textContent = '×';
-      closeBtn.setAttribute('aria-label', t().dismissButtonAriaLabel);
-      trigger.appendChild(closeBtn);
-
-      // Handle close button click
-      closeBtn.addEventListener('click', e => {
-        e.stopPropagation(); // Don't trigger the main button
-        dismissButton();
-
-        // Remove restoring class if present (to avoid animation conflicts)
-        trigger.classList.remove('bd-trigger--restoring');
-
-        // Add dismiss animation
-        trigger.classList.add('bd-trigger--dismissing');
-
-        // Wait for animation to finish before removing
-        trigger.addEventListener(
-          'animationend',
-          () => {
-            trigger.remove();
-            _triggerButton = null;
-
-            // Show pull tab if enabled
-            if (config.showRestore) {
-              createPullTab(root, config);
-            }
-          },
-          { once: true }
-        );
-      });
-    }
-
-    root.appendChild(trigger);
-    _triggerButton = trigger;
-    applyStoredTriggerPosition(trigger, config);
-    attachTriggerViewportClamp(trigger, config);
-    attachTriggerDragBehavior(trigger, config);
-    attachTriggerKeyboardMove(trigger, config);
-
-    // Handle trigger click
-    trigger.addEventListener('click', () => {
-      if (_triggerDragMoved) {
-        _triggerDragMoved = false;
-        return;
-      }
-      openFeedbackFlow(root, config);
-    });
+    createTriggerButton(root, config);
   } else if (
     config.showButton &&
     config.buttonDismissible &&
@@ -1066,9 +1022,15 @@ function exposeBugDropAPI(root: HTMLElement, config: WidgetConfig) {
 // Helper to create the trigger button (used by show() API and pull tab restore)
 function createTriggerButton(root: HTMLElement, config: WidgetConfig, isRestoring = false) {
   const trigger = document.createElement('button');
+  trigger.type = 'button';
   trigger.className = getTriggerClassName(config, isRestoring);
   appendTriggerContent(trigger, config);
-  trigger.setAttribute('aria-label', t().triggerAriaLabel);
+  trigger.setAttribute(
+    'aria-label',
+    config.buttonStyle === 'tab'
+      ? getTriggerLabel(config) || t().triggerLabel
+      : t().triggerAriaLabel
+  );
 
   if (config.buttonDismissible) {
     const closeBtn = document.createElement('button');
@@ -1106,10 +1068,12 @@ function createTriggerButton(root: HTMLElement, config: WidgetConfig, isRestorin
 
   root.appendChild(trigger);
   _triggerButton = trigger;
-  applyStoredTriggerPosition(trigger, config);
-  attachTriggerViewportClamp(trigger, config);
-  attachTriggerDragBehavior(trigger, config);
-  attachTriggerKeyboardMove(trigger, config);
+  if (config.buttonStyle === 'label') {
+    applyStoredTriggerPosition(trigger, config);
+    attachTriggerViewportClamp(trigger, config);
+    attachTriggerDragBehavior(trigger, config);
+    attachTriggerKeyboardMove(trigger, config);
+  }
 
   trigger.addEventListener('click', () => {
     if (_triggerDragMoved) {
