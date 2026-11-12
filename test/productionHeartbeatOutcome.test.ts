@@ -24,6 +24,54 @@ const stages = Object.fromEntries(
 );
 
 describe('production heartbeat classification', () => {
+  const browserTimeout = {
+    evidence: outcome('inconclusive', 'browser_inconclusive', observedAt),
+    stages: { ...stages, browser: 'failure', canary: 'skipped', verify: 'skipped' },
+    admitted: true,
+    noSubmission: true,
+    artifactPrepare: 'success',
+    artifact: 'success',
+    incident: 'success',
+  };
+
+  it('reports an explicitly verified pre-submission setup failure without claiming delivery', () => {
+    expect(classifyHeartbeatOutcome(browserTimeout)).toEqual({
+      schemaVersion: 1,
+      outcome: 'inconclusive',
+      reasonCode: 'pre_submission_setup_failed',
+      observedAt,
+    });
+  });
+
+  it('does not forward the pre-submission reason from canary evidence', () => {
+    expect(
+      classifyHeartbeatOutcome({
+        ...browserTimeout,
+        stages,
+        evidence: outcome('inconclusive', 'pre_submission_setup_failed', observedAt),
+      })
+    ).toMatchObject({ outcome: 'inconclusive', reasonCode: 'classification_failed' });
+  });
+
+  it.each([
+    { noSubmission: false },
+    { admitted: false },
+    { evidence: undefined },
+    { stages: { ...browserTimeout.stages, canary: 'failure' } },
+    { stages: { ...browserTimeout.stages, verify: 'success' } },
+    { stages: { ...browserTimeout.stages, cleanup: 'failure' } },
+    { stages: { ...browserTimeout.stages, sweep: 'failure' } },
+    { artifact: 'failure' },
+  ])(
+    'keeps incomplete or contradictory setup evidence inconclusive with a generic reason',
+    overrides => {
+      expect(classifyHeartbeatOutcome({ ...browserTimeout, ...overrides })).toMatchObject({
+        outcome: 'inconclusive',
+        reasonCode: 'setup_failed',
+      });
+    }
+  );
+
   it.each([
     ['verified', 'issue_verified'],
     ['delivery_failed', 'issue_absent'],

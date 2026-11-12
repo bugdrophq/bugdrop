@@ -54,6 +54,8 @@ jobs:
       preflight_outcome: ${{ steps.preflight.outcome }}
       venue_outcome: ${{ steps.venue.outcome }}
       canary_outcome: ${{ steps.canary.outcome }}
+      verify_outcome: ${{ steps.verify.outcome }}
+      no_submission: ${{ steps.cleanup.outputs.no_submission }}
       cleanup_outcome: ${{ steps.cleanup.outcome }}
       sweep_outcome: ${{ steps.sweep.outcome }}
       summarize_outcome: ${{ steps.summarize.outcome }}
@@ -241,6 +243,7 @@ jobs:
         run: |
           if [ ! -f "$BUGDROP_CANARY_ATTEMPT_FILE" ]; then
             echo 'The production canary never started; no current marker can exist.'
+            echo 'no_submission=true' >> "$GITHUB_OUTPUT"
             exit 0
           fi
           node scripts/github-issue-canary.mjs cleanup \
@@ -491,6 +494,9 @@ jobs:
           STAGE_PREFLIGHT: ${{ needs.heartbeat.outputs.preflight_outcome }}
           STAGE_VENUE: ${{ needs.heartbeat.outputs.venue_outcome }}
           STAGE_CANARY: ${{ needs.heartbeat.outputs.canary_outcome }}
+          STAGE_VERIFY: ${{ needs.heartbeat.outputs.verify_outcome }}
+          HEARTBEAT_ADMITTED: ${{ needs.heartbeat.outputs.admitted }}
+          NO_SUBMISSION: ${{ needs.heartbeat.outputs.no_submission }}
           STAGE_CLEANUP: ${{ needs.heartbeat.outputs.cleanup_outcome }}
           STAGE_SWEEP: ${{ needs.heartbeat.outputs.sweep_outcome }}
           ARTIFACT_PREPARE_OUTCOME: ${{ needs.heartbeat.outputs.artifact_prepare_outcome }}

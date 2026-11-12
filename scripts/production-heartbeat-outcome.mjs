@@ -8,6 +8,7 @@ const REASON_CODES = {
   delivery_failed: new Set(['issue_absent', 'issue_duplicate', 'issue_contract_invalid']),
   inconclusive: new Set([
     'setup_failed',
+    'pre_submission_setup_failed',
     'identity_failed',
     'venue_failed',
     'browser_inconclusive',
@@ -32,8 +33,30 @@ export function classifyHeartbeatOutcome({
   artifactPrepare,
   artifact,
   incident,
+  admitted = false,
+  noSubmission = false,
 }) {
   if (isAuthoritativeEvidence(evidence)) return evidence;
+
+  const evidenceTime = canonicalEvidenceTime(evidence?.observedAt);
+  if (
+    admitted &&
+    noSubmission &&
+    stages?.browser === 'failure' &&
+    stages.canary === 'skipped' &&
+    stages.verify === 'skipped' &&
+    stages.preflight === 'success' &&
+    stages.cleanup === 'success' &&
+    stages.sweep === 'success' &&
+    artifactPrepare === 'success' &&
+    artifact === 'success' &&
+    incident === 'success' &&
+    evidence?.outcome === 'inconclusive' &&
+    evidence.reasonCode === 'browser_inconclusive' &&
+    evidenceTime
+  ) {
+    return outcome('inconclusive', 'pre_submission_setup_failed', evidenceTime);
+  }
 
   let reasonCode = null;
   if (SETUP_STAGES.some(stage => stages?.[stage] !== 'success')) {
@@ -46,6 +69,7 @@ export function classifyHeartbeatOutcome({
     reasonCode = 'cleanup_failed';
   } else if (
     evidence?.outcome === 'inconclusive' &&
+    evidence.reasonCode !== 'pre_submission_setup_failed' &&
     REASON_CODES.inconclusive.has(evidence.reasonCode)
   ) {
     reasonCode = evidence.reasonCode;
@@ -60,11 +84,7 @@ export function classifyHeartbeatOutcome({
   } else if (!reasonCode && incident !== 'success') {
     reasonCode = 'incident_failed';
   }
-  return outcome(
-    'inconclusive',
-    reasonCode || 'classification_failed',
-    canonicalEvidenceTime(evidence?.observedAt) || new Date()
-  );
+  return outcome('inconclusive', reasonCode || 'classification_failed', evidenceTime || new Date());
 }
 
 export async function sendHeartbeatOutcome({
@@ -231,6 +251,7 @@ function stagesFromEnvironment(environment) {
       'identity',
       'venue',
       'canary',
+      'verify',
       'cleanup',
       'sweep',
     ].map(stage => [stage, environment[`STAGE_${stage.toUpperCase()}`]])
@@ -261,6 +282,8 @@ async function main(argv, environment = process.env) {
       artifactPrepare: environment.ARTIFACT_PREPARE_OUTCOME,
       artifact: environment.ARTIFACT_OUTCOME,
       incident: environment.INCIDENT_OUTCOME,
+      admitted: environment.HEARTBEAT_ADMITTED === 'true',
+      noSubmission: environment.NO_SUBMISSION === 'true',
     });
     const outputFile = requireNonempty(environment.GITHUB_OUTPUT, 'github_output');
     await appendFile(
