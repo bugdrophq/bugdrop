@@ -293,16 +293,21 @@ async function main(argv, environment = process.env) {
     return;
   }
   if (command === 'send') {
+    const heartbeatId = environment.HEARTBEAT_ID;
+    const reason = environment.HEARTBEAT_REASON_CODE;
     const report = {
       schemaVersion: 1,
       outcome: environment.HEARTBEAT_OUTCOME,
-      reasonCode: environment.HEARTBEAT_REASON_CODE,
+      reasonCode:
+        reason === 'pre_submission_setup_failed' && !/^[1-9][0-9]*:[1-5]$/.test(heartbeatId)
+          ? 'setup_failed'
+          : reason,
       observedAt: environment.HEARTBEAT_OBSERVED_AT,
     };
     await sendHeartbeatOutcome({
       endpoint: environment.MONITOR_HEARTBEAT_URL || 'https://bugdrop.dev/api/monitor/heartbeat',
       secret: environment.MONITOR_HEARTBEAT_SECRET,
-      heartbeatId: environment.HEARTBEAT_ID,
+      heartbeatId,
       report,
     });
     return;
