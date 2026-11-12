@@ -8,6 +8,7 @@ type Step = {
   env?: Record<string, string>;
   'timeout-minutes'?: number;
   'continue-on-error'?: boolean;
+  run?: string;
 };
 const steps: Step[] = workflow.jobs.heartbeat.steps;
 const step = (id: string): Step => steps.find(s => s.id === id)!;
@@ -62,6 +63,20 @@ describe('watchdog workflow safety contract', () => {
     expect(workflow.on.workflow_dispatch.inputs.recovery_id.default).toBe('');
     expect(workflow.on.workflow_dispatch.inputs.controlled_failure.default).toBe(false);
     expect(workflow.concurrency['cancel-in-progress']).toBe(false);
+  });
+  it('forwards exact-attempt cleanup and verifier evidence to the authenticated sender', () => {
+    expect(step('cleanup').run).toMatch(
+      /if \[ ! -f "\$BUGDROP_CANARY_ATTEMPT_FILE" \]; then[\s\S]*?no_submission=true[\s\S]*?exit 0\s*fi/
+    );
+    expect(workflow.jobs.heartbeat.outputs.no_submission).toBe(
+      '${{ steps.cleanup.outputs.no_submission }}'
+    );
+    const classify = workflow.jobs.conclusion.steps.find((s: Step) => s.id === 'classify');
+    expect(classify.env).toMatchObject({
+      HEARTBEAT_ADMITTED: '${{ needs.heartbeat.outputs.admitted }}',
+      NO_SUBMISSION: '${{ needs.heartbeat.outputs.no_submission }}',
+      STAGE_VERIFY: '${{ needs.heartbeat.outputs.verify_outcome }}',
+    });
   });
 });
 

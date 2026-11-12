@@ -49,6 +49,14 @@ a GitHub Issue.
 
 See [AGENTS.md](AGENTS.md) for the repository's review, merge, and release gates.
 
+### Production heartbeat recovery after merging
+
+- For each merge to `main`, review the exact new SHA against the watchdog's
+  approved pin, including workflow, admission, and resolved dependency changes.
+- If the revision is approved, update the watchdog pin and verify the live
+  recovery gates. Keep four-hour scheduling enabled. A fresh scheduled
+  heartbeat can coexist with a blocked automatic recovery gate.
+
 ## Code Style
 
 - Regenerate `package-lock.json` with npm when changing dependencies.
