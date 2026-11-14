@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 15,
+  "description": "Opt-in vertical feedback launcher. Sorted path + NUL + bytes + NUL.",
+  "fileCount": 157,
+  "sha256": "e8245262dd2068365c2a6bcfa44c51338d9a715ccad81f0891be483e964b3c86",
+  "approvedDelta": {
+    "previousBaseline": "current-public-baseline.v14.json",
+    "previousSha256": "406707864b0cb853ead39ad2533711eaf8d4b54fbaa20e90e77fb8df6976a058",
+    "baseCommit": "6bb57db03c9c372fa013e50f70c07e65f1eef918",
+    "changedPublicSources": ["public/test/index.html", "src/widget/index.ts", "src/widget/ui.ts"],
+    "reason": "Adds a vertical launcher about two-thirds down the selected edge and exposes it on the test page. The horizontal launcher remains the default."
+  }
+}

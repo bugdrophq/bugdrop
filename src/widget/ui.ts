@@ -399,6 +399,65 @@ export function injectStyles(shadow: ShadowRoot, config: WidgetConfig) {
       color: white;
     }
 
+    /* Opt-in vertical launcher and its restore control */
+    .bd-trigger.bd-trigger--tab,
+    .bd-pull-tab.bd-pull-tab--lower {
+      top: 30%;
+      bottom: 0;
+      margin-block: auto;
+    }
+
+    .bd-trigger.bd-trigger--tab {
+      width: 44px;
+      height: max-content;
+      min-height: 44px;
+      max-height: calc(70dvh - 24px);
+      padding: 12px 0;
+      color: #0f172a;
+      color: contrast-color(var(--bd-primary));
+      border-radius: var(--bd-radius-md) 0 0 var(--bd-radius-md);
+      flex-direction: column;
+      justify-content: center;
+      touch-action: manipulation;
+    }
+
+    .bd-trigger--tab.bd-trigger--left {
+      border-radius: 0 var(--bd-radius-md) var(--bd-radius-md) 0;
+      --bd-trigger-slide-offset: -100px;
+    }
+
+    .bd-trigger--tab:not(.bd-trigger--dismissing, .bd-trigger--restoring) {
+      animation: none;
+    }
+
+    .bd-trigger--tab:hover,
+    .bd-trigger--tab:active {
+      transform: none;
+    }
+
+    .bd-trigger--tab:focus-visible {
+      outline: 2px solid currentColor;
+      outline-offset: -4px;
+    }
+
+    .bd-trigger--tab .bd-trigger-label {
+      writing-mode: vertical-rl;
+      text-orientation: sideways;
+      min-height: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .bd-trigger--tab.bd-trigger--right .bd-trigger-label {
+      rotate: 180deg;
+    }
+
+    .bd-trigger--tab .bd-trigger-close {
+      top: -10px;
+      left: calc(50% - 10px);
+      right: auto;
+    }
+
     /* Modal Overlay */
     .bd-overlay {
       position: fixed;
@@ -1166,7 +1225,7 @@ export function injectStyles(shadow: ShadowRoot, config: WidgetConfig) {
     @keyframes bd-triggerSlideInFromRight {
       from {
         opacity: 0;
-        transform: translateX(100px) scale(0.8);
+        transform: translateX(var(--bd-trigger-slide-offset, 100px)) scale(0.8);
       }
       to {
         opacity: 1;
@@ -1181,7 +1240,7 @@ export function injectStyles(shadow: ShadowRoot, config: WidgetConfig) {
       }
       to {
         opacity: 0;
-        transform: translateX(100px) scale(0.8);
+        transform: translateX(var(--bd-trigger-slide-offset, 100px)) scale(0.8);
       }
     }
 
