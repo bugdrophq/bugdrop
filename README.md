@@ -58,6 +58,7 @@ That's it! Users can now click the bug button to submit feedback as GitHub Issue
 | `data-app-version`              | Host application version (up to 128 characters)      | omitted               |
 | `data-theme`                    | `light`, `dark`, `auto`                              | `auto`                |
 | `data-locale`                   | `de`, `en`, `nl`, `pl`; `zh-CN` after release        | `<html lang>` or `en` |
+| `data-button-style`             | `label`, `tab`                                       | `label`               |
 | `data-position`                 | `bottom-right`, `bottom-left`                        | `bottom-right`        |
 | `data-color`                    | Accent color for buttons/highlights (e.g. `#FF6B35`) | `#14b8a6` (teal)      |
 | `data-label`                    | Any string                                           | localized label       |
