@@ -531,11 +531,12 @@ function getTriggerLabel(config: WidgetConfig): string {
 
 function appendTriggerContent(trigger: HTMLElement, config: WidgetConfig): void {
   const draggable = config.buttonStyle === 'label';
+  const hasIcon = config.iconUrl !== 'none' && (draggable || Boolean(config.iconUrl));
   if (draggable && config.position === 'bottom-left') {
     trigger.appendChild(createTriggerDragHandle());
   }
 
-  if (config.iconUrl !== 'none' && (draggable || config.iconUrl)) {
+  if (hasIcon) {
     const icon = document.createElement('span');
     icon.className = 'bd-trigger-icon';
 
@@ -560,7 +561,8 @@ function appendTriggerContent(trigger: HTMLElement, config: WidgetConfig): void 
 
   const label = document.createElement('span');
   label.className = 'bd-trigger-label';
-  label.textContent = getTriggerLabel(config);
+  const labelText = getTriggerLabel(config);
+  label.textContent = !draggable && !hasIcon && !labelText.trim() ? t().triggerLabel : labelText;
   trigger.appendChild(label);
 
   if (draggable && config.position === 'bottom-right') {
@@ -1028,7 +1030,7 @@ function createTriggerButton(root: HTMLElement, config: WidgetConfig, isRestorin
   trigger.setAttribute(
     'aria-label',
     config.buttonStyle === 'tab'
-      ? getTriggerLabel(config) || t().triggerLabel
+      ? getTriggerLabel(config).trim() || t().triggerLabel
       : t().triggerAriaLabel
   );
 

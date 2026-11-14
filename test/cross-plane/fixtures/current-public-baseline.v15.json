@@ -2,7 +2,7 @@
   "schemaVersion": 15,
   "description": "Opt-in vertical feedback launcher. Sorted path + NUL + bytes + NUL.",
   "fileCount": 157,
-  "sha256": "e8245262dd2068365c2a6bcfa44c51338d9a715ccad81f0891be483e964b3c86",
+  "sha256": "d70ef8ae3f298458df721349b61506a0c29d16d6ab08296d16a70361ebe4dafd",
   "approvedDelta": {
     "previousBaseline": "current-public-baseline.v14.json",
     "previousSha256": "406707864b0cb853ead39ad2533711eaf8d4b54fbaa20e90e77fb8df6976a058",

@@ -48,6 +48,26 @@ test('a right-side feedback tab ignores the saved horizontal launcher position',
   await expect(horizontal.locator('.bd-trigger-drag-handle')).toBeVisible();
 });
 
+test('an icon-only feedback tab keeps its accessible name', async ({ page }) => {
+  await page.route('**/feedback-tab-icon.svg', route =>
+    route.fulfill({
+      contentType: 'image/svg+xml',
+      body: '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18"><circle cx="9" cy="9" r="8"/></svg>',
+    })
+  );
+  await page.route('**/feedback-tab-icon-only', route =>
+    route.fulfill({
+      contentType: 'text/html',
+      body: '<!doctype html><html lang="en"><body><script src="/widget.js" data-repo="owner/repo" data-button-style="tab" data-label="   " data-icon="/feedback-tab-icon.svg"></script></body></html>',
+    })
+  );
+
+  await page.goto('/feedback-tab-icon-only');
+  const trigger = page.locator('#bugdrop-host').locator('.bd-trigger--tab');
+  await expect(trigger.locator('img')).toHaveJSProperty('naturalWidth', 18);
+  await expect(trigger).toHaveAccessibleName('Feedback');
+});
+
 test.describe('on a narrow touch viewport', () => {
   test.use({ viewport: { width: 375, height: 260 }, hasTouch: true, isMobile: true });
 

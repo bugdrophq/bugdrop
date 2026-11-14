@@ -413,12 +413,16 @@ export function injectStyles(shadow: ShadowRoot, config: WidgetConfig) {
       min-height: 44px;
       max-height: calc(70dvh - 24px);
       padding: 12px 0;
-      color: #0f172a;
-      color: contrast-color(var(--bd-primary));
       border-radius: var(--bd-radius-md) 0 0 var(--bd-radius-md);
       flex-direction: column;
       justify-content: center;
       touch-action: manipulation;
+    }
+
+    @supports (color: contrast-color(black)) {
+      .bd-trigger.bd-trigger--tab {
+        color: contrast-color(var(--bd-primary));
+      }
     }
 
     .bd-trigger--tab.bd-trigger--left {
