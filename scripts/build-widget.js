@@ -275,6 +275,8 @@ async function bundleCandidate({ sourceDir, version, enableTestHooks, defaultFlo
   const entry = join(sourceDir, 'src/widget/index.ts');
   const fixedBaseline =
     defaultFlowRuntime === 'fixed' ? await loadFixedDefaultBaseline(sourceDir) : undefined;
+  const needsAreaCloneHook =
+    !fixedBaseline && (await readdir(dirname(entry))).includes('area-capture-scroll.ts');
   const loadedFixedBaseline = new Set();
   const result = await build({
     absWorkingDir: sourceDir,
@@ -319,7 +321,9 @@ async function bundleCandidate({ sourceDir, version, enableTestHooks, defaultFlo
               },
             },
           ]
-        : [],
+        : needsAreaCloneHook
+          ? [areaCaptureCloneHook()]
+          : [],
     write: false,
   });
   if (fixedBaseline && loadedFixedBaseline.size !== fixedBaseline.modules.size) {
@@ -335,6 +339,43 @@ async function bundleCandidate({ sourceDir, version, enableTestHooks, defaultFlo
     throw new Error('Production widget build unexpectedly contains test screenshot hook');
   }
   return bytes;
+}
+
+function areaCaptureCloneHook() {
+  return {
+    name: 'area-capture-clone-hook',
+    setup(build) {
+      let installed = false;
+      // html-to-image 1.11.13 has no public hook for editing the styled clone.
+      // Run after style and value copying, before the tree is serialized to SVG.
+      build.onLoad(
+        { filter: /[/\\]html-to-image[/\\]es[/\\]clone-node\.js$/ },
+        async ({ path }) => {
+          const source = await readFile(path, 'utf8');
+          const returnClone = 'cloneSelectValue(nativeNode, clonedNode);';
+          if (source.split(returnClone).length !== 2) {
+            throw new Error('html-to-image clone hook must be updated for this renderer version');
+          }
+          installed = true;
+          return {
+            contents: source.replace(
+              returnClone,
+              `${returnClone}\n        options.onAreaClone?.(nativeNode, clonedNode);`
+            ),
+            loader: 'js',
+            resolveDir: dirname(path),
+          };
+        }
+      );
+      build.onEnd(result => {
+        if (!installed && result.errors.length === 0) {
+          return {
+            errors: [{ text: 'Widget build did not install the html-to-image clone hook' }],
+          };
+        }
+      });
+    },
+  };
 }
 
 async function loadRetentionPlan(path, requestPlanPath) {

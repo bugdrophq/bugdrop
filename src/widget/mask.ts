@@ -1,8 +1,12 @@
-interface MaskRect {
+interface MaskBounds {
   x: number;
   y: number;
   w: number;
   h: number;
+}
+
+interface MaskRect extends MaskBounds {
+  clip?: MaskBounds;
 }
 
 type RedactionReason = 'developer-marked' | 'sensitive-input';
@@ -246,10 +250,17 @@ export function translateMaskRect(
   const rawW = rect.w * pixelRatio;
   const rawH = rect.h * pixelRatio;
 
-  const x = Math.max(0, Math.floor(rawX) - 1);
-  const y = Math.max(0, Math.floor(rawY) - 1);
-  const right = Math.min(canvasWidth, Math.ceil(rawX + rawW) + 1);
-  const bottom = Math.min(canvasHeight, Math.ceil(rawY + rawH) + 1);
+  let x = Math.max(0, Math.floor(rawX) - 1);
+  let y = Math.max(0, Math.floor(rawY) - 1);
+  let right = Math.min(canvasWidth, Math.ceil(rawX + rawW) + 1);
+  let bottom = Math.min(canvasHeight, Math.ceil(rawY + rawH) + 1);
+  if (rect.clip) {
+    const { x: cx, y: cy, w, h } = rect.clip;
+    x = Math.max(x, Math.floor((cx - originOffset.x) * pixelRatio));
+    y = Math.max(y, Math.floor((cy - originOffset.y) * pixelRatio));
+    right = Math.min(right, Math.ceil((cx + w - originOffset.x) * pixelRatio));
+    bottom = Math.min(bottom, Math.ceil((cy + h - originOffset.y) * pixelRatio));
+  }
 
   return {
     x,

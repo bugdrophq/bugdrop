@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 16,
+  "description": "Select Area preserves scroll state and mask alignment in overflow containers. Sorted path + NUL + bytes + NUL.",
+  "fileCount": 158,
+  "sha256": "3961dec0c007637a04173e337d31ca7ecb2508f30b8111c22294276a8530705e",
+  "approvedDelta": {
+    "previousBaseline": "current-public-baseline.v15.json",
+    "previousSha256": "d70ef8ae3f298458df721349b61506a0c29d16d6ab08296d16a70361ebe4dafd",
+    "baseCommit": "385f44784b792223eba94ffa856d8cf2381e3648",
+    "changedPublicSources": [
+      "scripts/build-widget.js",
+      "src/widget/area-capture-scroll.ts",
+      "src/widget/mask.ts",
+      "src/widget/screenshot.ts"
+    ],
+    "reason": "Fixes issue #476 by restoring scroll positions in the capture clone and clipping redaction masks to the scrollports that affect each element."
+  }
+}
