@@ -11,6 +11,7 @@ import {
 } from './mask';
 import { resolveAccentColor } from '../defaults';
 import { isBugDropOwnedNode } from './owned-roots';
+import { renderArea } from './area-capture-scroll';
 export { cropScreenshot } from './crop-screenshot';
 export { beginViewportCapture } from './viewport-capture';
 
@@ -168,8 +169,7 @@ export async function captureAreaScreenshot(
     filter: shouldIncludeCaptureNode,
   };
 
-  const redactionSnapshot = createRedactionSnapshot(document.body);
-  const dataUrl = await withCaptureTimeout(toPng(document.body, opts));
+  const { dataUrl, redactionSnapshot } = await renderArea(document.body, targetRect, opts, toPng);
   const maskedDataUrl = await applyMaskToImage(
     dataUrl,
     redactionSnapshot.targets.map(target => target.rect),
@@ -203,15 +203,7 @@ export function getRedactionCount(element?: Element, rect?: DOMRect): number {
 function shouldIncludeCaptureNode(node: HTMLElement): boolean {
   if (isBugDropOwnedNode(node)) return false;
 
-  if (isHtmlImage(node) && isInvisibleOrZeroSize(node)) {
-    return false;
-  }
-
-  return true;
-}
-
-function isHtmlImage(element: HTMLElement): boolean {
-  return element.tagName?.toUpperCase() === 'IMG';
+  return node.tagName?.toUpperCase() !== 'IMG' || !isInvisibleOrZeroSize(node);
 }
 
 function isInvisibleOrZeroSize(element: HTMLElement): boolean {
