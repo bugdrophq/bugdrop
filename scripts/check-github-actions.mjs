@@ -33,6 +33,7 @@ const approvedReleases = new Map([
   ['actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09', 'v5.1.0'],
   ['actions/create-github-app-token@fee1f7d63c2ff003460e3d139729b119787bc349', 'v2.2.2'],
   ['actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510', 'v3.3.0'],
+  ['actions/create-github-app-token@f418cff399f7aef4c2f0ad47e25ca7a6abbdd6fc', 'v3.4.0'],
   ['actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0', 'v5.0.0'],
   ['actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3', 'v8.0.0'],
   ['actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c', 'v8.0.1'],
@@ -47,6 +48,7 @@ const approvedReleases = new Map([
   ['actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9', 'v7.0.2'],
   ['actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f', 'v7.0.0'],
   ['actions/dependency-review-action@a1d282b36b6f3519aa1f3fc636f609c47dddb294', 'v5.0.0'],
+  ['actions/dependency-review-action@bbc44d14a204704ccc493733616cd1e93a0321ec', 'v5.0.1'],
   ['codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f', 'v7.0.0'],
   ['codecov/codecov-action@303a32d7a59b442fa8d48b6a1cc6825c09c847a5', 'v7.1.1'],
   ['github/codeql-action/analyze@5595ccaf912efad79be6eef63a5619ff05969be3', 'v4.37.6'],
@@ -58,6 +60,7 @@ const approvedReleases = new Map([
   ['github/codeql-action/analyze@6f2ac81f5cd81fe351a197ba0b00d91d03cd2aee', 'v4.39.0'],
   ['github/codeql-action/analyze@9b3254085494b55a0f7c4c2b3d2d52cc712ce370', 'v4.39.1'],
   ['github/codeql-action/analyze@33d7b85da1a04171e211befe2c739303b9a4c066', 'v4.39.3'],
+  ['github/codeql-action/analyze@1bd86f2fdb4b86187fa4059f16f31a3202acc9ea', 'v4.39.4'],
   ['github/codeql-action/init@5595ccaf912efad79be6eef63a5619ff05969be3', 'v4.37.6'],
   ['github/codeql-action/init@db488ddef3bf6cb639b32c2e9a7c0a7ea8271d28', 'v4.37.8'],
   ['github/codeql-action/init@cdf488f595d80d6e07e03d4674febd5ab45fa938', 'v4.37.9'],
@@ -67,6 +70,7 @@ const approvedReleases = new Map([
   ['github/codeql-action/init@6f2ac81f5cd81fe351a197ba0b00d91d03cd2aee', 'v4.39.0'],
   ['github/codeql-action/init@9b3254085494b55a0f7c4c2b3d2d52cc712ce370', 'v4.39.1'],
   ['github/codeql-action/init@33d7b85da1a04171e211befe2c739303b9a4c066', 'v4.39.3'],
+  ['github/codeql-action/init@1bd86f2fdb4b86187fa4059f16f31a3202acc9ea', 'v4.39.4'],
 ]);
 
 const failures = [];
