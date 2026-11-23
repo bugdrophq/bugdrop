@@ -67,7 +67,7 @@ checkEqual('codeql.yml: checkout configuration', codeqlCheckout?.with, {
 checkEqual(
   'codeql.yml: init action',
   codeqlInit?.uses,
-  'github/codeql-action/init@33d7b85da1a04171e211befe2c739303b9a4c066'
+  'github/codeql-action/init@1bd86f2fdb4b86187fa4059f16f31a3202acc9ea'
 );
 checkEqual('codeql.yml: init configuration', codeqlInit?.with, {
   languages: 'javascript-typescript',
@@ -77,7 +77,7 @@ checkEqual('codeql.yml: init configuration', codeqlInit?.with, {
 checkEqual(
   'codeql.yml: analyze action',
   codeqlAnalyze?.uses,
-  'github/codeql-action/analyze@33d7b85da1a04171e211befe2c739303b9a4c066'
+  'github/codeql-action/analyze@1bd86f2fdb4b86187fa4059f16f31a3202acc9ea'
 );
 checkEqual('codeql.yml: analyze configuration', codeqlAnalyze?.with, {
   category: '/language:javascript-typescript',
@@ -120,7 +120,7 @@ checkEqual('dependency-review.yml: checkout configuration', dependencyCheckout?.
 checkEqual(
   'dependency-review.yml: review action',
   dependencyScan?.uses,
-  'actions/dependency-review-action@a1d282b36b6f3519aa1f3fc636f609c47dddb294'
+  'actions/dependency-review-action@bbc44d14a204704ccc493733616cd1e93a0321ec'
 );
 checkEqual('dependency-review.yml: review configuration', dependencyScan?.with, {
   'fail-on-severity': 'moderate',
