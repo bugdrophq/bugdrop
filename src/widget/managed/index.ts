@@ -2,6 +2,7 @@ import { createRecoveryGuard } from './recovery';
 import { createSubmission } from './transport';
 import { isSubmissionToken, type Binding, type TokenProvider } from './protocol';
 import { createManagedUI, type ManagedWidgetAPI } from './ui';
+import { parsePresentation } from './presentation';
 
 const providerName = /^[A-Za-z_$][A-Za-z0-9_$]*$/;
 const allowedAttributes = new Set([
@@ -12,6 +13,7 @@ const allowedAttributes = new Set([
   'theme',
   'position',
   'button',
+  'presentation',
 ]);
 
 function validApplicationId(value: string | undefined): boolean {
@@ -85,16 +87,28 @@ export function bootstrapManagedWidget(): ManagedWidgetAPI | null {
 
   const parent = document.body ?? document.documentElement;
   if (!parent || document.getElementById('bugdrop-managed-host')) return null;
+  const request = script.dataset.presentation;
   const host = document.createElement('div');
   host.id = 'bugdrop-managed-host';
   try {
+    const presentation = request === undefined ? {} : parsePresentation(request, parent);
+    if (!presentation) return null;
     const api = createManagedUI(host, {
       theme,
       position,
       buttonVisible: button !== 'false',
+      accent: presentation.accent,
       guard: createRecoveryGuard(script.dataset.applicationId!, endpoint),
       createSubmission: feedback => createSubmission(feedback, endpoint, tokenProvider),
     });
+    // An opted-in widget mounts only if the initiating loader accepts the staged configuration.
+    if (
+      request !== undefined &&
+      script.dispatchEvent(
+        new CustomEvent('bugdrop:presentation-ready', { detail: request, cancelable: true })
+      )
+    )
+      return null;
     parent.append(host);
     (window as unknown as { BugDrop?: ManagedWidgetAPI }).BugDrop = api;
     window.dispatchEvent(new CustomEvent('bugdrop:ready'));

@@ -11,6 +11,15 @@ const sdkRoot = process.env.BUGDROP_MANAGED_SDK_ROOT;
 if (!sdkRoot) throw new Error('Set BUGDROP_MANAGED_SDK_ROOT to a built SDK checkout.');
 const manifest = JSON.parse(await readFile(resolve(sdkRoot, 'packages/browser/package.json')));
 assert.equal(manifest.name, '@bugdrop/browser');
+const presentationMode = process.env.BUGDROP_MANAGED_PRESENTATION === '1';
+if (presentationMode) {
+  const declaration = 'packages/browser/src/widget-presentation.generated.ts';
+  assert.equal(
+    await readFile(resolve(sdkRoot, declaration), 'utf8'),
+    await readFile('src/widget/managed/presentation-types.ts', 'utf8'),
+    'The SDK presentation declaration must match the canonical widget source.'
+  );
+}
 const directory = await realpath(await mkdtemp(join(tmpdir(), 'bugdrop-managed-consumer-')));
 try {
   const packed = execFileSync(
@@ -47,9 +56,12 @@ try {
   const entry = await realpath(require.resolve('@bugdrop/browser'));
   assert.ok(entry.startsWith(join(directory, 'node_modules') + '/'));
   assert.ok(entry.includes('/dist/'));
+  const classic = "import { BugDrop } from '@bugdrop/browser'; window.PackedBugDrop = BugDrop;";
+  const optIn =
+    "import { BugDropOptIn } from '@bugdrop/browser/opt-in'; window.PackedBugDropOptIn = BugDropOptIn;";
   await build({
     stdin: {
-      contents: "import { BugDrop } from '@bugdrop/browser'; window.PackedBugDrop = BugDrop;",
+      contents: presentationMode ? `${classic}\n${optIn}` : classic,
       resolveDir: directory,
     },
     outfile: 'dist/managed-widget/packed-sdk.js',

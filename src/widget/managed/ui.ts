@@ -1,6 +1,7 @@
 import { createManagedController } from './controller';
 import type { RecoveryGuard } from './recovery';
 import { managedMarkup } from './styles';
+import type { ManagedAccent } from './presentation';
 import type { Feedback, Outcome } from './protocol';
 
 type ManagedFeedback = Feedback;
@@ -24,6 +25,7 @@ export interface ManagedUIOptions {
   theme: 'light' | 'dark' | 'auto';
   position: 'bottom-right' | 'bottom-left';
   buttonVisible: boolean;
+  accent?: ManagedAccent;
   guard?: RecoveryGuard;
   createSubmission(feedback: ManagedFeedback): Promise<PreparedSubmission>;
 }
@@ -195,6 +197,12 @@ export function createManagedUI(host: HTMLElement, options: ManagedUIOptions): M
 
   root.dataset.theme = options.theme;
   root.dataset.position = options.position;
+  if (options.accent) {
+    root.style.setProperty('--bd-primary', options.accent.background);
+    root.style.setProperty('--bd-primary-text', options.accent.foreground);
+    root.style.setProperty('--accent', options.accent.background);
+    root.dataset.customAccent = '';
+  }
   launcher.hidden = !options.buttonVisible;
   for (const field of Array.from(form.querySelectorAll('input, textarea, select'))) {
     field.addEventListener('input', () => {
