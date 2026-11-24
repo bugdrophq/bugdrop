@@ -155,12 +155,28 @@ test('build only mounts valid presentation after a script-scoped acknowledgment'
   await expect(page.locator('#bugdrop-managed-host')).toHaveCount(0);
   await mount({ accentColor: 'red; background: blue' }, true);
   await expect(page.locator('#bugdrop-managed-host')).toHaveCount(0);
+  await mount({ accentColor: 'initial' }, true);
+  await expect(page.locator('#bugdrop-managed-host')).toHaveCount(0);
+  await mount({ accentColor: 'var(--fixture-unset-accent)' }, true);
+  await expect(page.locator('#bugdrop-managed-host')).toHaveCount(0);
   await mount({ accentColor: '#fafafa', repo: 'example/other' }, true);
   await expect(page.locator('#bugdrop-managed-host')).toHaveCount(0);
-  await mount({ accentColor: '#fafafa' }, true);
+  await page
+    .locator('html')
+    .evaluate(root => root.style.setProperty('--fixture-accent', '#fafafa'));
+  await mount({ accentColor: 'var(--fixture-accent)' }, true);
   const launcher = page.locator('#bugdrop-managed-host .launcher');
   await expect(launcher).toHaveCSS('background-color', 'rgb(250, 250, 250)');
   await expect(launcher).toHaveCSS('color', 'rgb(0, 0, 0)');
+  await launcher.click();
+  await expect(page.locator('#bugdrop-managed-host .primary')).toHaveCSS('color', 'rgb(0, 0, 0)');
+  await page.keyboard.press('Tab');
+  const textarea = page.locator('#bugdrop-managed-host textarea');
+  await expect(textarea).toBeFocused();
+  await expect(textarea).toHaveCSS(
+    'box-shadow',
+    'rgb(255, 255, 255) 0px 0px 0px 2px, rgb(0, 0, 0) 0px 0px 0px 4px'
+  );
 });
 
 test('older SDK boots the managed widget with its existing defaults', async ({ page }) => {

@@ -85,20 +85,19 @@ export function bootstrapManagedWidget(): ManagedWidgetAPI | null {
   const tokenProvider = resolveProvider(script);
   if (!endpoint || !tokenProvider) return null;
 
-  const request = script.dataset.presentation;
-  const presentation = request === undefined ? {} : parsePresentation(request);
-  if (!presentation) return null;
-
   const parent = document.body ?? document.documentElement;
   if (!parent || document.getElementById('bugdrop-managed-host')) return null;
+  const request = script.dataset.presentation;
   const host = document.createElement('div');
   host.id = 'bugdrop-managed-host';
   try {
+    const presentation = request === undefined ? {} : parsePresentation(request, parent);
+    if (!presentation) return null;
     const api = createManagedUI(host, {
       theme,
       position,
       buttonVisible: button !== 'false',
-      accentColor: presentation.accentColor,
+      accent: presentation.accent,
       guard: createRecoveryGuard(script.dataset.applicationId!, endpoint),
       createSubmission: feedback => createSubmission(feedback, endpoint, tokenProvider),
     });

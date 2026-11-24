@@ -2,7 +2,8 @@ const managedStyles = `
   :host { all: initial; color-scheme: light dark; font-family: system-ui, sans-serif; }
   *, *::before, *::after { box-sizing: border-box; }
   .root { --bg: #fff; --fg: #17202a; --muted: #536171; --border: #b7c2ce;
-    --accent: #1769aa; --bd-primary: #1769aa; color: var(--fg); font: 14px/1.5 system-ui, sans-serif; }
+    --accent: #1769aa; --bd-primary: #1769aa; --bd-primary-text: #fff;
+    color: var(--fg); font: 14px/1.5 system-ui, sans-serif; }
   .root[data-theme="dark"] { --bg: #17202a; --fg: #f4f7fa; --muted: #bdc8d2;
     --border: #69798a; --accent: #8acbff; }
   @media (prefers-color-scheme: dark) {
@@ -13,9 +14,12 @@ const managedStyles = `
   button { cursor: pointer; }
   button:disabled { cursor: default; opacity: .6; }
   :focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+  .root[data-custom-accent] :focus-visible {
+    outline-offset: 4px; box-shadow: 0 0 0 2px #fff, 0 0 0 4px #000;
+  }
   [hidden] { display: none !important; }
   .launcher { position: fixed; z-index: 2147483646; right: 20px; bottom: 20px;
-    border: 0; border-radius: 999px; background: var(--bd-primary); color: #fff;
+    border: 0; border-radius: 999px; background: var(--bd-primary); color: var(--bd-primary-text);
     padding: 11px 18px; box-shadow: 0 5px 18px #0004; }
   .root[data-position="bottom-left"] .launcher { right: auto; left: 20px; }
   .backdrop { position: fixed; inset: 0; z-index: 2147483647; display: grid;
@@ -36,12 +40,7 @@ const managedStyles = `
   .error { color: #b42318; margin: 10px 0; }
   .actions { display: flex; align-items: center; gap: 10px; margin-top: 18px; }
   .primary { border: 0; border-radius: 7px; padding: 9px 15px;
-    background: var(--bd-primary); color: #fff; }
-  @supports (color: contrast-color(black)) {
-    .root[data-custom-accent] :is(.launcher, .primary) {
-      color: contrast-color(var(--bd-primary));
-    }
-  }
+    background: var(--bd-primary); color: var(--bd-primary-text); }
   .secondary { border: 1px solid var(--border); border-radius: 7px; padding: 8px 14px;
     background: var(--bg); color: var(--fg); }
   .status { margin: 14px 0 0; }
