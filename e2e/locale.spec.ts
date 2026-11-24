@@ -4,6 +4,7 @@ import { test, expect, type Page } from '@playwright/test';
 // rendered localized UI through the widget shadow DOM.
 
 const WELCOME_TITLES = {
+  cs: 'Podělte se o zpětnou vazbu',
   de: 'Teilen Sie Ihr Feedback',
   en: 'Share Your Feedback',
   nl: 'Deel uw feedback',
@@ -71,6 +72,16 @@ test.describe('Widget localization', () => {
   test('defaults to English without data-locale', async ({ page }) => {
     await openWidget(page);
     await expect(modalTitle(page)).toHaveText(WELCOME_TITLES.en);
+  });
+
+  test('data-locale="cs" renders the Czech UI', async ({ page }) => {
+    await openWidget(page, { locale: 'cs' });
+    await expect(modalTitle(page)).toHaveText(WELCOME_TITLES.cs);
+  });
+
+  test('html lang selects Czech when data-locale is absent', async ({ page }) => {
+    await openWidget(page, {}, { htmlLang: 'cs-CZ' });
+    await expect(modalTitle(page)).toHaveText(WELCOME_TITLES.cs);
   });
 
   test('data-locale="de" renders the German UI', async ({ page }) => {
@@ -443,6 +454,62 @@ test.describe('Widget localization', () => {
       'Twoja opinia została pomyślnie wysłana.'
     );
     await expect(widget.locator('css=[data-action="done"]')).toHaveText('Gotowe');
+  });
+
+  test('renders Czech form, screenshot choices, and success UI', async ({ page }) => {
+    await page.route('**/feedback', async route => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ success: true, issueNumber: 42, issueUrl: '#', isPublic: false }),
+      });
+    });
+
+    await openWidget(page, { locale: 'cs' });
+    const widget = host(page);
+
+    await widget.locator('css=[data-action="continue"]').click();
+    await expect(modalTitle(page)).toHaveText('Odeslat zpětnou vazbu');
+    await expect(widget.locator('css=label[for="title"]')).toHaveText('Název *');
+    await expect(widget.locator('css=label[for="description"]')).toHaveText('Popis');
+
+    await widget.locator('css=#title').fill('Zkouška lokalizace');
+    await widget.locator('css=#include-screenshot').check();
+    await widget.locator('css=#submit-btn').click();
+
+    await expect(modalTitle(page)).toHaveText('Pořídit snímek obrazovky');
+    await expect(widget.locator('css=[data-action="capture"]')).toHaveText('Celá stránka');
+    await expect(widget.locator('css=[data-action="area"]')).toHaveText('Vybrat oblast');
+    await expect(widget.locator('css=[data-action="element"]')).toHaveText('Vybrat prvek');
+    await widget.locator('css=[data-action="skip"]').click();
+
+    await expect(modalTitle(page)).toHaveText('Zpětná vazba odeslána!');
+    await expect(widget.locator('css=.bd-success-issue')).toHaveText(
+      'Vaše zpětná vazba byla úspěšně odeslána.'
+    );
+    await expect(widget.locator('css=[data-action="done"]')).toHaveText('Hotovo');
+  });
+
+  test('Czech UI shows the actionable message for a known failure code', async ({ page }) => {
+    await page.route('**/feedback', async route => {
+      await route.fulfill({
+        status: 500,
+        contentType: 'application/json',
+        body: JSON.stringify({ error: 'English diagnostic', code: 'ISSUE_CREATION_FAILED' }),
+      });
+    });
+
+    await openWidget(page, { locale: 'cs' });
+    const widget = host(page);
+    await widget.locator('css=[data-action="continue"]').click();
+    await widget.locator('css=#title').fill('Zkouška chyby');
+    await widget.locator('css=#include-screenshot').uncheck();
+    await widget.locator('css=#submit-btn').click();
+
+    await expect(modalTitle(page)).toHaveText('Odeslání se nezdařilo');
+    await expect(widget.locator('css=.bd-error-message__text')).toHaveText(
+      'Issue se nepodařilo vytvořit. Zkuste to prosím později.'
+    );
   });
 
   test('renders Dutch screenshot choices', async ({ page }) => {
