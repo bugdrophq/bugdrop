@@ -57,32 +57,34 @@ function resolveAccent(color: string, parent: HTMLElement): ManagedAccent | null
   probe.hidden = true;
   probe.style.setProperty('--bugdrop-accent-probe', safe);
   parent.append(probe);
-  let background: string;
   try {
-    background = getComputedStyle(probe).getPropertyValue('--bugdrop-accent-probe').trim();
+    const token = getComputedStyle(probe).getPropertyValue('--bugdrop-accent-probe').trim();
+    if (!token || !CSS.supports('color', token)) return null;
+    // Resolve contextual colors against the host, then paint and measure the same sRGB value.
+    const srgb = `color(from ${token} srgb r g b / alpha)`;
+    probe.style.setProperty('color', CSS.supports('color', srgb) ? srgb : token, 'important');
+    return accentFromComputedColor(getComputedStyle(probe).color);
   } finally {
     probe.remove();
   }
-  if (!background || /^currentcolor$/i.test(background)) return null;
+}
 
-  const canvas = document.createElement('canvas');
-  canvas.width = canvas.height = 1;
-  const context = canvas.getContext('2d');
-  if (!context) return null;
-
-  // Canvas retains its previous fill when a color is invalid. Two starting
-  // colors distinguish that case from a legitimate color matching either one.
-  context.fillStyle = '#000';
-  context.fillStyle = background;
-  const fill = context.fillStyle;
-  context.fillStyle = '#fff';
-  context.fillStyle = background;
-  if (fill !== context.fillStyle) return null;
-  context.fillRect(0, 0, 1, 1);
-  const [red, green, blue, alpha] = context.getImageData(0, 0, 1, 1).data;
-  if (alpha !== 255) return null;
+function accentFromComputedColor(color: string): ManagedAccent | null {
+  const srgb = /^color\(srgb ([^)]+)\)$/.exec(color);
+  const channels = srgb?.[1] ?? /^rgba?\(([^)]+)\)$/.exec(color)?.[1];
+  if (!channels) return null;
+  const values = channels.split(/[\s,/]+/).map(Number);
+  if (values.length < 3 || values.length > 4 || !values.every(Number.isFinite)) return null;
+  const [r, g, b, alpha = 1] = values;
+  if (alpha !== 1) return null;
+  const toByte = (value: number) =>
+    Math.round(Math.max(0, Math.min(255, value * (srgb ? 255 : 1))));
+  const [red, green, blue] = [toByte(r), toByte(g), toByte(b)];
   const luminance = 0.2126 * linear(red) + 0.7152 * linear(green) + 0.0722 * linear(blue);
-  return { background, foreground: luminance > 0.179 ? '#000' : '#fff' };
+  return {
+    background: `rgb(${red}, ${green}, ${blue})`,
+    foreground: luminance > 0.179 ? '#000' : '#fff',
+  };
 }
 
 function linear(value: number): number {

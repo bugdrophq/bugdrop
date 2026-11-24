@@ -118,6 +118,11 @@ for (const theme of ['light', 'dark'] as const) {
 test('build only mounts valid presentation after a script-scoped acknowledgment', async ({
   page,
 }) => {
+  await page.addInitScript(() => {
+    CanvasRenderingContext2D.prototype.getImageData = () => {
+      throw new Error('Canvas pixel readback is unavailable');
+    };
+  });
   await fixture(page);
   const mount = (options: object, acknowledge: boolean) =>
     page.evaluate(
@@ -161,6 +166,18 @@ test('build only mounts valid presentation after a script-scoped acknowledgment'
   await expect(page.locator('#bugdrop-managed-host')).toHaveCount(0);
   await mount({ accentColor: '#fafafa', repo: 'example/other' }, true);
   await expect(page.locator('#bugdrop-managed-host')).toHaveCount(0);
+  await page.locator('body').evaluate(body => (body.style.color = '#000'));
+  await mount({ accentColor: 'color-mix(in srgb, currentColor 99%, white)' }, true);
+  await expect(page.locator('#bugdrop-managed-host .launcher')).toHaveCSS(
+    'background-color',
+    'rgb(3, 3, 3)'
+  );
+  await expect(page.locator('#bugdrop-managed-host .launcher')).toHaveCSS(
+    'color',
+    'rgb(255, 255, 255)'
+  );
+
+  await page.reload();
   await page
     .locator('html')
     .evaluate(root => root.style.setProperty('--fixture-accent', '#fafafa'));
