@@ -178,6 +178,15 @@ test('build only mounts valid presentation after a script-scoped acknowledgment'
   );
 
   await page.reload();
+  await mount({ accentColor: 'rgb(none 100 0 / none)' }, true);
+  await expect(page.locator('#bugdrop-managed-host')).toHaveCount(0);
+  await mount({ accentColor: 'rgb(none 100 0 / 1)' }, true);
+  await expect(page.locator('#bugdrop-managed-host .launcher')).toHaveCSS(
+    'background-color',
+    'rgb(0, 100, 0)'
+  );
+
+  await page.reload();
   await page
     .locator('html')
     .evaluate(root => root.style.setProperty('--fixture-accent', '#fafafa'));

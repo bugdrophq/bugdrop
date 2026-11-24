@@ -73,7 +73,10 @@ function accentFromComputedColor(color: string): ManagedAccent | null {
   const srgb = /^color\(srgb ([^)]+)\)$/.exec(color);
   const channels = srgb?.[1] ?? /^rgba?\(([^)]+)\)$/.exec(color)?.[1];
   if (!channels) return null;
-  const values = channels.split(/[\s,/]+/).map(Number);
+  const values = channels
+    .trim()
+    .split(/[\s,/]+/)
+    .map(value => (value === 'none' ? 0 : Number(value)));
   if (values.length < 3 || values.length > 4 || !values.every(Number.isFinite)) return null;
   const [r, g, b, alpha = 1] = values;
   if (alpha !== 1) return null;
