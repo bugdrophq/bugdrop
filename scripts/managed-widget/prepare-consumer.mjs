@@ -11,6 +11,14 @@ const sdkRoot = process.env.BUGDROP_MANAGED_SDK_ROOT;
 if (!sdkRoot) throw new Error('Set BUGDROP_MANAGED_SDK_ROOT to a built SDK checkout.');
 const manifest = JSON.parse(await readFile(resolve(sdkRoot, 'packages/browser/package.json')));
 assert.equal(manifest.name, '@bugdrop/browser');
+if (process.env.BUGDROP_MANAGED_PRESENTATION === '1') {
+  const declaration = 'packages/browser/src/widget-presentation.generated.ts';
+  assert.equal(
+    await readFile(resolve(sdkRoot, declaration), 'utf8'),
+    await readFile('src/widget/managed/presentation-types.ts', 'utf8'),
+    'The SDK presentation declaration must match the canonical widget source.'
+  );
+}
 const directory = await realpath(await mkdtemp(join(tmpdir(), 'bugdrop-managed-consumer-')));
 try {
   const packed = execFileSync(
@@ -49,7 +57,10 @@ try {
   assert.ok(entry.includes('/dist/'));
   await build({
     stdin: {
-      contents: "import { BugDrop } from '@bugdrop/browser'; window.PackedBugDrop = BugDrop;",
+      contents: `import { BugDrop } from '@bugdrop/browser';
+        import { BugDropOptIn } from '@bugdrop/browser/opt-in';
+        window.PackedBugDrop = BugDrop;
+        window.PackedBugDropOptIn = BugDropOptIn;`,
       resolveDir: directory,
     },
     outfile: 'dist/managed-widget/packed-sdk.js',

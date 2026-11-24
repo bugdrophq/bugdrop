@@ -24,6 +24,7 @@ export interface ManagedUIOptions {
   theme: 'light' | 'dark' | 'auto';
   position: 'bottom-right' | 'bottom-left';
   buttonVisible: boolean;
+  accentColor?: string;
   guard?: RecoveryGuard;
   createSubmission(feedback: ManagedFeedback): Promise<PreparedSubmission>;
 }
@@ -195,6 +196,11 @@ export function createManagedUI(host: HTMLElement, options: ManagedUIOptions): M
 
   root.dataset.theme = options.theme;
   root.dataset.position = options.position;
+  if (options.accentColor !== undefined) {
+    root.style.setProperty('--bd-primary', options.accentColor);
+    root.style.setProperty('--accent', options.accentColor);
+    root.dataset.customAccent = '';
+  }
   launcher.hidden = !options.buttonVisible;
   for (const field of Array.from(form.querySelectorAll('input, textarea, select'))) {
     field.addEventListener('input', () => {
