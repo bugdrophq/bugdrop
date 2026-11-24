@@ -66,7 +66,7 @@ describe('controller-owned Cloudflare command plan', () => {
   });
 
   it('rejects the previous toolchain instead of accepting stale capability evidence', () => {
-    expect(() => plan({ controllerLockBytes: lock('4.156.0') })).toThrow(
+    expect(() => plan({ controllerLockBytes: lock('4.162.0') })).toThrow(
       'WRANGLER_VERSION_MISMATCH'
     );
   });
