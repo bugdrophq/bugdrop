@@ -11,7 +11,7 @@ These attributes control the fundamental behavior of the widget.
 | `data-repo` | **(required)** | GitHub repository in `owner/repo` format |
 | `data-app-version` | omitted | Host application version shown in System Info (1 to 128 printable characters) |
 | `data-theme` | `"auto"` | Widget theme: `"light"`, `"dark"`, or `"auto"` |
-| `data-locale` | `<html lang>` or `"en"` | UI language: `"de"`, `"en"`, `"nl"`, `"pl"`; `"zh-CN"` in builds that include Simplified Chinese |
+| `data-locale` | `<html lang>` or `"en"` | UI language: `"de"`, `"en"`, `"nl"`, `"pl"`; `"cs"` and `"zh-CN"` in builds that include Czech and Simplified Chinese |
 | `data-button-style` | `"label"` | Launcher style: draggable horizontal `"label"` or fixed vertical `"tab"` |
 | `data-position` | `"bottom-right"` | Button position: `"bottom-right"` or `"bottom-left"` |
 | `data-color` | `"#14b8a6"` | Primary accent color (any CSS color value) |
@@ -66,8 +66,8 @@ The `data-locale` attribute controls BugDrop's built-in widget UI text -- the
 feedback form, screenshot flow, annotation tools, and most success/error messages.
 Brand attribution, custom labels, and server-provided error text may remain as
 provided. Built-in locales are **`de`** (German), **`en`** (English), **`nl`** (Dutch),
-and **`pl`** (Polish). Builds that include the Simplified Chinese update also
-support **`zh-CN`**. Check your deployed widget version before selecting it.
+and **`pl`** (Polish). Builds that include the Czech or Simplified Chinese update also
+support **`cs`** or **`zh-CN`**. Check your deployed widget version before selecting it.
 
 Resolution order:
 
