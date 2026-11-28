@@ -4,7 +4,7 @@ import { expect, test, type Page } from '@playwright/test';
 const app = 'https://bugdrop.localhost';
 const accent = '#a1236f';
 const accentRgb = 'rgb(161, 35, 111)';
-const candidate = process.env.BUGDROP_MANAGED_PRESENTATION === '1';
+const candidate = process.env.BUGDROP_MANAGED_PRESENTATION !== '0';
 const baseline = process.env.BUGDROP_MANAGED_BASELINE_DIR;
 type Theme = 'light' | 'dark';
 type InitOptions = {
