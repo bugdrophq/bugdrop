@@ -38,6 +38,21 @@ The browser tests open the real widget and intercept its API requests so they
 can assert both the visible outcome and the submitted data without creating
 a GitHub Issue.
 
+### Managed widget parity
+
+The Widget repository owns the shared Chromium tests. Both repositories run
+`npm run test:widget:managed` from this checkout with `BUGDROP_MANAGED_SDK_ROOT`
+pointing to a built SDK checkout. The test consumer installs the packed browser
+SDK. The direct managed script tag and that SDK each load the same SHA-256-addressed
+widget build and run the same presentation, accessibility, and delivery scenarios.
+Delivery requests are intercepted in the browser. The classic self-hosted script
+continues to use its existing compatibility suites.
+
+Widget CI tests changes against a pinned SDK revision. SDK CI tests changes
+against a pinned Widget revision. Update those pins through reviewed PRs when
+qualifying a new counterpart. Widget CI also exercises the previous supported
+SDK with presentation disabled for that older package.
+
 ## Pull Request Guidelines
 
 - Work on a feature branch. If you lack push access, use a fork.

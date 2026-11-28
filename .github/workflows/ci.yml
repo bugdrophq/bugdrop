@@ -168,21 +168,37 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: bugdrophq/bugdrop-sdk-typescript
-          ref: bab479314914dad3372b043b3dbcf17f132fff3a
+          ref: 4490a7ad8d7f7ed60a4a95f0c7212d25ceb603d0
           path: .managed-widget-sdk
           persist-credentials: false
 
-      - name: Build the SDK package for managed widget qualification
-        run: |
-          npm ci --prefix .managed-widget-sdk
-          npm run build --prefix .managed-widget-sdk
+      - name: Check out the previous browser SDK
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: bugdrophq/bugdrop-sdk-typescript
+          ref: bab479314914dad3372b043b3dbcf17f132fff3a
+          path: .managed-widget-sdk-previous
+          persist-credentials: false
 
-      - name: Qualify the managed widget with the packed browser SDK
+      - name: Build the qualified and previous browser SDKs
+        run: |
+          npm ci --prefix .managed-widget-sdk --ignore-scripts --no-audit --no-fund
+          npm run build --prefix .managed-widget-sdk
+          npm ci --prefix .managed-widget-sdk-previous --ignore-scripts --no-audit --no-fund
+          npm run build --prefix .managed-widget-sdk-previous
+
+      - name: Qualify managed script-tag and packed SDK parity
         env:
           BUGDROP_MANAGED_SDK_ROOT: .managed-widget-sdk
         run: |
           npx playwright install --with-deps chromium
           npm run test:widget:managed
+
+      - name: Verify compatibility with the previous packed SDK
+        env:
+          BUGDROP_MANAGED_SDK_ROOT: .managed-widget-sdk-previous
+          BUGDROP_MANAGED_PRESENTATION: '0'
+        run: npm run test:widget:managed
 
       - name: Preserve unit coverage report
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2

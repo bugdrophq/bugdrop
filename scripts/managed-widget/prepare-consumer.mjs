@@ -11,7 +11,7 @@ const sdkRoot = process.env.BUGDROP_MANAGED_SDK_ROOT;
 if (!sdkRoot) throw new Error('Set BUGDROP_MANAGED_SDK_ROOT to a built SDK checkout.');
 const manifest = JSON.parse(await readFile(resolve(sdkRoot, 'packages/browser/package.json')));
 assert.equal(manifest.name, '@bugdrop/browser');
-const presentationMode = process.env.BUGDROP_MANAGED_PRESENTATION === '1';
+const presentationMode = process.env.BUGDROP_MANAGED_PRESENTATION !== '0';
 if (presentationMode) {
   const declaration = 'packages/browser/src/widget-presentation.generated.ts';
   assert.equal(
