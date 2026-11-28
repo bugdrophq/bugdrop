@@ -72,7 +72,8 @@ export async function setupEntryPoint(
     if (url === submissionUrl && request.method() === 'POST') {
       return submit(route);
     }
-    return route.abort();
+    await route.abort();
+    throw new Error(`Unexpected ${request.method()} request in the managed widget fixture: ${url}`);
   });
   const sdk =
     entryPoint === 'packed SDK' && (await readFile('dist/managed-widget/packed-sdk.js', 'utf8'));

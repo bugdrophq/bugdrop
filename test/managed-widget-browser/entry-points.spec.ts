@@ -146,6 +146,7 @@ for (const entryPoint of entryPoints) {
     });
 
     test('verifier-only success cannot become a delivered confirmation', async ({ page }) => {
+      let replies = 0;
       const host = await boot(
         page,
         async route => {
@@ -155,6 +156,7 @@ for (const entryPoint of entryPoints) {
             contentType: 'application/json',
             body: JSON.stringify({ schemaVersion: 1, status: 'verified' }),
           });
+          replies++;
         },
         { button: false }
       );
@@ -166,6 +168,7 @@ for (const entryPoint of entryPoints) {
         .fill('No Issue has been created by verification.');
       await host.locator('[data-action="submit"]').click();
       await expect(host.locator('[data-action="check-result"]')).toBeVisible();
+      expect(replies).toBe(1);
       await expect(host.locator('[data-role="receipt"]')).toBeEmpty();
       await expect(host.locator('[data-role="status"]')).not.toContainText(/^delivered/i);
     });
